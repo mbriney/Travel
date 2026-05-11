@@ -1,0 +1,129 @@
+{
+  "_comment": "Hand-curated airline overlay merged on top of the OpenFlights data during build_airports.py. Entries here AUTHORITATIVELY OVERRIDE OpenFlights — useful when an IATA code has been reassigned to a different carrier after a merger or shutdown. Schema: each key is the IATA 2-letter code.",
+
+  "AA": { "iata":"AA","icao":"AAL","name":"American Airlines",       "country":"United States","active":true,  "started":"1930-04-15","alliance":"oneworld",      "type":"legacy" },
+  "AS": { "iata":"AS","icao":"ASA","name":"Alaska Airlines",         "country":"United States","active":true,  "started":"1932-04-14","alliance":"oneworld",      "type":"legacy" },
+  "B6": { "iata":"B6","icao":"JBU","name":"JetBlue Airways",         "country":"United States","active":true,  "started":"2000-02-11","alliance":null,             "type":"low-cost" },
+  "DL": { "iata":"DL","icao":"DAL","name":"Delta Air Lines",         "country":"United States","active":true,  "started":"1924-03-02","alliance":"SkyTeam",        "type":"legacy" },
+  "F9": { "iata":"F9","icao":"FFT","name":"Frontier Airlines",       "country":"United States","active":true,  "started":"1994-07-05","alliance":null,             "type":"ultra-low-cost" },
+  "G4": { "iata":"G4","icao":"AAY","name":"Allegiant Air",           "country":"United States","active":true,  "started":"1997-01-01","alliance":null,             "type":"ultra-low-cost" },
+  "HA": { "iata":"HA","icao":"HAL","name":"Hawaiian Airlines",       "country":"United States","active":true,  "started":"1929-11-11","alliance":null,             "type":"legacy" },
+  "NK": { "iata":"NK","icao":"NKS","name":"Spirit Airlines",         "country":"United States","active":true,  "started":"1980-01-01","alliance":null,             "type":"ultra-low-cost" },
+  "SY": { "iata":"SY","icao":"SCX","name":"Sun Country Airlines",    "country":"United States","active":true,  "started":"1983-01-01","alliance":null,             "type":"low-cost" },
+  "UA": { "iata":"UA","icao":"UAL","name":"United Airlines",         "country":"United States","active":true,  "started":"1931-04-06","alliance":"Star Alliance",  "type":"legacy" },
+  "WN": { "iata":"WN","icao":"SWA","name":"Southwest Airlines",      "country":"United States","active":true,  "started":"1967-03-15","alliance":null,             "type":"low-cost" },
+
+  "AC": { "iata":"AC","icao":"ACA","name":"Air Canada",              "country":"Canada",        "active":true,  "started":"1937-04-10","alliance":"Star Alliance",  "type":"legacy" },
+  "WS": { "iata":"WS","icao":"WJA","name":"WestJet",                 "country":"Canada",        "active":true,  "started":"1996-02-29","alliance":null,             "type":"low-cost" },
+  "PD": { "iata":"PD","icao":"POE","name":"Porter Airlines",         "country":"Canada",        "active":true,  "started":"2006-10-23","alliance":null,             "type":"regional" },
+
+  "AF": { "iata":"AF","icao":"AFR","name":"Air France",              "country":"France",        "active":true,  "started":"1933-10-07","alliance":"SkyTeam",        "type":"legacy" },
+  "AY": { "iata":"AY","icao":"FIN","name":"Finnair",                 "country":"Finland",       "active":true,  "started":"1923-11-01","alliance":"oneworld",       "type":"legacy" },
+  "AZ": { "iata":"AZ","icao":"ITY","name":"ITA Airways",             "country":"Italy",         "active":true,  "started":"2021-10-15","alliance":"SkyTeam",        "type":"legacy", "notes":"Successor to Alitalia (AZA)" },
+  "BA": { "iata":"BA","icao":"BAW","name":"British Airways",         "country":"United Kingdom","active":true,  "started":"1974-03-31","alliance":"oneworld",       "type":"legacy" },
+  "EI": { "iata":"EI","icao":"EIN","name":"Aer Lingus",              "country":"Ireland",       "active":true,  "started":"1936-05-27","alliance":null,             "type":"legacy" },
+  "FR": { "iata":"FR","icao":"RYR","name":"Ryanair",                 "country":"Ireland",       "active":true,  "started":"1984-07-08","alliance":null,             "type":"low-cost" },
+  "IB": { "iata":"IB","icao":"IBE","name":"Iberia",                  "country":"Spain",         "active":true,  "started":"1927-06-28","alliance":"oneworld",       "type":"legacy" },
+  "KL": { "iata":"KL","icao":"KLM","name":"KLM Royal Dutch Airlines","country":"Netherlands",   "active":true,  "started":"1919-10-07","alliance":"SkyTeam",        "type":"legacy" },
+  "LH": { "iata":"LH","icao":"DLH","name":"Lufthansa",               "country":"Germany",       "active":true,  "started":"1953-01-06","alliance":"Star Alliance",  "type":"legacy" },
+  "LO": { "iata":"LO","icao":"LOT","name":"LOT Polish Airlines",     "country":"Poland",        "active":true,  "started":"1929-01-01","alliance":"Star Alliance",  "type":"legacy" },
+  "LX": { "iata":"LX","icao":"SWR","name":"Swiss International Air Lines","country":"Switzerland","active":true,"started":"2002-03-31","alliance":"Star Alliance",  "type":"legacy" },
+  "OS": { "iata":"OS","icao":"AUA","name":"Austrian Airlines",       "country":"Austria",       "active":true,  "started":"1957-04-04","alliance":"Star Alliance",  "type":"legacy" },
+  "SK": { "iata":"SK","icao":"SAS","name":"SAS Scandinavian Airlines","country":"Scandinavia",  "active":true,  "started":"1946-08-01","alliance":"SkyTeam",        "type":"legacy" },
+  "TP": { "iata":"TP","icao":"TAP","name":"TAP Air Portugal",        "country":"Portugal",      "active":true,  "started":"1945-09-14","alliance":"Star Alliance",  "type":"legacy" },
+  "U2": { "iata":"U2","icao":"EZY","name":"easyJet",                 "country":"United Kingdom","active":true,  "started":"1995-10-18","alliance":null,             "type":"low-cost" },
+  "VS": { "iata":"VS","icao":"VIR","name":"Virgin Atlantic",         "country":"United Kingdom","active":true,  "started":"1984-06-22","alliance":"SkyTeam",        "type":"legacy" },
+
+  "AI": { "iata":"AI","icao":"AIC","name":"Air India",               "country":"India",         "active":true,  "started":"1932-10-15","alliance":"Star Alliance",  "type":"legacy" },
+  "BR": { "iata":"BR","icao":"EVA","name":"EVA Air",                 "country":"Taiwan",        "active":true,  "started":"1989-03-07","alliance":"Star Alliance",  "type":"legacy" },
+  "CA": { "iata":"CA","icao":"CCA","name":"Air China",               "country":"China",         "active":true,  "started":"1988-07-01","alliance":"Star Alliance",  "type":"legacy" },
+  "CI": { "iata":"CI","icao":"CAL","name":"China Airlines",          "country":"Taiwan",        "active":true,  "started":"1959-12-16","alliance":"SkyTeam",        "type":"legacy" },
+  "CX": { "iata":"CX","icao":"CPA","name":"Cathay Pacific",          "country":"Hong Kong",     "active":true,  "started":"1946-09-24","alliance":"oneworld",       "type":"legacy" },
+  "JL": { "iata":"JL","icao":"JAL","name":"Japan Airlines",          "country":"Japan",         "active":true,  "started":"1951-08-01","alliance":"oneworld",       "type":"legacy" },
+  "KE": { "iata":"KE","icao":"KAL","name":"Korean Air",              "country":"South Korea",   "active":true,  "started":"1969-03-01","alliance":"SkyTeam",        "type":"legacy" },
+  "MH": { "iata":"MH","icao":"MAS","name":"Malaysia Airlines",       "country":"Malaysia",      "active":true,  "started":"1947-05-01","alliance":"oneworld",       "type":"legacy" },
+  "NH": { "iata":"NH","icao":"ANA","name":"All Nippon Airways",      "country":"Japan",         "active":true,  "started":"1952-12-27","alliance":"Star Alliance",  "type":"legacy" },
+  "OZ": { "iata":"OZ","icao":"AAR","name":"Asiana Airlines",         "country":"South Korea",   "active":true,  "started":"1988-02-17","alliance":"Star Alliance",  "type":"legacy" },
+  "SQ": { "iata":"SQ","icao":"SIA","name":"Singapore Airlines",      "country":"Singapore",     "active":true,  "started":"1972-10-01","alliance":"Star Alliance",  "type":"legacy" },
+  "TG": { "iata":"TG","icao":"THA","name":"Thai Airways",            "country":"Thailand",      "active":true,  "started":"1960-05-01","alliance":"Star Alliance",  "type":"legacy" },
+  "VN": { "iata":"VN","icao":"HVN","name":"Vietnam Airlines",        "country":"Vietnam",       "active":true,  "started":"1956-01-15","alliance":"SkyTeam",        "type":"legacy" },
+  "6E": { "iata":"6E","icao":"IGO","name":"IndiGo",                  "country":"India",         "active":true,  "started":"2006-08-04","alliance":null,             "type":"low-cost" },
+  "UK": { "iata":"UK","icao":"VTI","name":"Vistara",                 "country":"India",         "active":true,  "started":"2015-01-09","alliance":null,             "type":"legacy", "notes":"Merging into Air India by 2024-25" },
+
+  "EK": { "iata":"EK","icao":"UAE","name":"Emirates",                "country":"United Arab Emirates","active":true,"started":"1985-10-25","alliance":null,        "type":"legacy" },
+  "EY": { "iata":"EY","icao":"ETD","name":"Etihad Airways",          "country":"United Arab Emirates","active":true,"started":"2003-07-13","alliance":null,        "type":"legacy" },
+  "QR": { "iata":"QR","icao":"QTR","name":"Qatar Airways",           "country":"Qatar",         "active":true,  "started":"1993-11-22","alliance":"oneworld",       "type":"legacy" },
+  "SV": { "iata":"SV","icao":"SVA","name":"Saudia",                  "country":"Saudi Arabia",  "active":true,  "started":"1945-09-14","alliance":"SkyTeam",        "type":"legacy" },
+  "TK": { "iata":"TK","icao":"THY","name":"Turkish Airlines",        "country":"Turkey",        "active":true,  "started":"1933-05-20","alliance":"Star Alliance",  "type":"legacy" },
+
+  "QF": { "iata":"QF","icao":"QFA","name":"Qantas",                  "country":"Australia",     "active":true,  "started":"1920-11-16","alliance":"oneworld",       "type":"legacy" },
+  "JQ": { "iata":"JQ","icao":"JST","name":"Jetstar Airways",         "country":"Australia",     "active":true,  "started":"2003-05-25","alliance":null,             "type":"low-cost" },
+  "VA": { "iata":"VA","icao":"VOZ","name":"Virgin Australia",        "country":"Australia",     "active":true,  "started":"2000-08-31","alliance":null,             "type":"legacy" },
+  "NZ": { "iata":"NZ","icao":"ANZ","name":"Air New Zealand",         "country":"New Zealand",   "active":true,  "started":"1965-04-01","alliance":"Star Alliance",  "type":"legacy" },
+  "FJ": { "iata":"FJ","icao":"FJI","name":"Fiji Airways",            "country":"Fiji",          "active":true,  "started":"1947-09-01","alliance":"oneworld",       "type":"legacy" },
+
+  "AR": { "iata":"AR","icao":"ARG","name":"Aerolíneas Argentinas",   "country":"Argentina",     "active":true,  "started":"1949-05-14","alliance":"SkyTeam",        "type":"legacy" },
+
+  "_DEFUNCT_AIRLINES": "===== merged / shut-down carriers below =====",
+
+  "FL": {
+    "iata":"FL","icao":"TRS","name":"AirTran Airways",
+    "country":"United States","active":false,
+    "started":"1993-10-26","ended":"2014-12-28",
+    "merged_into":"WN","successor_name":"Southwest Airlines",
+    "type":"low-cost",
+    "notes":"Acquired by Southwest in 2011; final flight Dec 28 2014. IATA code FL was later reassigned."
+  },
+  "CO": {
+    "iata":"CO","icao":"COA","name":"Continental Airlines",
+    "country":"United States","active":false,
+    "started":"1934-07-15","ended":"2012-03-03",
+    "merged_into":"UA","successor_name":"United Airlines",
+    "type":"legacy",
+    "notes":"Merged with United in 2010; single operating certificate 2012. CO has since been reassigned."
+  },
+  "US": {
+    "iata":"US","icao":"USA","name":"US Airways",
+    "country":"United States","active":false,
+    "started":"1939-09-19","ended":"2015-10-17",
+    "merged_into":"AA","successor_name":"American Airlines",
+    "type":"legacy",
+    "notes":"Merged with American in 2013; single operating certificate 2015."
+  },
+  "NW": {
+    "iata":"NW","icao":"NWA","name":"Northwest Airlines",
+    "country":"United States","active":false,
+    "started":"1926-09-01","ended":"2010-01-31",
+    "merged_into":"DL","successor_name":"Delta Air Lines",
+    "type":"legacy"
+  },
+  "TW": {
+    "iata":"TW","icao":"TWA","name":"Trans World Airlines",
+    "country":"United States","active":false,
+    "started":"1930-10-01","ended":"2001-12-01",
+    "merged_into":"AA","successor_name":"American Airlines",
+    "type":"legacy"
+  },
+  "VX": {
+    "iata":"VX","icao":"VRD","name":"Virgin America",
+    "country":"United States","active":false,
+    "started":"2007-08-08","ended":"2018-04-25",
+    "merged_into":"AS","successor_name":"Alaska Airlines",
+    "type":"legacy"
+  },
+  "HP": {
+    "iata":"HP","icao":"AWE","name":"America West Airlines",
+    "country":"United States","active":false,
+    "started":"1981-08-01","ended":"2007-09-25",
+    "merged_into":"US","successor_name":"US Airways",
+    "type":"low-cost"
+  },
+  "YX": {
+    "iata":"YX","icao":"RPA","name":"Republic Airways",
+    "country":"United States","active":true,
+    "started":"1974-01-01",
+    "alliance":null,
+    "type":"regional",
+    "notes":"Originally Midwest Airlines (1984-2010). After acquisition, IATA code YX was kept under the Republic Airways banner."
+  }
+}

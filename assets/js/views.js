@@ -1,7 +1,7 @@
 // views.js — top-level standalone views (Stats, World Map, US States).
 // These render into their own <section> elements rather than passport pages.
 
-import { formatNumber, formatDuration, formatDate, aircraftName, aircraftFamily, airlineLogoUrl, airlineBannerUrl, airlineDisplayName } from "./stats.js";
+import { formatNumber, formatDuration, formatDate, aircraftName, aircraftFamily, airlineLogoUrl, airlineBannerUrl, airlineDisplayName, airlineEntry, airlineSuccessor } from "./stats.js";
 
 // Helper: small <img> for an airline. Hides itself gracefully if 404.
 function airlineLogoImg(iata, airlinesIndex, alt) {
@@ -734,7 +734,12 @@ function openFlightModal(f, ctx) {
       ${row("Callsign",        f.callsign)}
       ${row("Seat",            f.seat)}
       ${row("Class",           f.service_class)}
-      ${row("Airline",         (airline?.name) || f.airline)}
+      ${row("Airline",         airlineDisplayName(f.airline_code, ctx.airlines, (airline?.name) || f.airline))}
+      ${row("Alliance",        airlineEntry(f.airline_code, ctx.airlines)?.alliance || "")}
+      ${row("Status",          (() => {
+        const succ = airlineSuccessor(f.airline_code, ctx.airlines);
+        return succ ? `Defunct (${succ.endedYear || "?"}) — merged into ${escapeHtml(succ.name || "")}` : "";
+      })())}
       ${row("Operating",       f.is_codeshare ? `${escapeHtml(f.operating_airline || "")} (codeshare)` : "")}
       ${row("From city",   `${escapeHtml(f.from_city || aFrom?.city || "")} ${aFrom ? `· ${aFrom.flag || ""} ${escapeHtml(aFrom.country_name || aFrom.country || "")}` : ""}`)}
       ${row("To city",     `${escapeHtml(f.to_city   || aTo?.city   || "")} ${aTo   ? `· ${aTo.flag   || ""} ${escapeHtml(aTo.country_name   || aTo.country   || "")}` : ""}`)}

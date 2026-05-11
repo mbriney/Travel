@@ -442,55 +442,25 @@ export function formatDate(d, opts = {}) {
 // ---------------------------------------------------------------------------
 const LOGO_BASE = "https://raw.githubusercontent.com/Jxck-S/airline-logos/main";
 
-// Historical / defunct airline overrides. IATA codes get reassigned by IATA
-// when a carrier folds, so OpenFlights's current-owner data is misleading
-// for flights from before those mergers. These entries override both the
-// airline NAME shown to the user and the ICAO used for logo lookups.
-const HISTORICAL_AIRLINES = {
-  FL: { name: "AirTran Airways",      icao: "TRS" }, // merged into Southwest 2014
-  CO: { name: "Continental Airlines", icao: "COA" }, // merged into United 2012
-  US: { name: "US Airways",           icao: "USA" }, // merged into American 2015
-  NW: { name: "Northwest Airlines",   icao: "NWA" }, // merged into Delta 2010
-  TW: { name: "TWA",                  icao: "TWA" }, // merged into American 2001
-  VX: { name: "Virgin America",       icao: "VRD" }, // merged into Alaska 2018
-  HP: { name: "America West",         icao: "AWE" }, // merged into US 2007
-  YX: { name: "Republic Airways",     icao: "RPA" }, // YX was Midwest pre-2009, then Republic
-};
-
-// A few well-known IATA->ICAO mappings used when OpenFlights doesn't have
-// the airline (e.g. ultra low-cost carriers in your history).
-const IATA_TO_ICAO_OVERRIDES = {
-  AA: "AAL", WN: "SWA", UA: "UAL", DL: "DAL", AS: "ASA",
-  B6: "JBU", F9: "FFT", NK: "NKS", G4: "AAY", HA: "HAL", SY: "SCX",
-  VX: "VRD", US: "USA", CO: "COA", NW: "NWA", TW: "TWA",
-  AC: "ACA", WS: "WJA", PD: "POE",
-  BA: "BAW", LH: "DLH", AF: "AFR", KL: "KLM", IB: "IBE", LX: "SWR",
-  AY: "FIN", OS: "AUA", SK: "SAS", AZ: "AZA", EI: "EIN", TP: "TAP",
-  SN: "BEL", LO: "LOT", FR: "RYR", U2: "EZY", VS: "VIR", BE: "BEE",
-  EK: "UAE", QR: "QTR", EY: "ETD", TK: "THY", SV: "SVA",
-  QF: "QFA", JQ: "JST", VA: "VOZ", NZ: "ANZ", FJ: "FJI",
-  JL: "JAL", NH: "ANA", SQ: "SIA", CX: "CPA", KE: "KAL", OZ: "AAR",
-  CI: "CAL", BR: "EVA", MH: "MAS", TG: "THA", VN: "HVN",
-  AI: "AIC", "6E": "IGO", UK: "VTI",
-};
-export function airlineIcao(iata, airlinesIndex) {
+// All airline metadata now lives in data/airlines.json — built from
+// OpenFlights with a hand-curated overlay (tools/curated_airlines.json) that
+// supplies authoritative entries for defunct/reassigned IATA codes.
+export function airlineEntry(iata, airlinesIndex) {
   if (!iata) return null;
-  const code = iata.toUpperCase();
-  // Historical first so reassigned IATA codes resolve to their original carrier.
-  if (HISTORICAL_AIRLINES[code]) return HISTORICAL_AIRLINES[code].icao;
-  if (IATA_TO_ICAO_OVERRIDES[code]) return IATA_TO_ICAO_OVERRIDES[code];
-  return airlinesIndex?.[code]?.icao || null;
+  return airlinesIndex?.[iata.toUpperCase()] || null;
 }
-// Display name that prefers the historical carrier when the IATA code has
-// been reassigned. Fall back to OpenFlights lookup, then to the code itself.
+export function airlineIcao(iata, airlinesIndex) {
+  return airlineEntry(iata, airlinesIndex)?.icao || null;
+}
+// Display name: prefer curated/OpenFlights data; if the IATA code was retired
+// (active === false), the curated overlay already gives us the historical
+// name (e.g. FL → "AirTran Airways" not "Fly Lili"). Fall back to whatever
+// TripIt stored, then the raw code.
 export function airlineDisplayName(iata, airlinesIndex, tripitName) {
-  if (!iata) return tripitName || "";
-  const code = iata.toUpperCase();
-  if (HISTORICAL_AIRLINES[code]) return HISTORICAL_AIRLINES[code].name;
-  // Trust TripIt's marketing_airline next — it was correct at the time of the
-  // booking confirmation, even for now-rare carriers.
+  const e = airlineEntry(iata, airlinesIndex);
+  if (e?.name) return e.name;
   if (tripitName) return tripitName;
-  return airlinesIndex?.[code]?.name || code;
+  return iata || "";
 }
 export function airlineLogoUrl(iata, airlinesIndex) {
   const icao = airlineIcao(iata, airlinesIndex);
@@ -499,4 +469,15 @@ export function airlineLogoUrl(iata, airlinesIndex) {
 export function airlineBannerUrl(iata, airlinesIndex) {
   const icao = airlineIcao(iata, airlinesIndex);
   return icao ? `${LOGO_BASE}/radarbox_banners/${icao}.png` : null;
+}
+// Useful for the flight detail modal: tell the user when an airline they flew
+// has since merged into another carrier.
+export function airlineSuccessor(iata, airlinesIndex) {
+  const e = airlineEntry(iata, airlinesIndex);
+  if (!e || e.active !== false) return null;
+  return {
+    name: e.successor_name || e.merged_into || null,
+    iata: e.merged_into || null,
+    endedYear: e.ended ? e.ended.slice(0, 4) : null,
+  };
 }

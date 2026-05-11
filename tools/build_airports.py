@@ -96,10 +96,23 @@ def build_airports(countries: dict[str, dict]) -> dict[str, dict]:
     return out
 
 
+CURATED_AIRLINES_FILE = Path(__file__).resolve().parent / "curated_airlines.json"
+
+
 def build_airlines() -> dict[str, dict]:
+    """Build the airline catalog.
+
+    Source priority (highest wins on any field):
+      1. tools/curated_airlines.json  — hand-curated, includes defunct/merged
+                                         carriers, alliance, operating dates,
+                                         and authoritative IATA->ICAO mappings.
+      2. OpenFlights airlines.dat     — broad coverage of currently-active
+                                         carriers, but stale for reassigned
+                                         IATA codes (FL, CO, US, NW, TW, …).
+    """
     txt = fetch(OPENFLIGHTS_AIRLINES_URL)
-    # OpenFlights airlines.dat has no header. Quoted strings, comma-separated.
     out: dict[str, dict] = {}
+    # Pass 1: OpenFlights baseline
     for row in csv.reader(io.StringIO(txt)):
         if len(row) < 8:
             continue
@@ -108,7 +121,6 @@ def build_airlines() -> dict[str, dict]:
         if not iata or len(iata) != 2 or iata == "\\N":
             continue
         if active.strip().upper() != "Y":
-            # Skip defunct airlines unless we have no live row for this code yet.
             if iata in out:
                 continue
         out[iata] = {
@@ -116,7 +128,27 @@ def build_airlines() -> dict[str, dict]:
             "icao": (icao or "").strip().upper(),
             "name": name.strip(),
             "country": country.strip(),
+            "active": active.strip().upper() == "Y",
+            "source": "openflights",
         }
+
+    # Pass 2: apply the curated overlay (overrides OpenFlights for that IATA)
+    if CURATED_AIRLINES_FILE.exists():
+        curated = json.loads(CURATED_AIRLINES_FILE.read_text())
+        applied = 0
+        for code, entry in curated.items():
+            if code.startswith("_"):
+                continue
+            if not isinstance(entry, dict):
+                continue
+            entry = dict(entry)
+            entry["source"] = "curated"
+            out[code] = entry
+            applied += 1
+        print(f"  applied {applied} curated airline overrides")
+    else:
+        print(f"  no curated overlay at {CURATED_AIRLINES_FILE}")
+
     print(f"  kept {len(out)} airlines")
     return out
 
