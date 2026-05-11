@@ -442,48 +442,62 @@ function buildStateStampData(code, info, ctx) {
   };
 }
 
-// Pack stamps into pages. 8 stamps per page on a 4-col × 2-row anchor grid
-// with small jitter, plus a staggered offset on alternating rows so they
-// don't sit on a rigid grid.
+// Stamp pages — countries and states are paged SEPARATELY so the header
+// label clearly switches when we cross the boundary.
+//
+// Layout: 3 columns × 4 rows = 12 stamps per page, with anchor positions
+// well inside the page edges and only tiny jitter so stamps never overflow.
 function buildStampPages(ctx) {
-  const all = [...collectCountryStamps(ctx), ...collectStateStamps(ctx)];
-  const PER_PAGE = 8;
+  const countryStamps = collectCountryStamps(ctx);
+  const stateStamps   = collectStateStamps(ctx);
+  const PER_PAGE = 12;
   const pages = [];
-  for (let i = 0; i < all.length; i += PER_PAGE) {
-    const slice = all.slice(i, i + PER_PAGE);
-    const num = i / PER_PAGE + 1;
-    const p = page("stamps", "stamps-page");
-    p.innerHTML = `
-      <div class="paper blue stamps">
-        <div class="bio-watermark watermark-light" aria-hidden="true"></div>
-        <div class="page-header"><span>Visas · Stamps</span><small>page ${num}</small></div>
-        <div class="stamps-inner">
-          <div class="stamps-scatter">
-            ${slice.map((d, idx) => renderScatteredStamp(d, idx)).join("")}
+
+  function makePages(stamps, kindLabel, kindClass) {
+    if (!stamps.length) return;
+    const total = Math.ceil(stamps.length / PER_PAGE);
+    for (let i = 0; i < stamps.length; i += PER_PAGE) {
+      const slice = stamps.slice(i, i + PER_PAGE);
+      const num = i / PER_PAGE + 1;
+      const p = page("stamps", `stamps-page ${kindClass}`);
+      p.innerHTML = `
+        <div class="paper blue stamps">
+          <div class="bio-watermark watermark-light" aria-hidden="true"></div>
+          <div class="page-header">
+            <span>Visas · ${kindLabel}</span>
+            <small>page ${num} of ${total}</small>
           </div>
-        </div>
-        ${pageNumBadge(2 + num)}
-      </div>`;
-    pages.push(p);
+          <div class="stamps-inner">
+            <div class="stamps-scatter">
+              ${slice.map((d, idx) => renderScatteredStamp(d, idx)).join("")}
+            </div>
+          </div>
+          ${pageNumBadge(pages.length + 3)}
+        </div>`;
+      pages.push(p);
+    }
   }
+
+  makePages(countryStamps, "Countries", "stamps-country");
+  makePages(stateStamps,   "United States", "stamps-state");
   return pages;
 }
 
-// 4-col × 2-row anchor grid. Rows are slightly staggered so the layout reads
-// like a real passport page rather than a perfect grid; tiny per-stamp jitter
-// on top of that keeps neighbors clear of each other.
+// 3-col × 4-row anchor grid with small jitter. Anchors are well inside the
+// page boundary so even a rotated, max-width stamp can't run off the edge.
 function renderScatteredStamp(d, idx) {
-  const cols = 4, rowSize = cols;
-  const col = idx % cols;
-  const row = Math.floor(idx / cols);
-  // Even rows align to one set of anchors, odd rows shift by half a column.
-  const stagger = (row % 2) * (100 / (cols * 2));
-  const baseX = (100 / (cols * 2)) + col * (100 / cols) + stagger;   // 12.5, 37.5, 62.5, 87.5 (+ stagger)
-  const baseY = 30 + row * 38;
-  const jx = (d.rng() * 5 - 2.5);
-  const jy = (d.rng() * 5 - 2.5);
-  const x = (baseX + jx).toFixed(1);
-  const y = (baseY + jy).toFixed(1);
+  const COLS = 3, ROWS = 4;
+  const col = idx % COLS;
+  const row = Math.floor(idx / COLS);
+  // Horizontal: 20%, 50%, 80% — leaves ~20% on each side for the stamp body.
+  const baseX = 20 + col * 30;
+  // Vertical: 13%, 35.66%, 58.33%, 81% — top row clears the header, bottom
+  // row clears the page-number badge.
+  const baseY = 13 + row * (68 / 3);
+  const jx = (d.rng() * 4 - 2);
+  const jy = (d.rng() * 4 - 2);
+  const x = Math.max(18, Math.min(82, baseX + jx)).toFixed(1);
+  const y = Math.max(11, Math.min(85, baseY + jy)).toFixed(1);
   return `
     <div class="stamp-anchor" style="left:${x}%;top:${y}%">
       ${renderStamp(d)}

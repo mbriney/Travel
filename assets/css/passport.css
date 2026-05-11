@@ -539,6 +539,9 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   position: relative;
   flex: 1;
   margin-top: 4px;
+  /* Hard clip: any anchor jitter or rotation that exceeds the safe zone is
+     visually cropped here rather than spilling over the page edges. */
+  overflow: hidden;
 }
 .stamp-anchor {
   position: absolute;
