@@ -1896,6 +1896,62 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   font-family: var(--font-mrz);
   color: var(--accent);
 }
+.ach-item.is-visited { background: rgba(74, 222, 128, 0.10); border-color: rgba(74, 222, 128, 0.30); }
+.ach-item.is-missing { opacity: 0.45; }
+.ach-item-date { color: var(--ink-3); font-size: 11px; font-family: var(--font-mrz); margin-left: 4px; }
+
+/* Compact flight row inside achievement modals */
+.ach-flight-row {
+  display: grid;
+  grid-template-columns: 28px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: rgba(167, 139, 250, 0.06);
+  border: 1px solid rgba(167, 139, 250, 0.20);
+  border-radius: 8px;
+  font-size: 12.5px;
+  margin-bottom: 6px;
+}
+.ach-flight-row .airline-logo { width: 24px; height: 24px; }
+.ach-flight-info { min-width: 0; }
+.ach-flight-route {
+  font-family: var(--font-mrz);
+  color: var(--accent);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+.ach-flight-meta { font-size: 11px; margin-top: 1px; }
+.ach-flight-side {
+  text-align: right;
+  font-family: var(--font-mrz);
+  font-size: 11px;
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+
+/* Rank rows (airline / route / year / etc.) inside maxof sections */
+.ach-rank-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 8px;
+  font-size: 13px;
+  margin-bottom: 4px;
+}
+.ach-rank-row code {
+  font-family: var(--font-mrz);
+  color: var(--accent);
+  font-weight: 600;
+}
+.ach-rank-name { color: var(--ink-1); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ach-rank-v { font-family: var(--font-mrz); color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.ach-rank-row .logo-code { display: inline-flex; align-items: center; gap: 6px; }
+.ach-rank-row .airline-logo { width: 18px; height: 18px; }
 
 /* ===========================================================================
    Responsive

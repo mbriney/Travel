@@ -937,76 +937,859 @@ function describeRequirement(ach) {
   }
 }
 
-function progressLineFor(ach) {
-  if (ach.unlocked) {
-    return `<div class="ach-detail-progress unlocked">✓ Unlocked at ${formatNumber(ach.current)} / ${formatNumber(ach.req)}</div>`;
-  }
-  const remaining = Math.max(0, ach.req - ach.current);
-  let remainingStr;
-  if (ach.type === "distance_km") {
-    remainingStr = `${Math.round(remaining).toLocaleString()} km`;
-  } else if (ach.type === "flight_hours") {
-    remainingStr = `${remaining.toFixed(1)} hours`;
-  } else {
-    remainingStr = `${Math.round(remaining).toLocaleString()}`;
-  }
+// Classify an achievement type by how it should be measured/displayed.
+//   - "count"  : cumulative — unlocked when running total ≥ req. The
+//                threshold-crossing flight is meaningful.
+//   - "event"  : counts how many times something happened (>=1). For low
+//                req, every qualifying flight is interesting.
+//   - "set"    : unlocked when the cardinality of a distinct-item set ≥ req.
+//                Show all items in the set.
+//   - "maxof"  : pick the single best instance (longest, fastest, most
+//                repeats, etc.) and show it. Other top instances are also
+//                interesting.
+//   - "span"   : time-span between first & last flight.
+//   - "meta"   : derived from other achievements.
+function metricKind(type) {
+  if (["flights_count","distance_km","distance_mi","flight_hours","earth_laps","moon_trips","boeing_segments","airbus_segments"].includes(type)) return "count";
+  if (["countries","airlines","airports","us_states","continents","domestic_airports","aircraft_families","airport_alphabet","top_10_hubs","eu_countries","as_countries","middle_east_set","southerner_set"].includes(type)) return "set";
+  if (["single_flight_distance","max_flight_minutes","min_flight_minutes","airline_loyalty","same_route","flights_per_month","flights_per_year","best_year_miles","countries_per_year","max_layover_minutes","max_trip_legs","max_repeat_flightno","max_tail_repeats","consecutive_months"].includes(type)) return "maxof";
+  if (type === "years_span") return "span";
+  if (type === "wright_stuff") return "meta";
+  return "event";
+}
+
+// Format a single flight as a compact row with its airline logo
+function flightRow(f, ctx, opts = {}) {
+  const code = f.airline_code;
+  const name = airlineDisplayName(code, ctx.airlines, f.airline);
+  const url  = airlineLogoUrl(code, ctx.airlines);
+  const logo = url
+    ? `<img class="airline-logo" src="${url}" alt="${escapeHtml(name || code || "")}" onerror="this.classList.add('is-missing')"/>`
+    : "";
+  const extra = opts.extra ? `<span class="muted small">${opts.extra}</span>` : "";
   return `
-    <div class="ach-detail-progress">
-      <div class="ach-detail-bar"><div class="ach-detail-bar-fill" style="width:${ach.ratio*100}%"></div></div>
-      <div class="ach-detail-numbers">
-        <strong>${formatNumber(ach.current)}</strong> of <strong>${formatNumber(ach.req)}</strong>
-        · <span class="muted">${remainingStr} to go</span>
+    <div class="ach-flight-row">
+      ${logo}
+      <div class="ach-flight-info">
+        <div class="ach-flight-route">${f.from} → ${f.to}</div>
+        <div class="ach-flight-meta muted">
+          ${escapeHtml([code, f.flight_number].filter(Boolean).join(" "))}
+          ${escapeHtml(name) ? `· ${escapeHtml(name)}` : ""}
+        </div>
+      </div>
+      <div class="ach-flight-side">
+        <div>${formatDate(f.depart)}</div>
+        ${extra}
       </div>
     </div>`;
 }
 
+// Build all detail sections for a given achievement. Returns an array of
+// {label, html} blocks the modal renders in order.
+function buildAchievementDetail(ach, ctx) {
+  const kind = metricKind(ach.type);
+  const s = ctx.stats;
+  const blocks = [];
+
+  // ── progress banner ────────────────────────────────────────────────────
+  if (ach.unlocked) {
+    const summary = buildUnlockedSummary(ach, ctx);
+    blocks.push({ html: `<div class="ach-detail-progress unlocked">✓ ${summary}</div>` });
+  } else {
+    let remaining = Math.max(0, ach.req - ach.current);
+    let remStr;
+    if (ach.type === "distance_km")      remStr = `${Math.round(remaining).toLocaleString()} km`;
+    else if (ach.type === "distance_mi") remStr = `${Math.round(remaining).toLocaleString()} mi`;
+    else if (ach.type === "flight_hours")remStr = `${remaining.toFixed(1)} hours`;
+    else if (ach.type === "years_span")  remStr = `${remaining} more year${remaining === 1 ? "" : "s"}`;
+    else                                 remStr = `${Math.round(remaining).toLocaleString()}`;
+    blocks.push({
+      html: `
+        <div class="ach-detail-progress">
+          <div class="ach-detail-bar"><div class="ach-detail-bar-fill" style="width:${ach.ratio*100}%"></div></div>
+          <div class="ach-detail-numbers">
+            <strong>${formatNumber(ach.current)}</strong> of <strong>${formatNumber(ach.req)}</strong>
+            · <span class="muted">${remStr} to go</span>
+          </div>
+        </div>
+        <div class="ach-needs">
+          <div class="lbl">How to unlock</div>
+          <div>${describeRequirement(ach)}</div>
+        </div>`,
+    });
+  }
+
+  // ── type-specific detail body ──────────────────────────────────────────
+
+  // SET: show all items in the set with checkmarks/dates
+  if (kind === "set") {
+    const items = buildSetItems(ach, ctx);
+    if (items.length) {
+      const collected = items.filter(i => i.visited).length;
+      blocks.push({
+        html: `<div class="ach-items">
+          <div class="lbl">Items collected <span class="muted">(${collected}${ach.type === "us_states" ? " of 50" : items.length > collected ? " of " + items.length : ""})</span></div>
+          <div class="ach-items-list">
+            ${items.map(i =>
+              `<div class="ach-item ${i.visited ? "is-visited" : "is-missing"}">${i.label}${i.date ? ` <span class="ach-item-date">${i.date}</span>` : ""}</div>`
+            ).join("")}
+          </div>
+        </div>`,
+      });
+    }
+  }
+
+  // COUNT: show threshold flight + recent qualifying flights
+  if (kind === "count") {
+    const flights = qualifyingFlights(ach, ctx);
+    const thresholdFlight = ach.unlocked ? findThresholdFlight(ach, ctx) : null;
+    if (thresholdFlight) {
+      blocks.push({
+        html: `<div class="ach-earned">
+          <div class="lbl">Threshold crossed by</div>
+          ${flightRow(thresholdFlight, ctx, { extra: thresholdNote(ach, thresholdFlight, ctx) })}
+        </div>`,
+      });
+    }
+    if (flights.length > 1) {
+      const recent = flights.slice(-8).reverse();
+      blocks.push({
+        html: `<div class="ach-items">
+          <div class="lbl">Most recent qualifying flights <span class="muted">(showing ${recent.length} of ${flights.length})</span></div>
+          ${recent.map(f => flightRow(f, ctx)).join("")}
+        </div>`,
+      });
+    }
+  }
+
+  // EVENT: every flight that triggered this achievement
+  if (kind === "event") {
+    const flights = qualifyingFlights(ach, ctx);
+    if (flights.length) {
+      const sampleN = Math.min(flights.length, 12);
+      const sample = flights.slice(-sampleN).reverse();
+      blocks.push({
+        html: `<div class="ach-items">
+          <div class="lbl">Achieved ${flights.length} time${flights.length === 1 ? "" : "s"}${sampleN < flights.length ? ` <span class="muted">(showing ${sampleN} most recent)</span>` : ""}</div>
+          ${sample.map(f => flightRow(f, ctx, { extra: eventExtra(ach, f, ctx) })).join("")}
+        </div>`,
+      });
+    }
+  }
+
+  // MAXOF: show the record-holding instance + a top-N ranking
+  if (kind === "maxof") {
+    const max = buildMaxOf(ach, ctx);
+    if (max?.record) {
+      blocks.push({
+        html: `<div class="ach-earned">
+          <div class="lbl">Your record</div>
+          ${max.record}
+        </div>`,
+      });
+    }
+    if (max?.ranking?.length) {
+      blocks.push({
+        html: `<div class="ach-items">
+          <div class="lbl">${max.rankingLabel || "Top instances"}</div>
+          ${max.ranking.join("")}
+        </div>`,
+      });
+    }
+  }
+
+  // SPAN: first + last flight
+  if (kind === "span") {
+    if (s.firstFlight && s.lastFlight) {
+      const firstF = ctx.flights.reduce((a,b) => (a.depart || "") < (b.depart || "") ? a : b);
+      const lastF  = ctx.flights.reduce((a,b) => (a.depart || "") > (b.depart || "") ? a : b);
+      blocks.push({
+        html: `<div class="ach-earned">
+          <div class="lbl">First flight on record</div>
+          ${flightRow(firstF, ctx)}
+        </div>
+        <div class="ach-earned">
+          <div class="lbl">Most recent flight</div>
+          ${flightRow(lastF, ctx)}
+        </div>`,
+      });
+    }
+  }
+
+  // META (Wright Stuff): show category coverage
+  if (kind === "meta" && ach.type === "wright_stuff") {
+    const results = (function () {
+      // Re-derive category coverage from globally evaluated results.
+      // We don't have access here, so just enumerate from ACHIEVEMENTS list.
+      const byCat = new Map();
+      for (const a of ACHIEVEMENTS) {
+        if (a.type === "wright_stuff") continue;
+        if (!byCat.has(a.category)) byCat.set(a.category, { unlocked: 0, total: 0 });
+        byCat.get(a.category).total++;
+      }
+      // Stats can't tell us directly which are unlocked; the modal opener
+      // resolves `ach` from a fully-evaluated list so we recompute briefly.
+      return byCat;
+    })();
+    const rows = [...results.entries()].map(([cat, info]) =>
+      `<div class="ach-item is-visited"><strong>${cat}</strong> <span class="muted small">${info.total} achievements</span></div>`
+    );
+    blocks.push({
+      html: `<div class="ach-items">
+        <div class="lbl">Categories</div>
+        <div class="ach-items-list">${rows.join("")}</div>
+      </div>`,
+    });
+  }
+
+  return blocks;
+}
+
+// "Unlocked …" headline that varies by type
+function buildUnlockedSummary(ach, ctx) {
+  const kind = metricKind(ach.type);
+  const s = ctx.stats;
+  if (kind === "set") {
+    // Use the cardinality, not "X/Y"
+    return `Unlocked — ${formatNumber(ach.current)} ${itemNoun(ach.type)} collected`;
+  }
+  if (kind === "maxof") {
+    return `Unlocked — ${maxOfSummary(ach, ctx)}`;
+  }
+  if (kind === "span") {
+    return `Unlocked — ${ach.current} years on record`;
+  }
+  if (kind === "event") {
+    return ach.current === 1
+      ? `Unlocked once`
+      : `Unlocked — completed ${formatNumber(ach.current)} times`;
+  }
+  if (kind === "meta") {
+    return `Unlocked — all ${ach.current} categories covered`;
+  }
+  // count
+  if (ach.type === "distance_km") return `Unlocked at ${formatNumber(ach.current)} km (target: ${formatNumber(ach.req)} km)`;
+  if (ach.type === "distance_mi") return `Unlocked at ${formatNumber(ach.current)} mi (target: ${formatNumber(ach.req)} mi)`;
+  if (ach.type === "flight_hours") return `Unlocked at ${ach.current.toFixed(1)} hours (target: ${ach.req} hours)`;
+  if (ach.type === "earth_laps") return `Unlocked at ${ach.current.toFixed(2)}× Earth laps`;
+  if (ach.type === "moon_trips") return `Unlocked at ${ach.current.toFixed(2)}× Moon trips`;
+  return `Unlocked — ${formatNumber(ach.current)} total`;
+}
+
+function itemNoun(type) {
+  switch (type) {
+    case "countries":          return "countries";
+    case "us_states":          return "states";
+    case "airlines":           return "airlines";
+    case "airports":           return "airports";
+    case "continents":         return "continents";
+    case "domestic_airports":  return "US airports";
+    case "aircraft_families":  return "aircraft families";
+    case "airport_alphabet":   return "letters";
+    case "top_10_hubs":        return "hubs";
+    case "eu_countries":       return "European countries";
+    case "as_countries":       return "Asian countries";
+    case "middle_east_set":    return "Middle East hubs";
+    case "southerner_set":     return "southern-hemisphere countries";
+    default:                   return "items";
+  }
+}
+
+// "Best" line for maxof types
+function maxOfSummary(ach, ctx) {
+  const s = ctx.stats;
+  switch (ach.type) {
+    case "single_flight_distance":
+      return s.longest ? `${s.longest.from} → ${s.longest.to}, ${Math.round(s.longest._miles).toLocaleString()} mi (${(s.longest._miles * 1.60934).toFixed(0)} km)` : "—";
+    case "max_flight_minutes":
+      return s.longestTime ? `${s.longestTime.from} → ${s.longestTime.to}, ${formatDuration(s.longestTime._minutes)}` : "—";
+    case "min_flight_minutes":
+      return s.shortestTime ? `${s.shortestTime.from} → ${s.shortestTime.to}, ${formatDuration(s.shortestTime._minutes)}` : "—";
+    case "airline_loyalty": {
+      const top = s.topAirlines[0];
+      if (!top) return "—";
+      const name = airlineDisplayName(top.key, ctx.airlines, top.info?.name);
+      return `${name} (${top.key}) — ${top.value} flights`;
+    }
+    case "same_route":
+      return s.topRoutes[0] ? `${s.topRoutes[0].key} flown ${s.topRoutes[0].value} times` : "—";
+    case "flights_per_month": {
+      let best = ["", 0];
+      for (const [ym, n] of (s.monthly || [])) if (n > best[1]) best = [ym, n];
+      return best[1] ? `${best[1]} flights in ${best[0]}` : `${ach.current} flights in your best month`;
+    }
+    case "flights_per_year": {
+      let best = [null, 0];
+      for (const [y, n] of (s.yearTotals || [])) if (n > best[1]) best = [y, n];
+      return best[1] ? `${best[1]} flights in ${best[0]}` : `${ach.current} flights in your best year`;
+    }
+    case "best_year_miles": {
+      // We don't have miles-per-year stored in stats, recompute
+      const milesByYear = new Map();
+      for (const f of ctx.flights) {
+        const d = new Date(f.depart);
+        if (isNaN(d)) continue;
+        milesByYear.set(d.getFullYear(), (milesByYear.get(d.getFullYear()) || 0) + (f._miles || 0));
+      }
+      let best = [null, 0];
+      for (const [y, m] of milesByYear) if (m > best[1]) best = [y, m];
+      return best[1] ? `${Math.round(best[1]).toLocaleString()} mi in ${best[0]}` : "—";
+    }
+    case "countries_per_year": {
+      const cpy = new Map();
+      for (const f of ctx.flights) {
+        const d = new Date(f.depart);
+        if (isNaN(d)) continue;
+        const y = d.getFullYear();
+        if (!cpy.has(y)) cpy.set(y, new Set());
+        const aFrom = ctx.airports[f.from];
+        const aTo   = ctx.airports[f.to];
+        if (aFrom?.country) cpy.get(y).add(aFrom.country);
+        if (aTo?.country)   cpy.get(y).add(aTo.country);
+      }
+      let best = [null, 0];
+      for (const [y, set] of cpy) if (set.size > best[1]) best = [y, set.size];
+      return best[1] ? `${best[1]} countries in ${best[0]}` : "—";
+    }
+    case "max_layover_minutes": {
+      const lay = findMaxLayover(ctx);
+      return lay ? `${formatDuration(lay.minutes)} between ${lay.prev.to} arrivals and ${lay.next.from} departure (${formatDate(lay.prev.arrive)})` : `${formatDuration(ach.current)}`;
+    }
+    case "max_trip_legs":
+      return `${ach.current}-leg trip`;
+    case "max_repeat_flightno": {
+      const top = topRepeatedFlightNumber(ctx);
+      return top ? `${top.key} — flown ${top.count} times` : `${ach.current} repeats`;
+    }
+    case "max_tail_repeats": {
+      const top = s.topTails?.[0];
+      return top ? `Tail ${top.key} — ${top.value} flights` : `${ach.current} times`;
+    }
+    case "consecutive_months":
+      return `${ach.current}-month streak`;
+    default:
+      return `${ach.current}`;
+  }
+}
+
+// Build items for SET-type achievements, each with {label, visited, date}
+function buildSetItems(ach, ctx) {
+  const s = ctx.stats;
+  function firstVisitDate(filterFn) {
+    let first = null;
+    for (const f of ctx.flights) {
+      if (filterFn(f)) {
+        const d = new Date(f.depart);
+        if (!isNaN(d) && (!first || d < first)) first = d;
+      }
+    }
+    return first;
+  }
+  if (ach.type === "countries") {
+    const all = [...s.countries.entries()].sort((a,b) => b[1].count - a[1].count);
+    return all.map(([code, info]) => {
+      const d = firstVisitDate(f => ctx.airports[f.to]?.country === code || ctx.airports[f.from]?.country === code);
+      return {
+        label: `${info.flag || ""} ${escapeHtml(info.name || code)} <span class="muted">${info.count}×</span>`,
+        visited: true,
+        date: d ? formatDate(d) : null,
+      };
+    });
+  }
+  if (ach.type === "us_states") {
+    const ALL_STATES = ["AL","AK","AZ","AR","CA","CO","CT","DE","DC","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY"];
+    return ALL_STATES.map(code => {
+      const info = s.states.get(code);
+      const visited = !!info;
+      let date = null;
+      if (visited) {
+        const d = firstVisitDate(f => {
+          const ap = ctx.airports[f.to] || ctx.airports[f.from];
+          return ap?.country === "US" && ap?.state === code;
+        });
+        if (d) date = formatDate(d);
+      }
+      return {
+        label: `<code>${code}</code> ${visited ? `<span class="muted">${info.count}×</span>` : ""}`,
+        visited, date,
+      };
+    });
+  }
+  if (ach.type === "airlines") {
+    const all = [...s.airlines.entries()].sort((a,b) => b[1].count - a[1].count);
+    return all.map(([code, info]) => {
+      const name = airlineDisplayName(code, ctx.airlines, info.name);
+      const url = airlineLogoUrl(code, ctx.airlines);
+      const logo = url ? `<img class="airline-logo" src="${url}" alt="${escapeHtml(name)}" onerror="this.classList.add('is-missing')"/>` : "";
+      return {
+        label: `${logo}<code>${code}</code> ${escapeHtml(name)} <span class="muted">${info.count}×</span>`,
+        visited: true,
+        date: null,
+      };
+    });
+  }
+  if (ach.type === "airports") {
+    const all = [...s.airports.entries()].sort((a,b) => b[1] - a[1]).slice(0, 60);
+    return all.map(([code, n]) => {
+      const ap = ctx.airports[code];
+      return {
+        label: `<code>${code}</code> ${ap?.city ? `<span class="muted">${escapeHtml(ap.city)}</span>` : ""} <span class="muted">${n}×</span>`,
+        visited: true, date: null,
+      };
+    });
+  }
+  if (ach.type === "continents") {
+    const ALL = ["NA","SA","EU","AF","AS","OC","AN"];
+    const visited = new Set();
+    for (const code of s.airports.keys()) {
+      const ap = ctx.airports[code];
+      if (ap?.continent) visited.add(ap.continent);
+    }
+    const NAMES = { NA:"North America", SA:"South America", EU:"Europe", AF:"Africa", AS:"Asia", OC:"Oceania", AN:"Antarctica" };
+    return ALL.map(c => ({ label: `<code>${c}</code> ${NAMES[c]}`, visited: visited.has(c), date: null }));
+  }
+  if (ach.type === "domestic_airports") {
+    const items = [];
+    for (const [code, n] of s.airports) {
+      const ap = ctx.airports[code];
+      if (ap?.country === "US") items.push([code, n]);
+    }
+    items.sort((a,b) => b[1] - a[1]);
+    return items.map(([code, n]) => {
+      const ap = ctx.airports[code];
+      return { label: `<code>${code}</code> ${ap?.city ? `<span class="muted">${escapeHtml(ap.city)}</span>` : ""} <span class="muted">${n}×</span>`, visited: true, date: null };
+    });
+  }
+  if (ach.type === "eu_countries" || ach.type === "as_countries") {
+    const region = ach.type === "eu_countries" ? "EU" : "AS";
+    const items = [];
+    for (const [code, info] of s.countries) {
+      const aFrom = info.flag || "";
+      // Check continent via any visited airport in this country
+      let isRegion = false;
+      for (const c of s.airports.keys()) {
+        const ap = ctx.airports[c];
+        if (ap?.country === code && ap.continent === region) { isRegion = true; break; }
+      }
+      if (!isRegion && ach.type === "eu_countries" && REGION_HINT_EU.has(code)) isRegion = true;
+      if (!isRegion && ach.type === "as_countries" && REGION_HINT_AS.has(code)) isRegion = true;
+      if (isRegion) items.push({ label: `${info.flag || ""} ${escapeHtml(info.name || code)}`, visited: true, date: null });
+    }
+    return items;
+  }
+  if (ach.type === "aircraft_families") {
+    // Re-derive families from flights
+    const fams = new Set();
+    for (const f of ctx.flights) {
+      if (!f.aircraft) continue;
+      const fam = (function (code) {
+        if (/^(73|7M)/.test(code)) return "Boeing 737";
+        if (/^74/.test(code))      return "Boeing 747";
+        if (/^75/.test(code))      return "Boeing 757";
+        if (/^76/.test(code))      return "Boeing 767";
+        if (/^77/.test(code))      return "Boeing 777";
+        if (/^78/.test(code))      return "Boeing 787";
+        if (/^(31|32)/.test(code)) return "Airbus A320 family";
+        if (/^33/.test(code))      return "Airbus A330";
+        if (/^34/.test(code))      return "Airbus A340";
+        if (/^35/.test(code))      return "Airbus A350";
+        if (/^38/.test(code))      return "Airbus A380";
+        if (/^E/.test(code))       return "Embraer E-Jet";
+        if (/^CR/.test(code))      return "Bombardier CRJ";
+        if (/^DH/.test(code))      return "Dash 8";
+        if (/^AT/.test(code))      return "ATR";
+        if (/^M[89]/.test(code))   return "MD-80 family";
+        return code;
+      })(f.aircraft);
+      fams.add(fam);
+    }
+    return [...fams].map(fam => ({ label: escapeHtml(fam), visited: true, date: null }));
+  }
+  if (ach.type === "airport_alphabet") {
+    const seen = new Map();
+    for (const f of ctx.flights) {
+      for (const code of [f.from, f.to]) {
+        if (code && code[0]) {
+          const L = code[0].toUpperCase();
+          if (!seen.has(L)) seen.set(L, code);
+        }
+      }
+    }
+    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+    return letters.map(L => ({
+      label: `<strong>${L}</strong> ${seen.has(L) ? `<code>${seen.get(L)}</code>` : `<span class="muted">—</span>`}`,
+      visited: seen.has(L), date: null,
+    }));
+  }
+  if (ach.type === "top_10_hubs") {
+    const top10 = ["ATL","DXB","DFW","LHR","HND","ORD","LAX","CDG","AMS","IST"];
+    return top10.map(code => {
+      const ap = ctx.airports[code];
+      return {
+        label: `<code>${code}</code> ${ap ? `<span class="muted">${escapeHtml(ap.city || ap.name || "")}</span>` : ""}`,
+        visited: s.airports.has(code), date: null,
+      };
+    });
+  }
+  if (ach.type === "middle_east_set") {
+    return ["DXB","DOH","AUH"].map(code => {
+      const ap = ctx.airports[code];
+      return { label: `<code>${code}</code> ${ap?.city ? `<span class="muted">${escapeHtml(ap.city)}</span>` : ""}`, visited: s.airports.has(code), date: null };
+    });
+  }
+  if (ach.type === "southerner_set") {
+    return ["AU","NZ","ZA"].map(code => {
+      const info = s.countries.get(code);
+      const NAMES = { AU: "Australia", NZ: "New Zealand", ZA: "South Africa" };
+      return { label: `<code>${code}</code> ${NAMES[code]}`, visited: !!info, date: null };
+    });
+  }
+  return [];
+}
+
+// Return ALL flights that qualify for a count/event-type achievement
+function qualifyingFlights(ach, ctx) {
+  const KM = 1.60934;
+  const ARCTIC = 66.5;
+  const f = ctx.flights;
+  function flightKm(x) { return (x._miles || 0) * KM; }
+  function airportPair(x) { return [ctx.airports[x.from], ctx.airports[x.to]]; }
+  switch (ach.type) {
+    case "flights_count":         return f.slice();
+    case "distance_km":
+    case "distance_mi":
+    case "flight_hours":
+    case "earth_laps":
+    case "moon_trips":
+      return f.slice();   // every flight contributes; recent list is useful
+    case "night_flights":         return f.filter(x => { const d = new Date(x.depart); return !isNaN(d) && d.getHours() < 6; });
+    case "early_morning_flights": return f.filter(x => { const d = new Date(x.depart); return !isNaN(d) && d.getHours() >= 4 && d.getHours() < 7; });
+    case "weekend_flights":       return f.filter(x => { const d = new Date(x.depart); return !isNaN(d) && (d.getDay() === 0 || d.getDay() === 6); });
+    case "red_eye_flights":       return f.filter(x => { const d = new Date(x.depart); return !isNaN(d) && (d.getHours() >= 22 || d.getHours() < 6); });
+    case "holiday_flights":       return f.filter(x => isHolidayFlight(x));
+    case "transatlantic":         return f.filter(x => {
+      const [a,b] = airportPair(x);
+      return a && b && a.continent && b.continent &&
+        ((["NA","SA"].includes(a.continent) && ["EU","AF"].includes(b.continent)) ||
+         (["EU","AF"].includes(a.continent) && ["NA","SA"].includes(b.continent)));
+    });
+    case "transpacific":          return f.filter(x => {
+      const [a,b] = airportPair(x);
+      return a && b && a.continent && b.continent &&
+        ((["NA","SA"].includes(a.continent) && ["AS","OC"].includes(b.continent)) ||
+         (["AS","OC"].includes(a.continent) && ["NA","SA"].includes(b.continent)));
+    });
+    case "international_flights": return f.filter(x => {
+      const [a,b] = airportPair(x);
+      return a && b && a.country && b.country && a.country !== b.country;
+    });
+    case "coast_to_coast": {
+      const E = new Set(["ME","NH","MA","RI","CT","NY","NJ","PA","DE","MD","DC","VA","NC","SC","GA","FL"]);
+      const W = new Set(["CA","OR","WA","AK","HI"]);
+      return f.filter(x => {
+        const [a,b] = airportPair(x);
+        if (!a || !b || a.country !== "US" || b.country !== "US") return false;
+        return (E.has(a.state) && W.has(b.state)) || (W.has(a.state) && E.has(b.state));
+      });
+    }
+    case "point_to_point":        return f.filter(x => {
+      const [a,b] = airportPair(x);
+      return a && b && !TOP_HUBS_SET.has(a.code) && !TOP_HUBS_SET.has(b.code);
+    });
+    case "back_to_back": {
+      // Pairs of flights within 24h — for display, return the second one of each pair
+      const sorted = [...f].sort((a,b) => (a.depart || "").localeCompare(b.depart || ""));
+      const out = [];
+      for (let i = 1; i < sorted.length; i++) {
+        const prev = sorted[i-1], cur = sorted[i];
+        if (!prev.arrive || !cur.depart) continue;
+        const gap = new Date(cur.depart) - new Date(prev.arrive);
+        if (gap > 0 && gap < 24 * 3600 * 1000) out.push(cur);
+      }
+      return out;
+    }
+    case "equator_crossing":      return f.filter(x => {
+      const [a,b] = airportPair(x);
+      return a && b && a.lat != null && b.lat != null && Math.sign(a.lat) !== Math.sign(b.lat) && a.lat !== 0 && b.lat !== 0;
+    });
+    case "arctic_flight":         return f.filter(x => {
+      const [a,b] = airportPair(x);
+      return (a && a.lat >= ARCTIC) || (b && b.lat >= ARCTIC);
+    });
+    case "micro_flight":          return f.filter(x => flightKm(x) > 0 && flightKm(x) < 250);
+    case "ocean_crossing":        return f.filter(x => {
+      const [a,b] = airportPair(x);
+      if (!a || !b || !a.continent || !b.continent || a.continent === b.continent) return false;
+      const k = [a.continent, b.continent].sort().join("|");
+      return TRANS_PAIRS_FOR_QUAL.has(k);
+    });
+    case "idl_west_count":        return f.filter(x => {
+      const [a,b] = airportPair(x);
+      return a && b && a.lon != null && b.lon != null && a.lon < -90 && b.lon > 90;
+    });
+    case "idl_east_count":        return f.filter(x => {
+      const [a,b] = airportPair(x);
+      return a && b && a.lon != null && b.lon != null && a.lon > 90 && b.lon < -90;
+    });
+    case "nye_airborne":          return f.filter(x => {
+      const d = new Date(x.depart), a = new Date(x.arrive);
+      return !isNaN(d) && !isNaN(a) && d.getMonth() === 11 && d.getDate() === 31 && a.getMonth() === 0 && a.getDate() === 1;
+    });
+    case "boeing_segments":       return f.filter(x => /^(7|MD-?[89]|717)/.test(x.aircraft || ""));
+    case "airbus_segments":       return f.filter(x => /^(31|32|33|34|35|38|22|BCS|220|221|223)/.test(x.aircraft || ""));
+    case "has_a380":              return f.filter(x => /^38/.test(x.aircraft || ""));
+    case "has_747":               return f.filter(x => /^74/.test(x.aircraft || ""));
+    case "has_787":               return f.filter(x => /^78/.test(x.aircraft || ""));
+    case "has_neo":               return f.filter(x => /^(32N|32Q|31J|7M)/.test(x.aircraft || "") || /^(33[89])$/.test(x.aircraft || ""));
+    case "has_propeller":         return f.filter(x => /^(DH|AT|SF|S20)/.test(x.aircraft || ""));
+    case "has_regional":          return f.filter(x => /^(E|CR)/.test(x.aircraft || ""));
+    case "has_md80":              return f.filter(x => /^M[89]/.test(x.aircraft || ""));
+    case "has_doubledecker":      return f.filter(x => /^(38|74)/.test(x.aircraft || ""));
+    case "has_narrowbody":        return f.filter(x => /^(73|7M|75|31|32|22|BCS|22[013])/.test(x.aircraft || ""));
+    case "has_widebody":          return f.filter(x => /^(74|76|77|78|33|34|35|38)/.test(x.aircraft || ""));
+    default:                      return [];
+  }
+}
+
+const TRANS_PAIRS_FOR_QUAL = new Set([
+  ["NA","EU"].sort().join("|"), ["NA","AS"].sort().join("|"), ["NA","OC"].sort().join("|"), ["NA","AF"].sort().join("|"), ["NA","AN"].sort().join("|"),
+  ["SA","EU"].sort().join("|"), ["SA","AS"].sort().join("|"), ["SA","OC"].sort().join("|"), ["SA","AF"].sort().join("|"), ["SA","AN"].sort().join("|"),
+  ["AS","OC"].sort().join("|"), ["EU","OC"].sort().join("|"), ["AF","OC"].sort().join("|"),
+]);
+
+function isHolidayFlight(f) {
+  const d = new Date(f.depart);
+  if (isNaN(d)) return false;
+  const m = d.getMonth(), day = d.getDate();
+  if ((m === 11 && (day === 24 || day === 25 || day === 31)) || (m === 0 && day === 1)) return true;
+  // Thanksgiving: 4th Thursday of November
+  const y = d.getFullYear();
+  const nov1 = new Date(y, 10, 1);
+  const firstThu = ((4 - nov1.getDay() + 7) % 7) + 1;
+  return m === 10 && day === firstThu + 21;
+}
+
+// For each event type, optional supplementary text on a row
+function eventExtra(ach, f, ctx) {
+  if (ach.type === "max_layover_minutes") return "";
+  if (ach.type === "arctic_flight") {
+    const a = ctx.airports[f.from], b = ctx.airports[f.to];
+    const peak = Math.max(a?.lat || 0, b?.lat || 0).toFixed(1);
+    return `${peak}°N`;
+  }
+  if (ach.type === "micro_flight" && f._miles) return `${Math.round(f._miles)} mi`;
+  if (ach.type === "has_a380" || ach.type === "has_747" || ach.type === "has_787" || ach.type === "has_md80") return f.aircraft ? `aircraft ${f.aircraft}` : "";
+  return "";
+}
+
+// Walk flights chronologically; return the first flight whose running total
+// crosses the achievement's req threshold.
+function findThresholdFlight(ach, ctx) {
+  const KM = 1.60934;
+  const sorted = [...ctx.flights].sort((a,b) => (a.depart || "").localeCompare(b.depart || ""));
+  let acc = 0;
+  for (const f of sorted) {
+    let inc = 0;
+    if (ach.type === "flights_count") inc = 1;
+    else if (ach.type === "distance_km") inc = (f._miles || 0) * KM;
+    else if (ach.type === "distance_mi") inc = (f._miles || 0);
+    else if (ach.type === "flight_hours") inc = (f._minutes || 0) / 60;
+    else if (ach.type === "earth_laps") inc = (f._miles || 0) / 24901;
+    else if (ach.type === "moon_trips") inc = (f._miles || 0) / 238855;
+    else if (ach.type === "boeing_segments") inc = /^(7|MD-?[89])/.test(f.aircraft || "") ? 1 : 0;
+    else if (ach.type === "airbus_segments") inc = /^(31|32|33|34|35|38|22|BCS|220|221|223)/.test(f.aircraft || "") ? 1 : 0;
+    acc += inc;
+    if (acc >= ach.req) return f;
+  }
+  return null;
+}
+function thresholdNote(ach, f, ctx) {
+  if (ach.type === "flights_count") return `flight #${ach.req}`;
+  if (ach.type === "distance_km")   return `crossed ${ach.req.toLocaleString()} km`;
+  if (ach.type === "distance_mi")   return `crossed ${ach.req.toLocaleString()} mi`;
+  if (ach.type === "flight_hours")  return `crossed ${ach.req}h`;
+  if (ach.type === "earth_laps")    return `crossed lap ${ach.req}`;
+  if (ach.type === "moon_trips")    return `crossed Moon distance`;
+  return "";
+}
+
+// MAXOF helper: pick a record-holding instance, plus a top-N ranking list
+function buildMaxOf(ach, ctx) {
+  const s = ctx.stats;
+  switch (ach.type) {
+    case "single_flight_distance": {
+      const top = [...ctx.flights].filter(f => f._miles).sort((a,b) => b._miles - a._miles).slice(0, 5);
+      return {
+        record: top[0] ? flightRow(top[0], ctx, { extra: `${Math.round(top[0]._miles).toLocaleString()} mi` }) : null,
+        ranking: top.slice(1).map(f => flightRow(f, ctx, { extra: `${Math.round(f._miles).toLocaleString()} mi` })),
+        rankingLabel: "Next longest flights",
+      };
+    }
+    case "max_flight_minutes": {
+      const top = [...ctx.flights].filter(f => f._minutes).sort((a,b) => b._minutes - a._minutes).slice(0, 5);
+      return {
+        record: top[0] ? flightRow(top[0], ctx, { extra: formatDuration(top[0]._minutes) }) : null,
+        ranking: top.slice(1).map(f => flightRow(f, ctx, { extra: formatDuration(f._minutes) })),
+        rankingLabel: "Next longest in the air",
+      };
+    }
+    case "min_flight_minutes": {
+      const top = [...ctx.flights].filter(f => f._minutes).sort((a,b) => a._minutes - b._minutes).slice(0, 5);
+      return {
+        record: top[0] ? flightRow(top[0], ctx, { extra: formatDuration(top[0]._minutes) }) : null,
+        ranking: top.slice(1).map(f => flightRow(f, ctx, { extra: formatDuration(f._minutes) })),
+        rankingLabel: "Next shortest flights",
+      };
+    }
+    case "airline_loyalty": {
+      const top = s.topAirlines.slice(0, 8);
+      return {
+        record: top[0] ? `<div class="ach-rank-row"><span class="logo-code">${airlineLogoTag(top[0].key, ctx)}<code>${top[0].key}</code></span><span class="ach-rank-name">${escapeHtml(airlineDisplayName(top[0].key, ctx.airlines, top[0].info?.name))}</span><span class="ach-rank-v">${top[0].value} flights</span></div>` : null,
+        ranking: top.slice(1).map(r => `<div class="ach-rank-row"><span class="logo-code">${airlineLogoTag(r.key, ctx)}<code>${r.key}</code></span><span class="ach-rank-name">${escapeHtml(airlineDisplayName(r.key, ctx.airlines, r.info?.name))}</span><span class="ach-rank-v">${r.value} flights</span></div>`),
+        rankingLabel: "Other top airlines",
+      };
+    }
+    case "same_route": {
+      const top = s.topRoutes.slice(0, 8);
+      return {
+        record: top[0] ? `<div class="ach-rank-row"><code>${top[0].key}</code><span class="ach-rank-v">${top[0].value} times</span></div>` : null,
+        ranking: top.slice(1).map(r => `<div class="ach-rank-row"><code>${r.key}</code><span class="ach-rank-v">${r.value} times</span></div>`),
+        rankingLabel: "Other top routes",
+      };
+    }
+    case "flights_per_year": {
+      const byYear = [...(s.yearTotals || new Map()).entries()].sort((a,b) => b[1] - a[1]).slice(0, 8);
+      return {
+        record: byYear[0] ? `<div class="ach-rank-row"><code>${byYear[0][0]}</code><span class="ach-rank-v">${byYear[0][1]} flights</span></div>` : null,
+        ranking: byYear.slice(1).map(r => `<div class="ach-rank-row"><code>${r[0]}</code><span class="ach-rank-v">${r[1]} flights</span></div>`),
+        rankingLabel: "Other top years",
+      };
+    }
+    case "flights_per_month": {
+      const byMonth = [...(s.monthly || new Map()).entries()].sort((a,b) => b[1] - a[1]).slice(0, 8);
+      return {
+        record: byMonth[0] ? `<div class="ach-rank-row"><code>${byMonth[0][0]}</code><span class="ach-rank-v">${byMonth[0][1]} flights</span></div>` : null,
+        ranking: byMonth.slice(1).map(r => `<div class="ach-rank-row"><code>${r[0]}</code><span class="ach-rank-v">${r[1]} flights</span></div>`),
+        rankingLabel: "Other top months",
+      };
+    }
+    case "best_year_miles": {
+      const milesByYear = new Map();
+      for (const f of ctx.flights) {
+        const d = new Date(f.depart);
+        if (isNaN(d)) continue;
+        milesByYear.set(d.getFullYear(), (milesByYear.get(d.getFullYear()) || 0) + (f._miles || 0));
+      }
+      const byYear = [...milesByYear].sort((a,b) => b[1] - a[1]).slice(0, 8);
+      return {
+        record: byYear[0] ? `<div class="ach-rank-row"><code>${byYear[0][0]}</code><span class="ach-rank-v">${Math.round(byYear[0][1]).toLocaleString()} mi</span></div>` : null,
+        ranking: byYear.slice(1).map(r => `<div class="ach-rank-row"><code>${r[0]}</code><span class="ach-rank-v">${Math.round(r[1]).toLocaleString()} mi</span></div>`),
+        rankingLabel: "Other top years",
+      };
+    }
+    case "countries_per_year": {
+      const cpy = new Map();
+      for (const f of ctx.flights) {
+        const d = new Date(f.depart);
+        if (isNaN(d)) continue;
+        const y = d.getFullYear();
+        if (!cpy.has(y)) cpy.set(y, new Set());
+        const aFrom = ctx.airports[f.from], aTo = ctx.airports[f.to];
+        if (aFrom?.country) cpy.get(y).add(aFrom.country);
+        if (aTo?.country)   cpy.get(y).add(aTo.country);
+      }
+      const byYear = [...cpy].map(([y, set]) => [y, set.size]).sort((a,b) => b[1] - a[1]).slice(0, 8);
+      return {
+        record: byYear[0] ? `<div class="ach-rank-row"><code>${byYear[0][0]}</code><span class="ach-rank-v">${byYear[0][1]} countries</span></div>` : null,
+        ranking: byYear.slice(1).map(r => `<div class="ach-rank-row"><code>${r[0]}</code><span class="ach-rank-v">${r[1]} countries</span></div>`),
+        rankingLabel: "Other top years",
+      };
+    }
+    case "max_layover_minutes": {
+      const lay = findMaxLayover(ctx);
+      if (!lay) return { record: null };
+      return {
+        record: `<div class="ach-flight-row">
+          <div class="ach-flight-info">
+            <div class="ach-flight-route">${lay.prev.to} (layover)</div>
+            <div class="ach-flight-meta muted">arrived ${escapeHtml([lay.prev.airline_code, lay.prev.flight_number].filter(Boolean).join(" "))} → next ${escapeHtml([lay.next.airline_code, lay.next.flight_number].filter(Boolean).join(" "))}</div>
+          </div>
+          <div class="ach-flight-side"><div>${formatDuration(lay.minutes)}</div><div class="muted small">${formatDate(lay.prev.arrive)}</div></div>
+        </div>`,
+      };
+    }
+    case "max_repeat_flightno": {
+      const c = new Map();
+      for (const f of ctx.flights) {
+        if (!f.airline_code || !f.flight_number) continue;
+        const k = `${f.airline_code}${f.flight_number}`;
+        c.set(k, (c.get(k) || 0) + 1);
+      }
+      const top = [...c].sort((a,b) => b[1] - a[1]).slice(0, 6);
+      return {
+        record: top[0] ? `<div class="ach-rank-row"><code>${top[0][0]}</code><span class="ach-rank-v">${top[0][1]} times</span></div>` : null,
+        ranking: top.slice(1).map(r => `<div class="ach-rank-row"><code>${r[0]}</code><span class="ach-rank-v">${r[1]} times</span></div>`),
+        rankingLabel: "Other repeat numbers",
+      };
+    }
+    case "max_tail_repeats": {
+      const top = s.topTails || [];
+      if (!top.length) return { record: `<div class="muted small">Run <code>tools/enrich_aerodatabox.py</code> to populate tail-number data.</div>` };
+      return {
+        record: top[0] ? `<div class="ach-rank-row"><code>${top[0].key}</code> <span class="muted small">${escapeHtml(s.tailModels?.get(top[0].key) || "")}</span><span class="ach-rank-v">${top[0].value}×</span></div>` : null,
+        ranking: top.slice(1).map(r => `<div class="ach-rank-row"><code>${r.key}</code> <span class="muted small">${escapeHtml(s.tailModels?.get(r.key) || "")}</span><span class="ach-rank-v">${r.value}×</span></div>`),
+        rankingLabel: "Other repeat tail numbers",
+      };
+    }
+    default:
+      return { record: null };
+  }
+}
+
+function airlineLogoTag(code, ctx) {
+  const url = airlineLogoUrl(code, ctx.airlines);
+  if (!url) return "";
+  const name = airlineDisplayName(code, ctx.airlines);
+  return `<img class="airline-logo" src="${url}" alt="${escapeHtml(name)}" onerror="this.classList.add('is-missing')"/>`;
+}
+
+function findMaxLayover(ctx) {
+  const byTrip = new Map();
+  for (const f of ctx.flights) {
+    const k = f.trip_id ?? `_${f.air_id}`;
+    if (!byTrip.has(k)) byTrip.set(k, []);
+    byTrip.get(k).push(f);
+  }
+  let best = null;
+  for (const list of byTrip.values()) {
+    list.sort((a,b) => (a.depart || "").localeCompare(b.depart || ""));
+    for (let i = 1; i < list.length; i++) {
+      const prev = list[i-1], cur = list[i];
+      if (!prev.arrive || !cur.depart) continue;
+      const gap = (new Date(cur.depart) - new Date(prev.arrive)) / 60000;
+      if (gap > 0 && gap < 24 * 60 && (!best || gap > best.minutes)) {
+        best = { prev, next: cur, minutes: gap };
+      }
+    }
+  }
+  return best;
+}
+
+function topRepeatedFlightNumber(ctx) {
+  const c = new Map();
+  for (const f of ctx.flights) {
+    if (!f.airline_code || !f.flight_number) continue;
+    const k = `${f.airline_code}${f.flight_number}`;
+    c.set(k, (c.get(k) || 0) + 1);
+  }
+  let top = null;
+  for (const [k, n] of c) if (!top || n > top.count) top = { key: k, count: n };
+  return top;
+}
+
 async function openAchievementModal(ach, ctx) {
   const { openDetailModal } = await import("./views.js");
-  const unlockingFlight = ach.unlocked ? findUnlockingFlight(ach, ctx) : null;
-  const items = listContributingItems(ach, ctx, 60);
-
-  const earnedSection = (() => {
-    if (!ach.unlocked) return "";
-    if (unlockingFlight) {
-      const logoUrl = airlineLogoUrl(unlockingFlight.airline_code, ctx.airlines);
-      const airlineName = airlineDisplayName(unlockingFlight.airline_code, ctx.airlines, unlockingFlight.airline);
-      const logo = logoUrl
-        ? `<img class="airline-logo" src="${logoUrl}" alt="${escapeHtml(airlineName)}" onerror="this.classList.add('is-missing')"/>`
-        : "";
-      return `
-        <div class="ach-earned">
-          <div class="lbl">Unlocked by this flight</div>
-          <div class="earned-flight">
-            <div class="earned-left">
-              ${logo}
-              <div class="earned-text">
-                <span class="route">${unlockingFlight.from} → ${unlockingFlight.to}</span>
-                <span class="muted">${escapeHtml(airlineName)} · ${escapeHtml([unlockingFlight.airline_code, unlockingFlight.flight_number].filter(Boolean).join(" "))}</span>
-              </div>
-            </div>
-            <span class="muted earned-date">${formatDate(unlockingFlight.depart)}</span>
-          </div>
-        </div>`;
-    }
-    return `<div class="ach-earned"><div class="lbl">Status</div><div>Unlocked</div></div>`;
-  })();
-
-  const stillNeeded = !ach.unlocked
-    ? `<div class="ach-needs">
-        <div class="lbl">How to unlock</div>
-        <div>${describeRequirement(ach)}</div>
-      </div>`
-    : "";
-
-  const itemsSection = items.length
-    ? `<div class="ach-items">
-        <div class="lbl">${ach.unlocked ? "Counted toward this" : "What you've contributed so far"} <span class="muted">(${items.length}${items.length >= 60 ? "+" : ""})</span></div>
-        <div class="ach-items-list">
-          ${items.map(it => `<div class="ach-item">${it}</div>`).join("")}
-        </div>
-      </div>`
-    : "";
-
+  const blocks = buildAchievementDetail(ach, ctx);
   openDetailModal(`
     <header class="ach-detail-head">
       <div class="ach-detail-icon tier-${ach.tier}">${ach.icon}</div>
@@ -1016,11 +1799,7 @@ async function openAchievementModal(ach, ctx) {
         <div class="ach-detail-desc">${escapeHtml(ach.desc)}</div>
       </div>
     </header>
-
-    ${progressLineFor(ach)}
-    ${earnedSection}
-    ${stillNeeded}
-    ${itemsSection}
+    ${blocks.map(b => b.html).join("")}
   `);
 }
 
