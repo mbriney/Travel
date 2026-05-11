@@ -6,6 +6,7 @@ import { buildPages } from "./pages.js";
 import { initPassport } from "./passport.js";
 import { renderStatsView, renderWorldView, renderUSView, renderLogView, openStampModal } from "./views.js";
 import { renderAchievementsView } from "./achievements.js";
+import { renderTimelineView } from "./timeline.js";
 
 const DATA_PATHS = {
   flights:  "data/flights.json",
@@ -56,6 +57,7 @@ function initTabs(ctx) {
       else if (name === "world") renderWorldView(root, ctx);
       else if (name === "usa") renderUSView(root, ctx);
       else if (name === "achievements") renderAchievementsView(root, ctx);
+      else if (name === "timeline") renderTimelineView(root, ctx);
       else if (name === "log") renderLogView(root, ctx);
       rendered.add(name);
     }
