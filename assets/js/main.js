@@ -14,12 +14,13 @@ const DATA_PATHS = {
   countries:"data/countries.json",
 };
 
+// Cache-bust data files using the page-load timestamp so a freshly-rebuilt
+// data file (after running tools/build_airports.py or fetch_tripit.py) is
+// picked up immediately on refresh, with no manual hard-reload needed.
+const _CACHEBUST = String(Date.now());
 async function loadJSON(path) {
-  // "default" lets the browser revalidate with the server using Last-Modified
-  // / ETag — so rebuilt data files reach the page after a refresh instead of
-  // being shadowed by a previously-cached version (which was the symptom
-  // behind Alliance Ace failing to register after we expanded the data).
-  const r = await fetch(path, { cache: "default" });
+  const url = `${path}${path.includes("?") ? "&" : "?"}v=${_CACHEBUST}`;
+  const r = await fetch(url, { cache: "no-cache" });
   if (!r.ok) throw new Error(`fetch ${path}: ${r.status}`);
   return r.json();
 }
@@ -82,6 +83,17 @@ async function boot() {
 
   if (!flights || !flights.length) { showEmptyState(); return; }
   if (!airports) { showEmptyState("airports.json is missing. Run python tools/build_airports.py first."); return; }
+
+  // Sanity-check: every airport should carry elevation_ft. If not, the data
+  // was built before that field was added — warn the user with a clear hint.
+  const sampled = Object.values(airports).slice(0, 100);
+  const hasElevation = sampled.some(a => typeof a.elevation_ft === "number" && a.elevation_ft !== 0);
+  if (!hasElevation) {
+    console.warn(
+      "%cdata/airports.json is missing elevation_ft. Rebuild with: python tools/build_airports.py",
+      "color: #f59e0b; font-weight: bold;"
+    );
+  }
 
   // Some TripIt records have the airline IATA code in `airline` (the name
   // field) instead of `airline_code`. Normalize so every downstream consumer
