@@ -238,47 +238,49 @@ export async function renderTimelineView(root, ctx) {
   const lastIdx = months.length - 1;
 
   root.innerHTML = `
-    <div class="page-head">
-      <h1>Timeline</h1>
-      <p class="subtitle">Drag the slider — or hit play — to watch your map grow chronologically.</p>
-    </div>
+    <div class="view-inner">
+      <header class="view-header">
+        <h1>Timeline</h1>
+        <p class="muted">Drag the slider — or hit play — to watch your map grow chronologically.</p>
+      </header>
 
-    <section class="card timeline-stats-card" aria-label="Cumulative stats">
-      <div class="tl-stat"><span class="num" id="tl-stat-flights">0</span><span class="lbl">flights</span></div>
-      <div class="tl-stat"><span class="num" id="tl-stat-miles">0</span><span class="lbl">miles</span></div>
-      <div class="tl-stat"><span class="num" id="tl-stat-hours">0</span><span class="lbl">hours aloft</span></div>
-      <div class="tl-stat"><span class="num" id="tl-stat-countries">0</span><span class="lbl">countries</span></div>
-      <div class="tl-stat"><span class="num" id="tl-stat-states">0</span><span class="lbl">states</span></div>
-    </section>
+      <section class="card timeline-stats-card" aria-label="Cumulative stats">
+        <div class="tl-stat"><span class="num" id="tl-stat-flights">0</span><span class="lbl">flights</span></div>
+        <div class="tl-stat"><span class="num" id="tl-stat-miles">0</span><span class="lbl">miles</span></div>
+        <div class="tl-stat"><span class="num" id="tl-stat-hours">0</span><span class="lbl">hours aloft</span></div>
+        <div class="tl-stat"><span class="num" id="tl-stat-countries">0</span><span class="lbl">countries</span></div>
+        <div class="tl-stat"><span class="num" id="tl-stat-states">0</span><span class="lbl">states</span></div>
+      </section>
 
-    <div class="timeline-milestone" id="tl-milestone" aria-live="polite"></div>
+      <div class="timeline-milestone" id="tl-milestone" aria-live="polite"></div>
 
-    <div class="map-stage timeline-stage">
-      <svg class="map-svg world-svg timeline-map" viewBox="0 0 960 480"
-           preserveAspectRatio="xMidYMid meet" aria-label="Travel timeline map"></svg>
-    </div>
+      <div class="map-stage timeline-stage">
+        <svg class="map-svg world-svg timeline-map" viewBox="0 0 960 480"
+             preserveAspectRatio="xMidYMid meet" aria-label="Travel timeline map"></svg>
+      </div>
 
-    <div class="timeline-controls card" role="group" aria-label="Timeline controls">
-      <button class="tl-play" id="tl-play" aria-label="Play timeline">
-        <svg class="tl-icon-play" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-          <path d="M7 4l13 8-13 8V4z" fill="currentColor"/>
-        </svg>
-        <svg class="tl-icon-pause" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" style="display:none">
-          <rect x="6" y="4" width="4" height="16" fill="currentColor" rx="1"/>
-          <rect x="14" y="4" width="4" height="16" fill="currentColor" rx="1"/>
-        </svg>
-      </button>
-      <div class="tl-date" id="tl-date">${monthLabel(months[lastIdx])}</div>
-      <input class="tl-slider" id="tl-slider" type="range" min="0" max="${lastIdx}" value="${lastIdx}" step="1" aria-label="Timeline month"/>
-      <label class="tl-speed">
-        <span class="tl-speed-label">Speed</span>
-        <select id="tl-speed">
-          <option value="0.5">½×</option>
-          <option value="1" selected>1×</option>
-          <option value="2">2×</option>
-          <option value="4">4×</option>
-        </select>
-      </label>
+      <div class="timeline-controls card" role="group" aria-label="Timeline controls">
+        <button class="tl-play" id="tl-play" aria-label="Play timeline">
+          <svg class="tl-icon-play" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+            <path d="M7 4l13 8-13 8V4z" fill="currentColor"/>
+          </svg>
+          <svg class="tl-icon-pause" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" style="display:none">
+            <rect x="6" y="4" width="4" height="16" fill="currentColor" rx="1"/>
+            <rect x="14" y="4" width="4" height="16" fill="currentColor" rx="1"/>
+          </svg>
+        </button>
+        <div class="tl-date" id="tl-date">${monthLabel(months[lastIdx])}</div>
+        <input class="tl-slider" id="tl-slider" type="range" min="0" max="${lastIdx}" value="${lastIdx}" step="1" aria-label="Timeline month"/>
+        <label class="tl-speed">
+          <span class="tl-speed-label">Speed</span>
+          <select id="tl-speed">
+            <option value="0.5">½×</option>
+            <option value="1" selected>1×</option>
+            <option value="2">2×</option>
+            <option value="4">4×</option>
+          </select>
+        </label>
+      </div>
     </div>
   `;
 

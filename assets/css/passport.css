@@ -2297,15 +2297,21 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 /* ===========================================================================
    TIMELINE VIEW — slider + play/pause + growing map
    --------------------------------------------------------------------------- */
-#view-timeline { padding: 20px 28px 40px; }
 .timeline-stats-card {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 10px;
-  padding: 14px 18px;
-  margin: 10px 0 6px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+  padding: 16px 20px;
+  margin: 0 0 10px;
 }
-.tl-stat { display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 0; }
+.tl-stat {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 2px; min-width: 0;
+  padding: 0 4px;
+  /* Visual separator between columns */
+  border-left: 1px solid rgba(255, 255, 255, 0.06);
+}
+.tl-stat:first-child { border-left: 0; }
 .tl-stat .num {
   font-family: var(--font-display);
   font-size: 28px;
