@@ -1353,23 +1353,29 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   max-height: 36px;
   width: auto;
   object-fit: contain;
-  /* Same alpha-aware glow technique as .airline-logo, scaled up for the
-     larger banner. The original 4px-soft drop-shadow gave the banner
-     depth but nothing for low-contrast carriers — this pairs that
-     existing depth shadow with a tight white halo that traces letterforms
-     so dark-on-dark banners (United, Alaska, JetBlue, Delta) remain
-     readable on the modal's dark background. */
-  filter:
-    drop-shadow(0 0 1.5px rgba(255,255,255,0.95))
-    drop-shadow(0 0 3px   rgba(255,255,255,0.55))
-    drop-shadow(0 2px 4px rgba(0,0,0,0.35));
+  /* Banner now sits on a near-white header bar (.flight-airline-banner) so
+     it doesn't need an alpha-aware halo to read against the dark modal
+     anymore — only a tiny depth shadow to give it the same printed-on-paper
+     feel as a boarding-pass header. The white-halo glow technique we use
+     on the small inline `.airline-logo` is intentionally NOT applied here:
+     stretched across the banner-size silhouette it just made dark logos
+     look fringe-y instead of solving the contrast problem. */
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.20));
 }
 .airline-banner.is-missing { display: none; }
 .flight-airline-banner {
-  display: flex; justify-content: center;
-  padding: 8px 0 14px;
-  border-bottom: 1px dashed rgba(255,255,255,0.08);
-  margin-bottom: 14px;
+  display: flex; justify-content: center; align-items: center;
+  /* Near-white background — slightly warm to echo the passport-page cream
+     (--pp-paper #f5ecd5), but pulled most of the way toward white so the
+     banner itself reads as ink on paper rather than competing with it.
+     Dark-blue carriers (AS, AA, DL, UA, B6) now contrast cleanly. */
+  background: #f7f6f1;
+  padding: 16px 12px;
+  /* Modal-body has padding:24px; negate it so the banner extends edge-to-
+     edge inside the modal-card. The 16px top radius matches modal-card. */
+  margin: -24px -24px 20px;
+  border-radius: 16px 16px 0 0;
+  border-bottom: 1px solid rgba(0,0,0,0.08);
 }
 
 /* Rank list: logo + code packed into the first column so the bar still uses
