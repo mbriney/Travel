@@ -1,13 +1,20 @@
-// pages.js — produce an array of <section class="page"> elements in display order.
+// pages.js — produce an array of <div class="page"> elements in display order.
+// They will be paired into sheets by passport.js.
+
 import { formatNumber, formatMiles, formatHours, formatDuration, formatDate } from "./stats.js";
 import { drawWorldMap }  from "./worldmap.js";
 import { drawUSMap }     from "./usmap.js";
 
-const BEARER_NAME = "MATTHEW BRINEY";
-const BEARER_NATIONALITY = "USA";
-const BEARER_CITY = "DALLAS, TEXAS";
+const BEARER = {
+  surname: "BRINEY",
+  given: "MATTHEW",
+  nationality: "UNITED STATES OF AMERICA",
+  sex: "M",
+  city: "DALLAS, TEXAS",
+  passportNo: "AA0000001",  // decorative
+};
 
-const COUNTRY_REGION = { // ISO2 -> region bucket (Flighty-style)
+const COUNTRY_REGION = {
   US: "N. America", CA: "N. America", MX: "N. America",
   GB: "Europe", IE: "Europe", FR: "Europe", DE: "Europe", IT: "Europe", ES: "Europe", PT: "Europe",
   NL: "Europe", BE: "Europe", CH: "Europe", AT: "Europe", HR: "Europe", DK: "Europe", FI: "Europe",
@@ -21,78 +28,171 @@ const COUNTRY_REGION = { // ISO2 -> region bucket (Flighty-style)
   CR: "C. America", PA: "C. America", GT: "C. America", BZ: "C. America",
 };
 
-function el(tag, cls, html) {
-  const n = document.createElement(tag);
-  if (cls) n.className = cls;
-  if (html != null) n.innerHTML = html;
+function page(name, extraClass = "") {
+  const n = document.createElement("div");
+  n.className = "page" + (extraClass ? " " + extraClass : "");
+  n.dataset.name = name;
   return n;
 }
-function page(name) {
-  const sec = el("section", "page");
-  sec.dataset.name = name;
-  return sec;
+
+function escapeHtml(s) {
+  return String(s ?? "")
+    .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+}
+
+function pageNumBadge(num) {
+  return `<span class="page-num">${num}</span>`;
 }
 
 // ---------------------------------------------------------------------------
-// 1. Cover
+// COVER (front cover of the passport — sheet 0 front face)
 // ---------------------------------------------------------------------------
 function buildCover(ctx) {
   const p = page("cover");
   const issuedYear = ctx.stats.lastFlight ? ctx.stats.lastFlight.getFullYear() : new Date().getFullYear();
-  const startYear  = ctx.stats.firstFlight ? ctx.stats.firstFlight.getFullYear() : "";
   p.innerHTML = `
     <div class="cover">
       <div class="cover-shimmer" aria-hidden="true"></div>
       <div class="cover-inner">
         <div class="cover-eyebrow">United States of America</div>
-        <div class="cover-emblem">
-          <svg viewBox="0 0 64 64" aria-hidden="true">
-            <circle cx="32" cy="32" r="22" fill="none" stroke="currentColor" stroke-width="1.5"/>
-            <path d="M32 12 v40 M12 32 h40
-                     M18 18 l28 28 M46 18 l-28 28
-                     M32 14 a18 18 0 0 1 0 36 a18 18 0 0 1 0 -36
-                     M14 32 a18 18 0 0 0 36 0 a18 18 0 0 0 -36 0"
-                  fill="none" stroke="currentColor" stroke-width="0.8" opacity="0.6"/>
-            <path d="M22 30 l8 6 14 -16" fill="none" stroke="currentColor"
-                  stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </div>
+        <div class="cover-emblem" aria-hidden="true">${greatSealSVG()}</div>
         <h2>Travel</h2>
         <h1>Passport</h1>
-        <div class="cover-name">${BEARER_NAME}</div>
-        <div class="cover-foot">P&lt;USA&lt;BRINEY&lt;&lt;MATTHEW&lt;&lt;&lt; · ISSUED ${issuedYear} · MEMBER SINCE ${startYear || "—"}</div>
+        <div class="cover-name">${BEARER.given} ${BEARER.surname}</div>
+        <div class="cover-chip" title="contactless chip"></div>
+        <div class="cover-foot">ISSUED ${issuedYear} · DCA</div>
       </div>
     </div>`;
   return p;
 }
 
+// Stylized US Great Seal (eagle + shield) for the cover
+function greatSealSVG() {
+  return `
+    <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <defs>
+        <radialGradient id="goldGrad" cx="50%" cy="40%" r="60%">
+          <stop offset="0%"  stop-color="#f5dc94"/>
+          <stop offset="55%" stop-color="#c8a04a"/>
+          <stop offset="100%" stop-color="#7a5e1f"/>
+        </radialGradient>
+      </defs>
+      <g fill="url(#goldGrad)" stroke="currentColor" stroke-width="0.8" stroke-linejoin="round">
+        <!-- 13 stars in a circle around the head -->
+        <g fill="currentColor" opacity="0.85">
+          ${Array.from({length:13}).map((_,i)=>{
+            const a = (i/13)*Math.PI*2 - Math.PI/2;
+            const r = 36;
+            const cx = 100 + Math.cos(a)*r;
+            const cy = 56 + Math.sin(a)*r;
+            return `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="1.8"/>`;
+          }).join("")}
+        </g>
+        <!-- eagle body / head -->
+        <ellipse cx="100" cy="56" rx="14" ry="12"/>
+        <circle cx="106" cy="50" r="1.2" fill="#1a1a1a"/>
+        <!-- beak -->
+        <path d="M114 54 l8 -2 -6 4 z"/>
+        <!-- wings (stylized fan shape) -->
+        <path d="M100 70 C 60 60, 40 90, 30 110 C 60 102, 80 100, 100 96 Z"/>
+        <path d="M100 70 C 140 60, 160 90, 170 110 C 140 102, 120 100, 100 96 Z"/>
+        <!-- tail feathers -->
+        <path d="M88 96 L100 130 L112 96 Z"/>
+        <!-- shield -->
+        <g transform="translate(100 110)">
+          <path d="M-22 -8 H22 V8 C 22 22, 0 30, 0 30 C 0 30, -22 22, -22 8 Z"
+                fill="#f8efd2" stroke="#8a6d2e" stroke-width="1.2"/>
+          <rect x="-22" y="-8" width="44" height="6" fill="#173273"/>
+          <g fill="#7a1a1a">
+            ${Array.from({length:6}).map((_,i)=>`<rect x="${-22 + i*7.3}" y="-2" width="3.2" height="32" />`).join("")}
+          </g>
+        </g>
+        <!-- olive branch left -->
+        <path d="M58 138 C 70 140, 86 138, 98 132" fill="none" stroke="currentColor" stroke-width="2"/>
+        ${Array.from({length:5}).map((_,i)=>`<ellipse cx="${64 + i*7}" cy="${139 - (i%2)*3}" rx="2.4" ry="1.2" />`).join("")}
+        <!-- arrows right -->
+        <g stroke="currentColor" stroke-width="2" fill="none">
+          <path d="M142 138 L 110 130"/>
+          <path d="M144 134 L 112 126"/>
+          <path d="M146 130 L 114 122"/>
+        </g>
+        <!-- banner E PLURIBUS UNUM -->
+        <path d="M70 78 Q 100 70 130 78" fill="none" stroke="currentColor" stroke-width="0.8"/>
+        <text x="100" y="80" text-anchor="middle" font-family="serif" font-size="6.5"
+              letter-spacing="1.2" fill="currentColor">E PLURIBUS UNUM</text>
+      </g>
+    </svg>`;
+}
+
 // ---------------------------------------------------------------------------
-// 2. Bearer info + hero stats
+// BEARER / BIO PAGE — sheet 0 back face (visible on left after opening)
 // ---------------------------------------------------------------------------
 function buildBearer(ctx) {
-  const p = page("bearer");
+  const p = page("bearer", "bearer-page");
   const s = ctx.stats;
   const memberSince = s.firstFlight ? formatDate(s.firstFlight) : "—";
+  const dateOfIssue = formatDate(new Date());
+  const surName = BEARER.surname.padEnd(10, "<");
+  const givenName = BEARER.given.padEnd(15, "<");
+  const mrz1 = `P<USA${surName}<<${givenName}`.padEnd(44, "<").slice(0, 44);
+  const mrz2 = `${BEARER.passportNo}USA000000${s.total.toString().padStart(6,"0")}M0000000`.padEnd(44, "<").slice(0, 44);
+
   p.innerHTML = `
     <div class="paper">
-      <div class="bearer">
-        <div class="bearer-head">
-          <div class="bearer-portrait" aria-hidden="true">MB</div>
-          <dl class="bearer-fields">
-            <div><dt>Surname</dt><dd>BRINEY</dd></div>
-            <div><dt>Given Names</dt><dd>MATTHEW</dd></div>
-            <div><dt>Nationality</dt><dd>${BEARER_NATIONALITY}</dd></div>
-            <div><dt>Residence</dt><dd>${BEARER_CITY}</dd></div>
-            <div><dt>Place of Issue</dt><dd>DFW · DAL · DCA</dd></div>
-            <div><dt>Member Since</dt><dd>${memberSince}</dd></div>
+      <div class="bio">
+        <div class="bio-header">
+          <span class="title">Bearer · Porteur · Titular</span>
+          <span class="country-code">USA</span>
+        </div>
+        <div class="bio-body">
+          <div class="bio-photo" aria-hidden="true">MB</div>
+          <dl class="bio-fields">
+            <div class="row"><dt>Type</dt><dd>P</dd></div>
+            <div class="row"><dt>Country Code</dt><dd>USA</dd></div>
+            <div class="row"><dt>Surname</dt><dd>${BEARER.surname}</dd></div>
+            <div class="row"><dt>Given Names</dt><dd>${BEARER.given}</dd></div>
+            <div class="row"><dt>Nationality</dt><dd>${BEARER.nationality}</dd></div>
+            <div class="row"><dt>Sex</dt><dd>${BEARER.sex}</dd></div>
+            <div class="row"><dt>Place of Residence</dt><dd>${BEARER.city}</dd></div>
+            <div class="row"><dt>Member Since</dt><dd>${memberSince.toUpperCase()}</dd></div>
+            <div class="row"><dt>Date of Issue</dt><dd>${dateOfIssue.toUpperCase()}</dd></div>
+            <div class="row"><dt>Authority</dt><dd>TRIPIT.COM</dd></div>
           </dl>
         </div>
+        <div class="bio-mrz">${mrz1}<br/>${mrz2}</div>
+      </div>
+      ${pageNumBadge(2)}
+    </div>`;
+  return p;
+}
 
+// ---------------------------------------------------------------------------
+// STATS PAGES — split across two sides of a spread.
+// Left side (stats-a): hero totals + distance + weekday
+// Right side (stats-b): top airports + airlines + routes + extremes
+// ---------------------------------------------------------------------------
+function buildStatsA(ctx) {
+  const p = page("stats", "stats-page");
+  const s = ctx.stats;
+  const wkMax = Math.max(...s.weekday) || 1;
+  const wkLabels = ["S","M","T","W","T","F","S"];
+  const wkBars = s.weekday.map((v,i) =>
+    `<div class="bar" style="height:${(v/wkMax)*100}%" data-label="${wkLabels[i]}" title="${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][i]}: ${v}"></div>`
+  ).join("");
+  const earthCap = Math.min(s.earthLaps / 30, 1);
+  const moonCap  = Math.min(s.moonTrips / 4, 1);
+  const sunCap   = Math.min(s.sunLaps   / 1, 1);
+
+  p.innerHTML = `
+    <div class="paper">
+      <div class="page-header"><span>Statistics · Statistiques</span><small>Travel summary</small></div>
+      <div class="inner">
         <div class="hero-stats">
           <div class="hero-stat">
             <div class="num">${formatNumber(s.total)}</div>
             <div class="label">Flights</div>
-            <div class="sub">${s.domestic} domestic · ${s.international} international · ${s.longHaul} long-haul</div>
+            <div class="sub">${s.domestic} domestic · ${s.international} intl · ${s.longHaul} long-haul</div>
           </div>
           <div class="hero-stat">
             <div class="num">${formatNumber(s.miles)}</div>
@@ -100,7 +200,7 @@ function buildBearer(ctx) {
             <div class="sub">avg ${formatNumber(s.avgMiles)} mi / leg</div>
           </div>
           <div class="hero-stat">
-            <div class="num">${formatHours(s.minutes).replace(" ", "")}</div>
+            <div class="num">${formatDuration(s.minutes).split(" ").slice(0,2).join(" ")}</div>
             <div class="label">In the air</div>
             <div class="sub">${formatDuration(s.minutes)}</div>
           </div>
@@ -111,35 +211,42 @@ function buildBearer(ctx) {
           </div>
         </div>
 
-        <div class="mrz">
-          P&lt;USA&lt;BRINEY&lt;&lt;MATTHEW&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;<br/>
-          ${("FLIGHTS" + String(s.total).padStart(6,"0") + "MI" + String(Math.round(s.miles)).padStart(7,"0") + "HRS" + String(Math.round(s.minutes/60)).padStart(5,"0")).padEnd(44,"<")}
+        <div class="stat-card">
+          <div class="title">Flights by weekday</div>
+          <div class="weekday-chart" aria-label="Flights per weekday">${wkBars}</div>
+          <div style="height:18px"></div>
+        </div>
+
+        <div class="stat-card">
+          <div class="title">Distance</div>
+          <div class="big">${formatNumber(s.miles)} mi</div>
+          <div class="distance-bars">
+            <div class="row">
+              <span>🌍</span>
+              <div class="track"><div class="fill" style="width:${earthCap*100}%"></div></div>
+              <span class="mul">${s.earthLaps.toFixed(1)}× Earth</span>
+            </div>
+            <div class="row">
+              <span>🌑</span>
+              <div class="track"><div class="fill" style="width:${moonCap*100}%"></div></div>
+              <span class="mul">${s.moonTrips.toFixed(1)}× Moon</span>
+            </div>
+            <div class="row">
+              <span>☀️</span>
+              <div class="track"><div class="fill" style="width:${sunCap*100}%"></div></div>
+              <span class="mul">${s.sunLaps.toFixed(2)}× Sun</span>
+            </div>
+          </div>
         </div>
       </div>
+      ${pageNumBadge(3)}
     </div>`;
   return p;
 }
 
-// ---------------------------------------------------------------------------
-// 3. Stats dashboard
-// ---------------------------------------------------------------------------
-function buildStats(ctx) {
-  const p = page("stats");
+function buildStatsB(ctx) {
+  const p = page("stats", "stats-page");
   const s = ctx.stats;
-
-  // Weekday chart
-  const wkMax = Math.max(...s.weekday) || 1;
-  const wkLabels = ["S","M","T","W","T","F","S"];
-  const wkBars = s.weekday.map((v,i) =>
-    `<div class="bar" style="height:${(v/wkMax)*100}%" data-label="${wkLabels[i]}" title="${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][i]}: ${v}"></div>`
-  ).join("");
-
-  // Distance factoids
-  const earthCap = Math.min(s.earthLaps / 30, 1);
-  const moonCap  = Math.min(s.moonTrips / 4, 1);
-  const sunCap   = Math.min(s.sunLaps   / 1, 1);
-
-  // Top airports — top 8
   const apMax = s.topAirports[0]?.value || 1;
   const apRows = s.topAirports.slice(0,8).map(r =>
     `<li>
@@ -148,8 +255,6 @@ function buildStats(ctx) {
       <span class="v">${r.value}</span>
     </li>`
   ).join("");
-
-  // Top airlines
   const alMax = s.topAirlines[0]?.value || 1;
   const alRows = s.topAirlines.slice(0,8).map(r => {
     const name = r.info?.name || r.key;
@@ -159,8 +264,6 @@ function buildStats(ctx) {
       <span class="v">${r.value}</span>
     </li>`;
   }).join("");
-
-  // Top routes
   const rtMax = s.topRoutes[0]?.value || 1;
   const rtRows = s.topRoutes.slice(0,8).map(r =>
     `<li>
@@ -173,8 +276,8 @@ function buildStats(ctx) {
   const fe = (f, valFmt) => f
     ? `<div class="flight-extreme">
         <div>
-          <div class="leg">${f.from_city || f.from} <span style="opacity:.5">→</span> ${f.to_city || f.to}</div>
-          <div class="meta">${[f.airline_code, f.flight_number].filter(Boolean).join(" ")} · ${formatDate(f.depart)}</div>
+          <div class="leg">${escapeHtml(f.from_city || f.from)} → ${escapeHtml(f.to_city || f.to)}</div>
+          <div class="meta">${escapeHtml([f.airline_code, f.flight_number].filter(Boolean).join(" "))} · ${formatDate(f.depart)}</div>
         </div>
         <div class="val">${valFmt(f)}</div>
       </div>`
@@ -182,161 +285,137 @@ function buildStats(ctx) {
 
   p.innerHTML = `
     <div class="paper">
+      <div class="page-header"><span>Top Lists · Records</span><small>airports · airlines · routes</small></div>
       <div class="inner">
-        <h2>Flight Statistics<small>at a glance</small></h2>
-        <div class="inner-scroll">
-          <div class="stat-grid">
-
-            <div class="stat-card">
-              <div class="title">Flights / weekday</div>
-              <div class="big">${s.total}</div>
-              <div class="sub">${s.domestic} domestic · ${s.international} intl · ${s.longHaul} long-haul</div>
-              <div class="weekday-chart" aria-label="Flights per weekday">${wkBars}</div>
-              <div style="height:18px"></div>
-            </div>
-
-            <div class="stat-card">
-              <div class="title">Distance</div>
-              <div class="big">${formatNumber(s.miles)} mi</div>
-              <div class="sub">avg ${formatNumber(s.avgMiles)} mi / leg</div>
-              <div class="distance-bars">
-                <div class="row">
-                  <span>🌍</span>
-                  <div class="track"><div class="fill" style="width:${earthCap*100}%"></div></div>
-                  <span class="mul">${s.earthLaps.toFixed(1)}× Earth</span>
-                </div>
-                <div class="row">
-                  <span>🌑</span>
-                  <div class="track"><div class="fill" style="width:${moonCap*100}%"></div></div>
-                  <span class="mul">${s.moonTrips.toFixed(1)}× Moon</span>
-                </div>
-                <div class="row">
-                  <span>☀️</span>
-                  <div class="track"><div class="fill" style="width:${sunCap*100}%"></div></div>
-                  <span class="mul">${s.sunLaps.toFixed(2)}× Sun</span>
-                </div>
-              </div>
-            </div>
-
-            <div class="stat-card" style="grid-column:1/-1">
-              <div class="title">Time aloft</div>
-              <div class="big">${formatDuration(s.minutes)}</div>
-              <div class="sub">avg ${formatDuration(s.avgMinutes)} per flight</div>
-              <div class="flight-extremes">
-                ${fe(s.shortest, f => `${Math.round(f._miles)} mi`)}
-                ${fe(s.longest,  f => `${Math.round(f._miles).toLocaleString()} mi`)}
-              </div>
-            </div>
-
-            <div class="stat-card">
-              <div class="title">Top Airports</div>
-              <div class="big">${s.airportsCount}</div>
-              <div class="sub">total airports</div>
-              <ul class="rank-list" style="margin-top:8px">${apRows}</ul>
-            </div>
-
-            <div class="stat-card">
-              <div class="title">Top Airlines</div>
-              <div class="big">${s.airlines.size}</div>
-              <div class="sub">total airlines</div>
-              <ul class="rank-list" style="margin-top:8px">${alRows}</ul>
-            </div>
-
-            <div class="stat-card" style="grid-column:1/-1">
-              <div class="title">Top Routes</div>
-              <div class="big">${s.routes.size}</div>
-              <div class="sub">total routes</div>
-              <ul class="rank-list" style="margin-top:8px">${rtRows}</ul>
-            </div>
-
+        <div class="stat-card">
+          <div class="title">Top Airports · ${s.airportsCount} total</div>
+          <ul class="rank-list" style="margin-top:8px">${apRows}</ul>
+        </div>
+        <div class="stat-card">
+          <div class="title">Top Airlines · ${s.airlines.size} total</div>
+          <ul class="rank-list" style="margin-top:8px">${alRows}</ul>
+        </div>
+        <div class="stat-card">
+          <div class="title">Top Routes · ${s.routes.size} total</div>
+          <ul class="rank-list" style="margin-top:8px">${rtRows}</ul>
+        </div>
+        <div class="stat-card">
+          <div class="title">Extremes</div>
+          <div class="flight-extremes">
+            ${fe(s.shortest, f => `${Math.round(f._miles)} mi`)}
+            ${fe(s.longest,  f => `${Math.round(f._miles).toLocaleString()} mi`)}
           </div>
         </div>
       </div>
+      ${pageNumBadge(4)}
     </div>`;
   return p;
 }
 
 // ---------------------------------------------------------------------------
-// 4. World map page
+// WORLD MAP
 // ---------------------------------------------------------------------------
 function buildWorld(ctx) {
-  const p = page("world");
+  const p = page("world", "world-page");
   p.innerHTML = `
     <div class="paper map-page">
       <div class="wrap">
-        <h2>Flight Map<small>routes & countries</small></h2>
-        <svg class="map-svg" viewBox="0 0 960 480" preserveAspectRatio="xMidYMid meet" aria-label="World map of flight routes"></svg>
+        <h2><span>World Map</span><small>routes & countries</small></h2>
+        <svg class="map-svg" viewBox="0 0 960 480" preserveAspectRatio="xMidYMid meet"></svg>
         <div class="map-legend">
-          <span><span class="sw" style="background:#a78bfa"></span> Visited country</span>
-          <span><span class="sw" style="background:#7c3aed"></span> Airport</span>
-          <span><span class="sw" style="background:#d83b3b"></span> Top hub</span>
+          <span><span class="sw" style="background:#2d4d9b"></span> Visited country</span>
+          <span><span class="sw" style="background:#7a1a1a"></span> Airport</span>
+          <span><span class="sw" style="background:#c8a04a"></span> Top hub</span>
         </div>
       </div>
+      ${pageNumBadge(5)}
     </div>`;
-  // Defer drawing until page is in DOM
   queueMicrotask(() => drawWorldMap(p.querySelector(".map-svg"), ctx).catch(console.error));
   return p;
 }
 
 // ---------------------------------------------------------------------------
-// 5. US States page
+// US STATES MAP
 // ---------------------------------------------------------------------------
 function buildUSA(ctx) {
-  const p = page("usa");
+  const p = page("usa", "us-map-page");
   const s = ctx.stats;
   p.innerHTML = `
     <div class="paper">
+      <div class="page-header"><span>United States</span><small>states visited</small></div>
       <div class="inner">
-        <h2>United States<small>states & territories visited</small></h2>
-        <svg class="map-svg us-map" viewBox="0 0 960 600" preserveAspectRatio="xMidYMid meet" aria-label="US states visited"></svg>
+        <div class="us-map-panel">
+          <svg class="map-svg us-map" viewBox="0 0 960 600" preserveAspectRatio="xMidYMid meet"></svg>
+        </div>
         <div class="us-stats">
           <div class="cell"><div class="big">${s.statesCount}</div><div class="lbl">States</div></div>
           <div class="cell"><div class="big">${50 - s.statesCount}</div><div class="lbl">To go</div></div>
           <div class="cell"><div class="big">${Math.round((s.statesCount/50)*100)}%</div><div class="lbl">Complete</div></div>
         </div>
       </div>
+      ${pageNumBadge(6)}
     </div>`;
-  queueMicrotask(() => drawUSMap(p.querySelector(".us-map"), ctx).catch(console.error));
+  queueMicrotask(() => drawUSMap(p.querySelector(".map-svg"), ctx).catch(console.error));
   return p;
 }
 
 // ---------------------------------------------------------------------------
-// 6+. Country stamp pages
+// STAMP PAGES — playful varied stamps with multiple shapes/colors/rotations
 // ---------------------------------------------------------------------------
-const STAMP_VERBS = ["ENTRY", "ARRIVAL", "VISITED", "DEPARTURE", "TRANSIT"];
+const STAMP_SHAPES = ["rect", "rect", "oval", "circle", "square"];   // weighted
+const STAMP_COLORS = ["red", "blue", "green", "purple", "brown", "black"];
+const STAMP_VERBS  = ["ARRIVAL", "DEPARTURE", "ADMITTED", "IMMIGRATION", "ENTRADA"];
+
+// Tiny seeded RNG so each country gets stable random styling
+function seedRand(seed) {
+  let s = 0;
+  for (const ch of String(seed)) s = (s * 31 + ch.charCodeAt(0)) | 0;
+  s = (s ^ 0x9e3779b9) >>> 0;
+  return () => {
+    s = (s * 1664525 + 1013904223) >>> 0;
+    return s / 0xffffffff;
+  };
+}
 
 function buildStampPages(ctx) {
   const s = ctx.stats;
-  // Sort countries by flight count desc
+  // Skip the home country here — too many domestic "stamps" would just be noise.
   const entries = [...s.countries.entries()]
+    .filter(([code]) => code !== "US")
     .sort((a,b) => b[1].count - a[1].count);
 
-  // Skip the home country from individual stamp pages — give it a "home" stamp page first
-  const pages = [];
-
-  // Build 4 stamps per page
   const STAMPS_PER_PAGE = 4;
+  const pages = [];
   for (let i = 0; i < entries.length; i += STAMPS_PER_PAGE) {
     const slice = entries.slice(i, i + STAMPS_PER_PAGE);
+    const num = i / STAMPS_PER_PAGE + 1;
     const p = page("stamps");
-    const inner = `
-      <div class="paper">
-        <div class="stamps">
-          <h2>Stamps · page ${Math.floor(i/STAMPS_PER_PAGE)+1}</h2>
-          <div class="grid">
-            ${slice.map((entry, idx) => renderStamp(entry, ctx, (i + idx) % 4)).join("")}
+    p.innerHTML = `
+      <div class="paper blue stamps">
+        <div class="page-header"><span>Visas · Stamps</span><small>page ${num}</small></div>
+        <div class="stamps-inner">
+          <div class="stamps-grid">
+            ${slice.map((entry, idx) => `<div class="stamp-cell">${renderStamp(entry, ctx, i + idx)}</div>`).join("")}
           </div>
         </div>
+        ${pageNumBadge(7 + (num - 1) * 2)}
       </div>`;
-    p.innerHTML = inner;
     pages.push(p);
   }
   return pages;
 }
 
-function renderStamp([code, info], ctx, styleIdx) {
+function renderStamp([code, info], ctx, idx) {
+  const rng = seedRand(code);
+  const shape   = STAMP_SHAPES[Math.floor(rng() * STAMP_SHAPES.length)];
+  const color   = STAMP_COLORS[Math.floor(rng() * STAMP_COLORS.length)];
+  const verb    = STAMP_VERBS[Math.floor(rng() * STAMP_VERBS.length)];
+  const rot     = (rng() * 14 - 7).toFixed(1) + "deg";
+  const tx      = (rng() * 16 - 8).toFixed(0) + "px";
+  const ty      = (rng() * 12 - 6).toFixed(0) + "px";
+
+  // Country flights to find first/last + airports
   const list = ctx.stats.flightsByCountry.get(code) || [];
-  // Build a unique set of airports visited in this country (as destination)
   const airports = new Map();
   let firstDate = null, lastDate = null;
   for (const f of list) {
@@ -349,29 +428,44 @@ function renderStamp([code, info], ctx, styleIdx) {
       if (!lastDate  || d > lastDate)  lastDate  = d;
     }
   }
-  const apCodes = [...airports.keys()].slice(0, 6).join(" · ");
+  const apCodes = [...airports.keys()].slice(0, 3).join(" · ");
+  const dateStr = firstDate
+    ? firstDate.toLocaleDateString("en-US", { day: "2-digit", month: "short", year: "2-digit" }).toUpperCase()
+    : "";
+  const dense = (info.name || "").length > 10 ? " dense" : "";
   const region = COUNTRY_REGION[code] || "";
-  const verb = STAMP_VERBS[styleIdx % STAMP_VERBS.length];
+  const plane = "✈";
+
+  // Build content per shape — circle/square get a more compact layout
+  let inner;
+  if (shape === "circle" || shape === "square") {
+    inner = `
+      <span class="plane" aria-hidden="true">${plane}</span>
+      <div class="country">${escapeHtml(info.name || code)}</div>
+      <div class="verb">${verb}</div>
+      <div class="date">${dateStr}</div>
+      <div class="codes">${apCodes}</div>`;
+  } else {
+    inner = `
+      <span class="plane" aria-hidden="true">${plane}</span>
+      <div class="country"><span>${escapeHtml(info.name || code)}</span><span style="font-size:11px;letter-spacing:.18em">${region}</span></div>
+      <div class="verb">${verb}</div>
+      <div class="date">${dateStr}</div>
+      <div class="codes">${apCodes}</div>`;
+  }
+
   return `
-    <div class="stamp style-${(styleIdx % 4) + 1}">
-      <div class="head">
-        <span>${escapeHtml(info.name || code)}</span>
-        <span class="flag">${info.flag || ""}</span>
-      </div>
-      <div class="row">${verb} · ${region}</div>
-      <div class="row">${firstDate ? formatDate(firstDate) : "—"}${(lastDate && +lastDate !== +firstDate) ? "  →  " + formatDate(lastDate) : ""}</div>
-      <div class="codes">${apCodes || "—"}</div>
-      <div class="seal">
-        ${info.count}<br/>visits
-      </div>
+    <div class="stamp shape-${shape} color-${color}${dense}"
+         style="--rot:${rot};--tx:${tx};--ty:${ty}">
+      ${inner}
     </div>`;
 }
 
 // ---------------------------------------------------------------------------
-// Last. Flight log
+// FLIGHT LOG
 // ---------------------------------------------------------------------------
 function buildLog(ctx) {
-  const p = page("log");
+  const p = page("log", "log-page");
   const flights = [...ctx.flights].sort((a,b) => (b.depart||"").localeCompare(a.depart||""));
   const rows = flights.map(f => `
     <tr>
@@ -382,8 +476,8 @@ function buildLog(ctx) {
     </tr>`).join("");
   p.innerHTML = `
     <div class="paper">
+      <div class="page-header"><span>Flight Log</span><small>${flights.length.toLocaleString()} flights</small></div>
       <div class="log">
-        <h2>Flight Log<small>most recent first · ${flights.length.toLocaleString()} flights</small></h2>
         <div class="inner-scroll">
           <table>
             <thead><tr><th>Date</th><th>Route</th><th>Flight</th><th style="text-align:right">Miles</th></tr></thead>
@@ -391,27 +485,36 @@ function buildLog(ctx) {
           </table>
         </div>
       </div>
+      ${pageNumBadge(99)}
     </div>`;
   return p;
 }
 
 // ---------------------------------------------------------------------------
-// Assembly
+// Assembly — produce the flat sequence of pages.
+//
+// Pairing into spreads (handled by passport.js, 2 per sheet):
+//   Sheet 0: cover    | bearer       (cover, open to bio)
+//   Sheet 1: stats-A  | stats-B      (totals + extremes)
+//   Sheet 2: world    | usa          (the two maps as a spread)
+//   Sheet 3+: stamps  | stamps       (2 stamp pages per spread)
+//   Sheet N: stamps_last | log       (or log alone on its own sheet)
 // ---------------------------------------------------------------------------
 export function buildPages(ctx) {
   const pages = [];
   pages.push(buildCover(ctx));
   pages.push(buildBearer(ctx));
-  pages.push(buildStats(ctx));
+  pages.push(buildStatsA(ctx));
+  pages.push(buildStatsB(ctx));
   pages.push(buildWorld(ctx));
   pages.push(buildUSA(ctx));
-  for (const p of buildStampPages(ctx)) pages.push(p);
+  const stampPages = buildStampPages(ctx);
+  for (const p of stampPages) pages.push(p);
+  // Make sure log lands on a right-side page so it gets its own sheet front.
+  if (pages.length % 2 !== 0) {
+    // odd -> log will be on a sheet back (left). That's fine but feels off.
+    // Insert a small filler? Skipping — leave as-is.
+  }
   pages.push(buildLog(ctx));
   return pages;
-}
-
-function escapeHtml(s) {
-  return String(s ?? "")
-    .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
-    .replace(/"/g,"&quot;").replace(/'/g,"&#39;");
 }

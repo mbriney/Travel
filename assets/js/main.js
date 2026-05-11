@@ -66,9 +66,7 @@ async function boot() {
 
   const book = document.getElementById("book");
   const pages = buildPages(ctx);
-  // Pages are appended in display order. Index 0 = cover.
-  for (const p of pages) book.appendChild(p);
-
+  // passport.js builds the sheet DOM and inserts each page as a face.
   initPassport(book, pages);
 }
 
