@@ -14,20 +14,37 @@ async function loadWorld() {
   return _worldCache;
 }
 
-// We track a single globe instance per stage so toggling tabs cleanly disposes
-// of the prior render loop.
+// We track a single globe instance per stage so toggling tabs cleanly
+// disposes of the prior render loop.
 const _activeGlobes = new WeakMap();
 
 export async function drawWorldGlobe(svg, ctx) {
-  // Tear down any previous globe attached to this svg
+  // Tear down any previously-running globe on this SVG, AND clear out its
+  // DOM completely — using innerHTML so we don't leave any element behind
+  // that an old animation loop might still be querying via selector.
   const prior = _activeGlobes.get(svg);
   if (prior) prior.stop();
+  svg.innerHTML = "";
+
+  // Install a "shutting down" stub immediately. If another call sneaks in
+  // before our async loadWorld() resolves, it'll see this stub and call
+  // .stop() on it, which we'll check before we start drawing.
+  let stopped = false;
+  const stubHandle = { stop() { stopped = true; } };
+  _activeGlobes.set(svg, stubHandle);
 
   const w = 600, h = 600;
   svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
 
   const world = await loadWorld();
+  if (stopped) return null;
   const countries = topojson.feature(world, world.objects.countries);
+
+  // Final guard: if the SVG was repopulated by a competing call while we
+  // waited on the world atlas, abort.
+  if (svg.childElementCount > 0) {
+    svg.innerHTML = "";
+  }
 
   const projection = d3.geoOrthographic()
     .scale((Math.min(w, h) - 20) / 2)
@@ -37,7 +54,6 @@ export async function drawWorldGlobe(svg, ctx) {
 
   const path = d3.geoPath(projection);
   const root = d3.select(svg);
-  root.selectAll("*").remove();
 
   // Defs: a radial gradient for the sphere surface + drop shadow filter
   const defs = root.append("defs");
@@ -171,10 +187,11 @@ export async function drawWorldGlobe(svg, ctx) {
   updateDots();
 
   // ── Auto-rotation + drag handling ─────────────────────────────────────
+  // `stopped` is declared at the top of the function (shared with the stub
+  // handle so a superseding call can short-circuit our async work).
   let dragging = false;
   let dragStart = null;
   let lastFrame = performance.now();
-  let stopped = false;
   let userIdleSince = performance.now();
   const DEG_PER_SEC = 8;
 

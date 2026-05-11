@@ -615,6 +615,7 @@ export function renderWorldView(root, ctx) {
 
   let globeHandle = null;
   let globeReady = false;
+  let globePending = false;
 
   function setMode(mode) {
     for (const btn of root.querySelectorAll(".world-toggle button")) {
@@ -623,14 +624,17 @@ export function renderWorldView(root, ctx) {
       btn.setAttribute("aria-selected", active ? "true" : "false");
     }
     stage.dataset.mode = mode;
-    // Use inline style.display — beats any CSS specificity competition the
-    // [hidden] attribute approach kept losing.
     flatSvg.style.display  = (mode === "flat")  ? "block" : "none";
     globeSvg.style.display = (mode === "globe") ? "block" : "none";
-    if (mode === "globe" && !globeReady) {
+    // Don't kick off another globe render while the first one is still
+    // in flight — that's what was leaving "ghost" dots in the SVG from
+    // the prior animation loop.
+    if (mode === "globe" && !globeReady && !globePending) {
+      globePending = true;
       drawWorldGlobe(globeSvg, ctx)
         .then(h => { globeHandle = h; globeReady = true; })
-        .catch(err => console.error("Globe render failed:", err));
+        .catch(err => console.error("Globe render failed:", err))
+        .finally(() => { globePending = false; });
     }
   }
   // Delegated click handler on the toggle bar — survives any DOM swaps.
