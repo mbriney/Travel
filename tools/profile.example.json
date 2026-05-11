@@ -1,0 +1,22 @@
+{
+  "_about": "Profile overrides for the passport. Copy this file to tools/profile.json and edit. Anything you set here wins over what's pulled from TripIt's /v1/get/profile endpoint. Anything you leave null/empty falls back to TripIt's value, or a sensible default if TripIt has nothing.",
+
+  "display_name":     "Matt Briney",
+  "_display_help":    "The friendly name shown in the topbar (top-right). Usually a nickname or first-name version (e.g. 'Matt' instead of 'Matthew').",
+
+  "legal_first_name": null,
+  "legal_last_name":  null,
+  "_legal_help":      "ALL-CAPS passport-style names shown in the bio page's Given Names / Surname fields. Defaults to TripIt's first/last name uppercased.",
+
+  "nationality":      "UNITED STATES OF AMERICA",
+  "birthplace":       "VIRGINIA, U.S.A.",
+  "residence":        "DALLAS, TEXAS",
+  "sex":              "M",
+  "passport_number":  "TPL501283",
+
+  "site_title":       null,
+  "_site_title_help": "Overrides the <title> bar of the browser tab. Defaults to '<display_name> — Travel Passport'.",
+
+  "user_agent":       null,
+  "_user_agent_help": "Optional override for the User-Agent string fetch_tripit.py uses. Defaults to a generic 'travel-passport/1.0' string."
+}

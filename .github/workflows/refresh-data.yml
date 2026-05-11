@@ -1,0 +1,131 @@
+name: Refresh travel data
+
+# Runs every Monday at 08:00 UTC (~3 AM Central) so the freshly-refreshed
+# data is ready for the start of the work week. Can also be triggered
+# manually from the Actions tab via the "Run workflow" button.
+on:
+  schedule:
+    - cron: "0 8 * * 1"
+  workflow_dispatch: {}
+
+permissions:
+  # Needed for the final `git push` step that lands fresh data on main.
+  contents: write
+
+# Don't run two refreshes in parallel; queue them.
+concurrency:
+  group: "refresh-data"
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    # The secrets the user configured live in the `github-pages`
+    # environment, so we declare it here too. (Without this, the
+    # ${{ secrets.* }} reads come back empty.)
+    environment:
+      name: github-pages
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # Need a real working copy (not a shallow clone) so the
+          # commit-back step works cleanly.
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: tools/requirements.txt
+
+      - name: Install Python deps
+        run: pip install -r tools/requirements.txt
+
+      - name: Reconstruct tools/credentials.json from secrets
+        env:
+          TRIPIT_CONSUMER_KEY:        ${{ secrets.TRIPIT_CONSUMER_KEY }}
+          TRIPIT_CONSUMER_SECRET:     ${{ secrets.TRIPIT_CONSUMER_SECRET }}
+          TRIPIT_ACCESS_TOKEN:        ${{ secrets.TRIPIT_ACCESS_TOKEN }}
+          TRIPIT_ACCESS_TOKEN_SECRET: ${{ secrets.TRIPIT_ACCESS_TOKEN_SECRET }}
+        # Built with python so the JSON is properly escaped even if secrets
+        # happen to contain quotes/backslashes. The file is gitignored, so
+        # the commit-back step at the end won't accidentally push it.
+        run: |
+          python - <<'PY'
+          import json, os
+          if not os.environ.get("TRIPIT_CONSUMER_KEY"):
+              raise SystemExit("TRIPIT_CONSUMER_KEY is empty — check the github-pages environment secrets.")
+          creds = {
+              "consumer_key":        os.environ["TRIPIT_CONSUMER_KEY"],
+              "consumer_secret":     os.environ["TRIPIT_CONSUMER_SECRET"],
+              "access_token":        os.environ["TRIPIT_ACCESS_TOKEN"],
+              "access_token_secret": os.environ["TRIPIT_ACCESS_TOKEN_SECRET"],
+          }
+          with open("tools/credentials.json", "w") as fp:
+              json.dump(creds, fp, indent=2)
+          PY
+
+      - name: Fetch TripIt
+        # If the access token has been revoked, fetch_tripit.py would
+        # normally fall back to an interactive browser-based OAuth dance —
+        # which obviously can't run in CI. We pre-empt that by piping
+        # /dev/null to stdin: any prompt the script tries will EOF
+        # immediately and the script will error out loudly instead of
+        # hanging. (Failure here surfaces in the workflow log + emails you
+        # via GitHub's default failed-run notifications.)
+        run: python tools/fetch_tripit.py < /dev/null
+
+      - name: Rebuild airports + airlines
+        # fetch_tripit.py only writes data/flights.json + data/profile.json.
+        # We always rebuild airports.json + airlines.json too so any new
+        # carriers or airports referenced by the fresh flights are present.
+        run: python tools/build_airports.py
+
+      - name: Enrich (BTS — incremental)
+        # The first month or two BTS publishes ~2 months in arrears, so most
+        # weekly runs will just download one new month (~50MB) and update
+        # data/bts_matches.json. Already-processed months are skipped.
+        # Continue-on-error because the FAA registry sometimes 403s, and we
+        # don't want that to block AeroDataBox or the commit.
+        continue-on-error: true
+        run: python tools/enrich_bts.py
+
+      - name: Enrich (AeroDataBox — recent flights)
+        env:
+          AERODATABOX_API_KEY: ${{ secrets.AERODATABOX_API_KEY }}
+        # Only run if the secret is present. The script itself reads the
+        # env var so we just gate the entire step on it being non-empty.
+        if: ${{ secrets.AERODATABOX_API_KEY != '' }}
+        run: python tools/enrich_aerodatabox.py
+
+      - name: Show diff
+        # Sanity log so you can see what actually changed in the workflow
+        # run summary, without needing to dig through the commit.
+        run: |
+          git status --short
+          git diff --stat data/ || true
+
+      - name: Commit and push if changed
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/
+          if git diff --cached --quiet; then
+            echo "No data changes — skipping commit."
+            exit 0
+          fi
+          # Build a brief commit message summarizing what changed.
+          changed=$(git diff --cached --name-only | tr '\n' ' ')
+          flights=$(python -c "import json; print(len(json.load(open('data/flights.json'))))" 2>/dev/null || echo "?")
+          git commit -m "chore(data): weekly refresh — ${flights} flights" \
+                     -m "Updated: ${changed}"
+          git push
+
+      - name: Cleanup credentials artifact
+        # Belt + suspenders. The runner is destroyed after this step anyway,
+        # but we explicitly nuke the credentials file so it can't slip into
+        # any subsequent step's logs or artifacts.
+        if: always()
+        run: rm -f tools/credentials.json

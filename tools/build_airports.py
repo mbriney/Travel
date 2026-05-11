@@ -72,8 +72,22 @@ def flag_emoji(iso2: str) -> str:
     return "".join(chr(0x1F1E6 + (ord(c) - ord("A"))) for c in iso2.upper())
 
 
+CURATED_ISLANDS_FILE = Path(__file__).resolve().parent / "curated_islands.json"
+
+
+def load_island_set() -> set[str]:
+    """IATA codes whose airport sits on a destination-meaningful island.
+    Powers the Island Hopper achievement."""
+    if not CURATED_ISLANDS_FILE.exists():
+        return set()
+    raw = json.loads(CURATED_ISLANDS_FILE.read_text())
+    islands = raw.get("islands") or {}
+    return {code.upper() for code in islands.keys() if not code.startswith("_")}
+
+
 def build_airports(countries: dict[str, dict]) -> dict[str, dict]:
     csv_text = fetch(OURAIRPORTS_URL)
+    island_codes = load_island_set()
     out: dict[str, dict] = {}
     skipped = 0
     for row in csv.DictReader(io.StringIO(csv_text)):
@@ -109,6 +123,15 @@ def build_airports(countries: dict[str, dict]) -> dict[str, dict]:
             "lat": lat,
             "lon": lon,
             "elevation_ft": elev,
+            # OurAirports classifies airports as small/medium/large_airport.
+            # We use this to power the "Outback" achievement (small_airport
+            # = regional, low-traffic). Closed/heliport/seaplane are filtered
+            # out above so the value here is always small/medium/large.
+            "type": row.get("type") or "",
+            # Curated flag: does this airport sit on a destination-meaningful
+            # island? (Hawaii, Caribbean, Mediterranean islands, etc.) Powers
+            # the Island Hopper achievement.
+            "is_island": iata in island_codes,
             "flag": flag_emoji(country_code),
         }
     print(f"  kept {len(out)} airports (skipped {skipped} closed/heliport/seaplane)")

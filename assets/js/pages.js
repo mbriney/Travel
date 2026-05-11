@@ -3,15 +3,31 @@
 
 import { formatDate } from "./stats.js";
 
-const BEARER = {
-  surname: "BRINEY",
-  given: "MATTHEW",
-  nationality: "UNITED STATES OF AMERICA",
-  sex: "M",
-  birthplace: "VIRGINIA, U.S.A.",
-  residence: "DALLAS, TEXAS",
-  passportNo: "TPL501283",
+// Profile defaults — used only if ctx.profile is missing/empty. The real
+// values come from data/profile.json which fetch_tripit.py builds by merging
+// TripIt's /v1/get/profile with the user's tools/profile.json overrides.
+const BEARER_DEFAULT = {
+  surname: "TRAVELER",
+  given: "—",
+  nationality: "",
+  sex: "",
+  birthplace: "",
+  residence: "",
+  passportNo: "",
 };
+
+function bearerFromProfile(profile) {
+  if (!profile) return BEARER_DEFAULT;
+  return {
+    surname:     (profile.legal_last_name  || BEARER_DEFAULT.surname).toUpperCase(),
+    given:       (profile.legal_first_name || BEARER_DEFAULT.given).toUpperCase(),
+    nationality: profile.nationality     || BEARER_DEFAULT.nationality,
+    sex:         profile.sex             || BEARER_DEFAULT.sex,
+    birthplace:  profile.birthplace      || BEARER_DEFAULT.birthplace,
+    residence:   profile.residence       || BEARER_DEFAULT.residence,
+    passportNo:  profile.passport_number || BEARER_DEFAULT.passportNo,
+  };
+}
 
 const COUNTRY_REGION = {
   US: "N. America", CA: "N. America", MX: "N. America",
@@ -257,12 +273,18 @@ function buildCover(ctx) {
 function buildBio(ctx) {
   const p = page("bearer", "bio-page");
   const s = ctx.stats;
+  const bearer = bearerFromProfile(ctx.profile);
   const memberSince = s.firstFlight ? formatDate(s.firstFlight) : "—";
   const dateOfIssue = formatDate(new Date());
-  const surName  = BEARER.surname.padEnd(10, "<");
-  const givenName = BEARER.given.padEnd(15, "<");
-  const mrz1 = `P<USA${surName}<<${givenName}`.padEnd(44, "<").slice(0, 44);
-  const mrz2 = `${BEARER.passportNo}USA000000${s.total.toString().padStart(6,"0")}M0000000`.padEnd(44, "<").slice(0, 44);
+  const surName  = bearer.surname.padEnd(10, "<");
+  const givenName = bearer.given.padEnd(15, "<");
+  // Initials in the photo block — first letter of given + first of surname
+  const initials = `${(bearer.given[0]  || "").toUpperCase()}${(bearer.surname[0] || "").toUpperCase()}` || "—";
+  // Nationality 3-letter code — derive from "UNITED STATES OF AMERICA" → "USA"
+  // by taking the first letter of each significant word. Falls back to "—".
+  const nationalityCode = (bearer.nationality.match(/\b[A-Z]/g) || []).slice(0, 3).join("") || "—";
+  const mrz1 = `P<${nationalityCode.padEnd(3,"<")}${surName}<<${givenName}`.padEnd(44, "<").slice(0, 44);
+  const mrz2 = `${bearer.passportNo}${nationalityCode}000000${s.total.toString().padStart(6,"0")}${bearer.sex || "X"}0000000`.padEnd(44, "<").slice(0, 44);
 
   p.innerHTML = `
     <div class="bio">
@@ -273,25 +295,25 @@ function buildBio(ctx) {
       <div class="bio-body">
 
         <div class="bio-left">
-          <div class="bio-photo"><span aria-hidden="true">MB</span></div>
+          <div class="bio-photo"><span aria-hidden="true">${escapeHtml(initials)}</span></div>
         </div>
 
         <div class="bio-right">
-          <h3 class="bio-country">UNITED STATES OF AMERICA</h3>
+          <h3 class="bio-country">${escapeHtml(bearer.nationality)}</h3>
           <div class="bio-fields">
             <div class="row triple">
               <div class="field"><dt>Type / Type / Tipo</dt><dd>P</dd></div>
-              <div class="field"><dt>Code / Código</dt><dd>USA</dd></div>
-              <div class="field span-2"><dt>Passport No. / No. du Passeport</dt><dd>${BEARER.passportNo}</dd></div>
+              <div class="field"><dt>Code / Código</dt><dd>${escapeHtml(nationalityCode)}</dd></div>
+              <div class="field span-2"><dt>Passport No. / No. du Passeport</dt><dd>${escapeHtml(bearer.passportNo)}</dd></div>
             </div>
-            <div class="row"><div class="field"><dt>Surname / Nom / Apellidos</dt><dd>${BEARER.surname}</dd></div></div>
-            <div class="row"><div class="field"><dt>Given Names / Prénoms / Nombres</dt><dd>${BEARER.given}</dd></div></div>
-            <div class="row"><div class="field"><dt>Nationality / Nationalité / Nacionalidad</dt><dd>${BEARER.nationality}</dd></div></div>
+            <div class="row"><div class="field"><dt>Surname / Nom / Apellidos</dt><dd>${escapeHtml(bearer.surname)}</dd></div></div>
+            <div class="row"><div class="field"><dt>Given Names / Prénoms / Nombres</dt><dd>${escapeHtml(bearer.given)}</dd></div></div>
+            <div class="row"><div class="field"><dt>Nationality / Nationalité / Nacionalidad</dt><dd>${escapeHtml(bearer.nationality)}</dd></div></div>
             <div class="row">
               <div class="field"><dt>Member Since / Membre depuis</dt><dd>${memberSince.toUpperCase()}</dd></div>
-              <div class="field"><dt>Sex / Sexe / Sexo</dt><dd>${BEARER.sex}</dd></div>
+              <div class="field"><dt>Sex / Sexe / Sexo</dt><dd>${escapeHtml(bearer.sex)}</dd></div>
             </div>
-            <div class="row"><div class="field"><dt>Place of Residence / Lugar de Residencia</dt><dd>${BEARER.residence}</dd></div></div>
+            <div class="row"><div class="field"><dt>Place of Residence / Lugar de Residencia</dt><dd>${escapeHtml(bearer.residence)}</dd></div></div>
             <div class="row">
               <div class="field"><dt>Date of Issue / Fecha de Expedición</dt><dd>${dateOfIssue.toUpperCase()}</dd></div>
               <div class="field"><dt>Authority / Autorité</dt><dd>TRIPIT</dd></div>

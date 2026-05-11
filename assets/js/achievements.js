@@ -182,6 +182,21 @@ export const ACHIEVEMENTS = [
   { code: "ALLIANCE_ACE",        name: "Alliance Ace",           desc: "Fly on members of all three major alliances (Star, oneworld, SkyTeam)", category: "elite", icon: "🤝", tier: "gold", req: 3, type: "alliances",               points: 150 },
   { code: "CODESHARE",           name: "Code-Share Confusion",   desc: "Fly on a flight operated by an airline other than the one you booked (needs AeroDataBox enrichment)", category: "elite", icon: "🔀", tier: "silver", req: 1, type: "codeshare_count",     points: 40 },
 
+  // ── EXPANSION v3: previously blocked on extra data sources ────────────
+  // Now unblocked: Transpolar via great-circle math (no new data);
+  // Full Circle via trip_id + longitude span (no new data); Island Hopper
+  // via tools/curated_islands.json → airports.json `is_island` flag;
+  // Outback via OurAirports `type=small_airport` field; Remote Landing
+  // via existing `elevation_ft` data; New Plane Smell via FAA `year_mfr`
+  // (requires running enrich_bts.py to be populated).
+  { code: "TRANSPOLAR",         name: "Transpolar",             desc: "Complete a flight whose great-circle path crosses above 70°N or below 70°S", category: "elite",   icon: "🧭", tier: "platinum", req: 1,   type: "transpolar_flight",      points: 200 },
+  { code: "ISLAND_HOPPER_5",    name: "Island Hopper",          desc: "Land at 5 different island airports (Hawaii, Caribbean, Mediterranean, etc.)", category: "collector", icon: "🏝️", tier: "silver", req: 5,   type: "island_airports",        points: 75 },
+  { code: "ISLAND_HOPPER_10",   name: "Castaway",               desc: "Land at 10 different island airports",                                       category: "collector", icon: "🏖️", tier: "gold",   req: 10,  type: "island_airports",        points: 200 },
+  { code: "OUTBACK",            name: "Outback",                desc: "Land at a small regional airport (OurAirports 'small_airport' type)",         category: "special",  icon: "🤠", tier: "silver",  req: 1,   type: "small_airport_landing",  points: 60 },
+  { code: "FULL_CIRCLE",        name: "Full Circle",            desc: "Complete a single trip that spans more than 270° of longitude and returns where it started", category: "elite", icon: "🌐", tier: "diamond", req: 1,   type: "rtw_trip",               points: 400 },
+  { code: "REMOTE_LANDING",     name: "Remote Landing",         desc: "Land at an airport over 8,000 ft elevation in a sparsely-populated area",     category: "elite",   icon: "🏔️", tier: "gold",     req: 1,   type: "remote_landing",         points: 120 },
+  { code: "NEW_PLANE_SMELL",    name: "New Plane Smell",        desc: "Fly an aircraft within 12 months of its manufacture date (requires BTS+FAA enrichment)", category: "elite", icon: "✨", tier: "gold", req: 1, type: "new_aircraft",          points: 100 },
+
   // ── META ──────────────────────────────────────────────────────────────
   { code: "WRIGHT_STUFF",       name: "The Wright Stuff",      desc: "Unlock at least one achievement in every category",     category: "special",  icon: "✈️", tier: "diamond",  req: 1,    type: "wright_stuff",      points: 500 },
 ];
@@ -364,6 +379,12 @@ export function evaluateAchievements(ctx) {
   let maxAirportElevation = 0, belowSeaLevel = 0;
   let maxLatN = 0, maxLatS = 0;       // northernmost lat seen, southernmost (positive number magnitude)
   let antipodeVisited = 0;
+  // New (Expansion v3):
+  let transpolarFlight = 0;          // 1 if any great-circle path crosses |lat|≥70
+  let smallAirportLanding = 0;       // count of arrivals at type=small_airport
+  let remoteLanding = 0;             // count of arrivals meeting "remote" criteria
+  let newAircraftFlights = 0;        // flew aircraft <12 months old (needs aircraft_year)
+  const islandAirports = new Set();  // codes from is_island airports actually visited
   const alliancesSeen = new Set();
   const aircraftFamiliesSet = new Set();
   const flightNumberCount = new Map();       // "AA1839" -> n
@@ -492,6 +513,34 @@ export function evaluateAchievements(ctx) {
       if (ap.lat != null && ap.lon != null) {
         const dist = airportHaversineMiles(ap.lat, ap.lon, ANTIPODE_LAT, ANTIPODE_LON);
         if (dist <= ANTIPODE_RADIUS_MI) antipodeVisited = 1;
+      }
+      // Island Hopper: airport is on a curated island
+      if (ap.is_island) islandAirports.add(ap.code);
+    }
+
+    // Transpolar — does this flight's great-circle path crest above 70° lat?
+    if (aFrom && aTo && aFrom.lat != null && aTo.lat != null) {
+      const maxLat = maxLatOnGreatCircle(aFrom.lat, aFrom.lon, aTo.lat, aTo.lon);
+      if (maxLat >= 70) transpolarFlight++;
+    }
+
+    // Outback — landed at a small regional airport (OurAirports type=small_airport).
+    // The destination airport is the meaningful "you went there" endpoint.
+    if (aTo?.type === "small_airport") smallAirportLanding++;
+
+    // Remote Landing — high elevation (>8,000 ft) at a small airport.
+    // Combined criterion so it's distinct from Alpine Arrival/High Altitude.
+    if (aTo?.type === "small_airport" && (aTo.elevation_ft || 0) >= 8000) {
+      remoteLanding++;
+    }
+
+    // New Plane Smell — flew an aircraft within ~12 months of its manufacture
+    // year (requires `aircraft_year` from enrich_bts.py's FAA registry join).
+    if (f.aircraft_year && f.depart) {
+      const ay = parseInt(f.aircraft_year, 10);
+      const fy = parseInt((f.depart || "").slice(0, 4), 10);
+      if (Number.isFinite(ay) && Number.isFinite(fy) && (fy - ay) <= 1 && fy >= ay) {
+        newAircraftFlights++;
       }
     }
 
@@ -732,6 +781,43 @@ export function evaluateAchievements(ctx) {
   }
   metrics.max_continents_per_trip = maxContinentsPerTrip;
 
+  // ── Full Circle (RTW) — did any single trip sweep ≥270° longitude AND end
+  // back at its starting airport (within 500 mi)? We deliberately use 270°
+  // rather than a full 360° so a Pacific-side-then-Atlantic-side circumnav
+  // counts even if the user skipped a continent. Requires trip_id grouping.
+  let rtwTrip = 0;
+  let maxTripSweep = 0;
+  {
+    const byTrip = new Map();
+    for (const f of flights) {
+      if (!f.trip_id || !f.from || !f.to) continue;
+      const aF = airports[f.from], aT = airports[f.to];
+      if (!aF || aF.lat == null || !aT || aT.lat == null) continue;
+      const list = byTrip.get(f.trip_id) || [];
+      list.push({ depart: f.depart, lat: aF.lat, lon: aF.lon, _to: [aT.lat, aT.lon] });
+      byTrip.set(f.trip_id, list);
+    }
+    for (const list of byTrip.values()) {
+      list.sort((a, b) => (a.depart || "").localeCompare(b.depart || ""));
+      if (list.length < 2) continue;
+      // Coords = each leg's origin in order, then the very last leg's dest.
+      const coords = list.map(l => [l.lat, l.lon]);
+      coords.push(list[list.length - 1]._to);
+      const { sweep, returned } = evaluateRTW(coords);
+      if (sweep > maxTripSweep) maxTripSweep = sweep;
+      if (sweep >= 270 && returned) rtwTrip = 1;
+    }
+  }
+  metrics.rtw_trip = rtwTrip;
+  metrics.max_trip_sweep = maxTripSweep;
+
+  // ── Expansion v3 (previously-blocked) ─────────────────────────────────
+  metrics.transpolar_flight     = transpolarFlight;
+  metrics.island_airports       = islandAirports.size;
+  metrics.small_airport_landing = smallAirportLanding;
+  metrics.remote_landing        = remoteLanding;
+  metrics.new_aircraft          = newAircraftFlights;
+
   // Decorate each definition with its progress.
   // Two-pass: skip the "wright_stuff" meta on the first pass so we can derive
   // it from how many categories have at least one unlocked achievement.
@@ -774,6 +860,57 @@ function airportHaversineMiles(lat1, lon1, lat2, lon2) {
   const a = Math.sin(dLat/2)**2 +
             Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon/2)**2;
   return 2 * R * Math.asin(Math.sqrt(a));
+}
+
+// Maximum absolute latitude reached by the great-circle path between two
+// airports. Powers the Transpolar achievement: a flight whose actual path
+// crosses above 70°N (or below 70°S) — common for high-latitude routes like
+// HEL→NRT or JFK→PVG that look "horizontal" on a flat map but actually arc
+// over the polar region. Sampled at 64 points along the great-circle arc.
+function maxLatOnGreatCircle(lat1, lon1, lat2, lon2, samples = 64) {
+  const toRad = d => d * Math.PI / 180;
+  const toDeg = r => r * 180 / Math.PI;
+  const φ1 = toRad(lat1), λ1 = toRad(lon1);
+  const φ2 = toRad(lat2), λ2 = toRad(lon2);
+  // Cartesian vectors on unit sphere
+  const x1 = Math.cos(φ1) * Math.cos(λ1), y1 = Math.cos(φ1) * Math.sin(λ1), z1 = Math.sin(φ1);
+  const x2 = Math.cos(φ2) * Math.cos(λ2), y2 = Math.cos(φ2) * Math.sin(λ2), z2 = Math.sin(φ2);
+  // Angular distance
+  const dot = x1*x2 + y1*y2 + z1*z2;
+  const d = Math.acos(Math.max(-1, Math.min(1, dot)));
+  if (d === 0) return Math.abs(lat1);
+  let maxAbs = Math.max(Math.abs(lat1), Math.abs(lat2));
+  for (let i = 1; i < samples; i++) {
+    const f = i / samples;
+    const A = Math.sin((1 - f) * d) / Math.sin(d);
+    const B = Math.sin(f * d) / Math.sin(d);
+    const x = A * x1 + B * x2;
+    const y = A * y1 + B * y2;
+    const z = A * z1 + B * z2;
+    const lat = toDeg(Math.atan2(z, Math.sqrt(x*x + y*y)));
+    if (Math.abs(lat) > maxAbs) maxAbs = Math.abs(lat);
+  }
+  return maxAbs;
+}
+
+// Round-the-world detection: given an ordered list of (lat,lon) waypoints in
+// a single trip, compute the total *signed* longitude traveled (handling the
+// ±180° wrap) and whether the trip's final airport is close to its starting
+// airport. Returns { circumnavigation: number, returned: bool, span: number }.
+//   circumnavigation = absolute east-or-west longitude swept along the path
+//   returned         = trip ends within 500 mi of where it started
+function evaluateRTW(coords) {
+  if (coords.length < 3) return { sweep: 0, returned: false };
+  let sweep = 0;
+  for (let i = 1; i < coords.length; i++) {
+    let dl = coords[i][1] - coords[i - 1][1];
+    if (dl > 180)  dl -= 360;
+    if (dl < -180) dl += 360;
+    sweep += dl;
+  }
+  const start = coords[0], end = coords[coords.length - 1];
+  const returned = airportHaversineMiles(start[0], start[1], end[0], end[1]) < 500;
+  return { sweep: Math.abs(sweep), returned };
 }
 
 function longestConsecutiveMonths(monthSet) {
@@ -1047,6 +1184,16 @@ function listContributingItems(ach, ctx, limit = 30) {
       return `<code style="${visited ? "" : "opacity:.4;text-decoration:line-through"}">${c}</code> ${info?.name || c}${visited ? " ✓" : ""}`;
     });
   }
+  if (ach.type === "island_airports") {
+    const items = [];
+    for (const code of s.airports.keys()) {
+      const ap = ctx.airports[code];
+      if (ap?.is_island) {
+        items.push(`<code>${code}</code> ${escapeHtml(ap.name || "")} <span class="muted small">${ap.country_name || ap.country}</span>`);
+      }
+    }
+    return items.slice(0, limit);
+  }
   return [];
 }
 
@@ -1137,6 +1284,13 @@ function describeRequirement(ach) {
     case "codeshare_count":        return `Fly a flight where the operating airline differs from the marketing carrier`;
     case "alliances":              return `Fly on members of all three global alliances (Star, oneworld, SkyTeam)`;
     case "max_continents_per_trip":return `A trip whose flights touch ${ach.req} different continents`;
+    // Expansion v3 (previously blocked)
+    case "transpolar_flight":      return `A flight whose great-circle path crests above 70°N or below 70°S`;
+    case "island_airports":        return `Land at ${ach.req} different island airports (Hawaii, Caribbean, Mediterranean, etc.)`;
+    case "small_airport_landing":  return `Land at any small regional airport (OurAirports "small_airport" type)`;
+    case "rtw_trip":               return `One trip that sweeps ≥270° of longitude and returns to its starting airport`;
+    case "remote_landing":         return `Land at a small airport above 8,000 ft elevation`;
+    case "new_aircraft":           return `Fly an aircraft within 12 months of its manufacture year (needs BTS+FAA enrichment)`;
     default:                       return ach.desc;
   }
 }

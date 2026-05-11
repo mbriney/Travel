@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Matt Briney — Travel Passport</title>
-  <meta name="description" content="An interactive virtual passport built from Matt's TripIt flight history." />
+  <title>Travel Passport</title>
+  <meta name="description" content="An interactive virtual passport built from your TripIt flight history." />
   <meta name="theme-color" content="#0a0f2c" />
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
   <link rel="stylesheet" href="assets/css/passport.css" />
@@ -52,7 +52,8 @@
         </button>
       </nav>
       <div class="user-meta">
-        <span class="user-name">Matt Briney</span>
+        <!-- Populated at boot from data/profile.json (see main.js → applyProfile). -->
+        <span class="user-name" id="user-name">&nbsp;</span>
         <span class="user-updated" id="meta-updated">Updated —</span>
       </div>
     </header>

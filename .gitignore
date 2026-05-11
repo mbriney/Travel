@@ -1,11 +1,21 @@
 # Local OAuth credentials — never commit
 tools/credentials.json
 
+# tools/profile.json is COMMITTED — same info as the deployed
+# data/profile.json, so there's nothing to keep private. Kept as a
+# separate file so it's easy to spot which fields are user-overrides
+# vs. which were derived from TripIt's API.
+
 # Raw TripIt API dumps (large, not needed in repo)
 data/raw/
 
 # AeroDataBox per-flight cache (local-only — saves API quota across reruns)
 data/_aerodatabox_cache/
+
+# Raw BTS monthly zips (huge, regenerable from transtats.bts.gov on demand).
+# The valuable distilled output — data/bts_matches.json — is committed; only
+# the underlying multi-GB downloads stay local.
+data/_bts_cache/
 
 # Python
 __pycache__/

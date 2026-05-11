@@ -14,6 +14,7 @@ const DATA_PATHS = {
   airlines: "data/airlines.json",
   countries:"data/countries.json",
   meta:     "data/meta.json",
+  profile:  "data/profile.json",
 };
 
 // Cache-bust data files using the page-load timestamp so a freshly-rebuilt
@@ -76,13 +77,25 @@ function initTabs(ctx) {
   }
 }
 
+function applyProfile(profile) {
+  if (!profile) return;
+  // Topbar name
+  const nameEl = document.getElementById("user-name");
+  if (nameEl && profile.display_name) nameEl.textContent = profile.display_name;
+  // Browser tab title
+  if (profile.site_title) document.title = profile.site_title;
+  else if (profile.display_name) document.title = `${profile.display_name} — Travel Passport`;
+}
+
 async function boot() {
-  const [flights, airports, airlines, countries] = await Promise.all([
+  const [flights, airports, airlines, countries, profile] = await Promise.all([
     tryLoadJSON(DATA_PATHS.flights),
     tryLoadJSON(DATA_PATHS.airports),
     tryLoadJSON(DATA_PATHS.airlines),
     tryLoadJSON(DATA_PATHS.countries),
+    tryLoadJSON(DATA_PATHS.profile),
   ]);
+  applyProfile(profile);
 
   if (!flights || !flights.length) { showEmptyState(); return; }
   if (!airports) { showEmptyState("airports.json is missing. Run python tools/build_airports.py first."); return; }
@@ -118,6 +131,7 @@ async function boot() {
     airports,
     airlines: airlines || {},
     countries: countries || {},
+    profile: profile || null,
   };
 
   // Last-Updated indicator — prefer the explicit timestamp written by

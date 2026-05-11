@@ -46,6 +46,8 @@ CREDS_FILE = TOOLS / "credentials.json"
 AIRPORTS_FILE = DATA / "airports.json"
 FLIGHTS_FILE = DATA / "flights.json"
 META_FILE = DATA / "meta.json"
+PROFILE_OVERRIDE_FILE = TOOLS / "profile.json"
+PROFILE_OUT_FILE = DATA / "profile.json"
 
 
 def update_meta(updates: dict) -> None:
@@ -67,8 +69,21 @@ AUTHORIZE_URL = "https://www.tripit.com/oauth/authorize"
 ACCESS_TOKEN_URL = f"{API_BASE}/oauth/access_token"
 LIST_TRIP_URL = f"{API_BASE}/v1/list/trip"
 LIST_OBJECT_URL = f"{API_BASE}/v1/list/object"
+GET_PROFILE_URL = f"{API_BASE}/v1/get/profile"
 
-USER_AGENT = "Matt-Briney-Travel-Passport/1.0 (+https://github.com/mbriney/Travel)"
+# Default User-Agent. The user can override via tools/profile.json's
+# "user_agent" key — useful for distinguishing forks in TripIt's logs.
+DEFAULT_USER_AGENT = "travel-passport/1.0 (+https://github.com/anonymous/Travel)"
+
+def _profile_overrides() -> dict:
+    if PROFILE_OVERRIDE_FILE.exists():
+        try:
+            return json.loads(PROFILE_OVERRIDE_FILE.read_text())
+        except Exception as e:
+            print(f"  WARN: tools/profile.json is not valid JSON ({e}); ignoring.")
+    return {}
+
+USER_AGENT = (_profile_overrides().get("user_agent") or DEFAULT_USER_AGENT)
 
 
 # ---------------------------------------------------------------------------
@@ -402,6 +417,110 @@ def load_airports() -> dict[str, dict]:
     return json.loads(AIRPORTS_FILE.read_text())
 
 
+# ---------------------------------------------------------------------------
+# Profile — pull from TripIt /v1/get/profile, merge with tools/profile.json
+# overrides, write data/profile.json. The front-end reads that file at boot
+# to populate the bio page + topbar (replaces all hardcoded names/residence).
+# ---------------------------------------------------------------------------
+
+def fetch_tripit_profile(auth: OAuth1) -> dict:
+    """Pull /v1/get/profile and return the (possibly multi-) profile dict.
+    Returns an empty dict on failure — the override file is enough."""
+    try:
+        data = get_json(GET_PROFILE_URL, {"format": "json"}, auth)
+    except requests.HTTPError as e:
+        print(f"  WARN: profile fetch failed ({e}); continuing without it.")
+        return {}
+    profile = data.get("Profile")
+    # The API sometimes wraps the profile in a list when multiple are
+    # returned. We use the first one.
+    if isinstance(profile, list):
+        profile = profile[0] if profile else {}
+    return profile or {}
+
+
+def _coerce_str(v) -> str:
+    """TripIt occasionally returns dict-wrapped fields ({"_": "value"}); flatten."""
+    if isinstance(v, dict):
+        for k in ("_", "value", "text"):
+            if k in v:
+                return str(v[k])
+        return ""
+    return str(v or "").strip()
+
+
+def build_profile(tripit_profile: dict, overrides: dict) -> dict:
+    """Merge TripIt profile + tools/profile.json overrides into the final
+    profile dict written to data/profile.json. Overrides win for every field;
+    `null` in the override means "use TripIt's value or the default."
+    """
+    # Pull whatever TripIt gave us, defensively
+    tp_first = _coerce_str(tripit_profile.get("first_name"))
+    tp_last  = _coerce_str(tripit_profile.get("last_name"))
+    tp_display = f"{tp_first} {tp_last}".strip() or _coerce_str(tripit_profile.get("public_display_name"))
+    tp_home  = _coerce_str(tripit_profile.get("home_city"))
+    tp_state = _coerce_str(tripit_profile.get("home_state"))
+    tp_country = _coerce_str(tripit_profile.get("home_country"))
+    # Compose a US-style "CITY, STATE" or "CITY, COUNTRY" residence string.
+    if tp_home and tp_state:
+        tp_residence = f"{tp_home.upper()}, {tp_state.upper()}"
+    elif tp_home and tp_country:
+        tp_residence = f"{tp_home.upper()}, {tp_country.upper()}"
+    else:
+        tp_residence = tp_home.upper()
+
+    def pick(key, fallback=""):
+        v = overrides.get(key)
+        # Treat empty strings and None alike as "use fallback"
+        if v is None or (isinstance(v, str) and not v.strip()):
+            return fallback
+        return v
+
+    display_name = pick("display_name", tp_display or "Traveler")
+    legal_first = pick("legal_first_name", tp_first.upper())
+    legal_last  = pick("legal_last_name",  tp_last.upper())
+
+    out = {
+        "display_name":     display_name,
+        "legal_first_name": legal_first,
+        "legal_last_name":  legal_last,
+        "nationality":      pick("nationality",     "UNITED STATES OF AMERICA"),
+        "birthplace":       pick("birthplace",      ""),
+        "residence":        pick("residence",       tp_residence),
+        "sex":              pick("sex",             ""),
+        "passport_number":  pick("passport_number", ""),
+        "site_title":       pick("site_title",      f"{display_name} — Travel Passport"),
+        "source": {
+            # Document where each personal field came from so it's auditable.
+            "display_name":     "override" if overrides.get("display_name") else ("tripit" if tp_display else "default"),
+            "legal_first_name": "override" if overrides.get("legal_first_name") else ("tripit" if tp_first else "default"),
+            "legal_last_name":  "override" if overrides.get("legal_last_name") else ("tripit" if tp_last else "default"),
+            "residence":        "override" if overrides.get("residence") else ("tripit" if tp_residence else "default"),
+        },
+    }
+    return out
+
+
+def write_profile(auth: OAuth1) -> dict:
+    """Fetch+merge+write the profile. Returns the merged dict."""
+    print("\nFetching profile from TripIt...")
+    tripit_profile = fetch_tripit_profile(auth)
+    if tripit_profile:
+        fn = _coerce_str(tripit_profile.get("first_name"))
+        ln = _coerce_str(tripit_profile.get("last_name"))
+        print(f"  TripIt: {fn or '?'} {ln or '?'}")
+    overrides = _profile_overrides()
+    if overrides:
+        print(f"  Applying overrides from {PROFILE_OVERRIDE_FILE.relative_to(ROOT)}")
+    profile = build_profile(tripit_profile, overrides)
+    PROFILE_OUT_FILE.write_text(json.dumps(profile, indent=2))
+    print(f"  wrote: {PROFILE_OUT_FILE}")
+    print(f"  display_name = {profile['display_name']!r}")
+    print(f"  legal name   = {profile['legal_first_name']} {profile['legal_last_name']}")
+    print(f"  residence    = {profile['residence']}")
+    return profile
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--full", action="store_true",
@@ -418,6 +537,13 @@ def main() -> None:
         creds = do_oauth_dance(creds)
 
     auth = get_signer(creds)
+
+    # Profile first — it's cheap and the result is needed in every UI page.
+    # Failures here are non-fatal; we'll just have an empty data/profile.json.
+    try:
+        write_profile(auth)
+    except Exception as e:
+        print(f"  WARN: profile pipeline failed: {e}")
 
     print("\nFetching past air objects from TripIt...")
     try:
