@@ -248,6 +248,20 @@ export function computeStats(ctx) {
   out.aircraft = aircraftCount;
   out.topAircraft = topN(aircraftCount, 12);
 
+  // ── Specific tail-number tracking (AeroDataBox enrichment only) ────────
+  const tailCount = new Map();
+  const tailModel = new Map();
+  for (const f of flights) {
+    if (!f.tail_number) continue;
+    inc(tailCount, f.tail_number);
+    if (f.aircraft_model) tailModel.set(f.tail_number, f.aircraft_model);
+  }
+  out.tails = tailCount;
+  out.tailModels = tailModel;
+  out.topTails = topN(tailCount, 8);
+  out.uniqueTails = tailCount.size;
+  out.enrichedFlights = flights.filter(f => f.tail_number).length;
+
   // ── Service class breakdown ───────────────────────────────────────────
   const classBuckets = { economy: 0, premium: 0, business: 0, first: 0, unknown: 0 };
   for (const f of flights) {

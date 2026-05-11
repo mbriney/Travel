@@ -11543,7 +11543,19 @@
     "service_class": "Business (I)",
     "miles": 977.0,
     "duration": "2h, 39m",
-    "stops": "nonstop"
+    "stops": "nonstop",
+    "aircraft_model": "Embraer 175",
+    "operating_airline": "American Airlines",
+    "operating_airline_iata": "AA",
+    "operating_airline_icao": "AAL",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-05-11T08:08:47+00:00",
+      "match": "AA 4307",
+      "requested": "AA4307"
+    }
   },
   {
     "trip_id": "364876810",
@@ -11566,7 +11578,19 @@
     "service_class": "Business (I)",
     "miles": 977.0,
     "duration": "2h, 40m",
-    "stops": "nonstop"
+    "stops": "nonstop",
+    "aircraft_model": "Embraer 175",
+    "operating_airline": "American Airlines",
+    "operating_airline_iata": "AA",
+    "operating_airline_icao": "AAL",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-05-11T08:08:51+00:00",
+      "match": "AA 3839",
+      "requested": "AA3839"
+    }
   },
   {
     "trip_id": "365220331",
@@ -11589,7 +11613,22 @@
     "service_class": "Economy (N)",
     "miles": 1231.0,
     "duration": "3h, 23m",
-    "stops": "nonstop"
+    "stops": "nonstop",
+    "tail_number": "N969NN",
+    "aircraft_model": "Boeing 737-800",
+    "aircraft_mode_s": "AD7ECE",
+    "callsign": "AAL2005",
+    "operating_airline": "American Airlines",
+    "operating_airline_iata": "AA",
+    "operating_airline_icao": "AAL",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-05-11T08:08:52+00:00",
+      "match": "AA 2005",
+      "requested": "AA2005"
+    }
   },
   {
     "trip_id": "365220331",
@@ -11612,7 +11651,22 @@
     "service_class": "Economy (S)",
     "miles": 369.0,
     "duration": "1h, 30m",
-    "stops": "nonstop"
+    "stops": "nonstop",
+    "tail_number": "N969NN",
+    "aircraft_model": "Boeing 737-800",
+    "aircraft_mode_s": "AD7ECE",
+    "callsign": "AAL2027",
+    "operating_airline": "American Airlines",
+    "operating_airline_iata": "AA",
+    "operating_airline_icao": "AAL",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-05-11T08:08:54+00:00",
+      "match": "AA 2027",
+      "requested": "AA2027"
+    }
   },
   {
     "trip_id": "365220331",
@@ -11635,7 +11689,19 @@
     "service_class": "Economy (S)",
     "miles": 1041.0,
     "duration": "2h, 38m",
-    "stops": "nonstop"
+    "stops": "nonstop",
+    "aircraft_model": "Canadair reg jet 700",
+    "operating_airline": "American Airlines",
+    "operating_airline_iata": "AA",
+    "operating_airline_icao": "AAL",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-05-11T08:08:56+00:00",
+      "match": "AA 6268",
+      "requested": "AA6268"
+    }
   },
   {
     "trip_id": "365220331",
@@ -11658,7 +11724,22 @@
     "service_class": "Economy (N)",
     "miles": 460.0,
     "duration": "1h, 49m",
-    "stops": "nonstop"
+    "stops": "nonstop",
+    "tail_number": "N835NN",
+    "aircraft_model": "Boeing 737-800",
+    "aircraft_mode_s": "AB6C26",
+    "callsign": "AAL2100",
+    "operating_airline": "American Airlines",
+    "operating_airline_iata": "AA",
+    "operating_airline_icao": "AAL",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-05-11T08:08:58+00:00",
+      "match": "AA 2100",
+      "requested": "AA2100"
+    }
   },
   {
     "trip_id": "366240143",
@@ -11681,7 +11762,22 @@
     "service_class": "Delta Main Basic (E)",
     "miles": 729.0,
     "duration": "2h, 10m",
-    "stops": "nonstop"
+    "stops": "nonstop",
+    "tail_number": "N359DN",
+    "aircraft_model": "Airbus A321",
+    "aircraft_mode_s": "A40694",
+    "callsign": "DAL401",
+    "operating_airline": "Delta Air Lines",
+    "operating_airline_iata": "DL",
+    "operating_airline_icao": "DAL",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-05-11T08:09:00+00:00",
+      "match": "DL 401",
+      "requested": "DL401"
+    }
   },
   {
     "trip_id": "366240143",
@@ -11704,7 +11800,22 @@
     "service_class": "Delta Main Basic (E)",
     "miles": 729.0,
     "duration": "2h, 19m",
-    "stops": "nonstop"
+    "stops": "nonstop",
+    "tail_number": "N549DN",
+    "aircraft_model": "Airbus A321 NEO",
+    "aircraft_mode_s": "A6F9B3",
+    "callsign": "DAL436",
+    "operating_airline": "Delta Air Lines",
+    "operating_airline_iata": "DL",
+    "operating_airline_icao": "DAL",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-05-11T08:09:02+00:00",
+      "match": "DL 436",
+      "requested": "DL436"
+    }
   },
   {
     "trip_id": "367065729",
@@ -11727,7 +11838,22 @@
     "service_class": "Wanna Get Away Plus",
     "miles": 793.0,
     "duration": "2h, 15m",
-    "stops": "nonstop"
+    "stops": "nonstop",
+    "tail_number": "N8617E",
+    "aircraft_model": "Boeing 737-800",
+    "aircraft_mode_s": "ABD5E0",
+    "callsign": "SWA2297",
+    "operating_airline": "Southwest Airlines",
+    "operating_airline_iata": "WN",
+    "operating_airline_icao": "SWA",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-05-11T08:09:03+00:00",
+      "match": "WN 2297",
+      "requested": "WN2297"
+    }
   },
   {
     "trip_id": "367065729",
@@ -11750,7 +11876,22 @@
     "service_class": "Wanna Get Away Plus",
     "miles": 793.0,
     "duration": "2h, 20m",
-    "stops": "nonstop"
+    "stops": "nonstop",
+    "tail_number": "N236WN",
+    "aircraft_model": "Boeing 737-700",
+    "aircraft_mode_s": "A220CB",
+    "callsign": "SWA2408",
+    "operating_airline": "Southwest Airlines",
+    "operating_airline_iata": "WN",
+    "operating_airline_icao": "SWA",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-05-11T08:09:05+00:00",
+      "match": "WN 2408",
+      "requested": "WN2408"
+    }
   },
   {
     "trip_id": "364920920",
@@ -11773,7 +11914,19 @@
     "service_class": "Economy (V)",
     "miles": 977.0,
     "duration": "2h, 39m",
-    "stops": "nonstop"
+    "stops": "nonstop",
+    "aircraft_model": "Embraer 175",
+    "operating_airline": "American Airlines",
+    "operating_airline_iata": "AA",
+    "operating_airline_icao": "AAL",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-05-11T08:09:07+00:00",
+      "match": "AA 3839",
+      "requested": "AA3839"
+    }
   },
   {
     "trip_id": "364920920",
@@ -11796,7 +11949,19 @@
     "service_class": "Economy (S)",
     "miles": 977.0,
     "duration": "2h, 39m",
-    "stops": "nonstop"
+    "stops": "nonstop",
+    "aircraft_model": "Embraer 175",
+    "operating_airline": "American Airlines",
+    "operating_airline_iata": "AA",
+    "operating_airline_icao": "AAL",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-05-11T08:09:08+00:00",
+      "match": "AA 3839",
+      "requested": "AA3839"
+    }
   },
   {
     "trip_id": "366407691",
@@ -11819,7 +11984,22 @@
     "service_class": "Economy (Y)",
     "miles": 1058.0,
     "duration": "2h, 52m",
-    "stops": "nonstop"
+    "stops": "nonstop",
+    "tail_number": "N860NN",
+    "aircraft_model": "Boeing 737-800",
+    "aircraft_mode_s": "ABD010",
+    "callsign": "AAL2683",
+    "operating_airline": "American Airlines",
+    "operating_airline_iata": "AA",
+    "operating_airline_icao": "AAL",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-05-11T08:09:10+00:00",
+      "match": "AA 2683",
+      "requested": "AA2683"
+    }
   },
   {
     "trip_id": "366407691",
@@ -11842,7 +12022,22 @@
     "service_class": "R",
     "miles": 129.0,
     "duration": "1h, 15m",
-    "stops": "nonstop"
+    "stops": "nonstop",
+    "tail_number": "N977UY",
+    "aircraft_model": "Airbus A321",
+    "aircraft_mode_s": "AD9F7F",
+    "callsign": "AAL1904",
+    "operating_airline": "American Airlines",
+    "operating_airline_iata": "AA",
+    "operating_airline_icao": "AAL",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-05-11T08:09:12+00:00",
+      "match": "AA 1904",
+      "requested": "AA1904"
+    }
   },
   {
     "trip_id": "366407691",
@@ -11865,7 +12060,22 @@
     "service_class": "R",
     "miles": 933.0,
     "duration": "2h, 46m",
-    "stops": "nonstop"
+    "stops": "nonstop",
+    "tail_number": "N432AN",
+    "aircraft_model": "Airbus A321 NEO",
+    "aircraft_mode_s": "A52A99",
+    "callsign": "AAL2714",
+    "operating_airline": "American Airlines",
+    "operating_airline_iata": "AA",
+    "operating_airline_icao": "AAL",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-05-11T08:09:13+00:00",
+      "match": "AA 2714",
+      "requested": "AA2714"
+    }
   },
   {
     "trip_id": "368383774",
@@ -11888,7 +12098,22 @@
     "service_class": null,
     "miles": 1058.0,
     "duration": "3h, 00m",
-    "stops": "nonstop"
+    "stops": "nonstop",
+    "tail_number": "N165NN",
+    "aircraft_model": "Airbus A321",
+    "aircraft_mode_s": "A1057A",
+    "callsign": "AAL802",
+    "operating_airline": "American Airlines",
+    "operating_airline_iata": "AA",
+    "operating_airline_icao": "AAL",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-05-11T08:09:15+00:00",
+      "match": "AA 802",
+      "requested": "AA802"
+    }
   },
   {
     "trip_id": "368383774",
@@ -11911,7 +12136,19 @@
     "service_class": "Economy (S)",
     "miles": 977.0,
     "duration": "2h, 40m",
-    "stops": "nonstop"
+    "stops": "nonstop",
+    "aircraft_model": "Embraer 175",
+    "operating_airline": "American Airlines",
+    "operating_airline_iata": "AA",
+    "operating_airline_icao": "AAL",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-05-11T08:09:16+00:00",
+      "match": "AA 3839",
+      "requested": "AA3839"
+    }
   },
   {
     "trip_id": "368383774",
@@ -11934,7 +12171,19 @@
     "service_class": "Economy (M)",
     "miles": 968.0,
     "duration": "2h, 46m",
-    "stops": "nonstop"
+    "stops": "nonstop",
+    "aircraft_model": "Embraer 175",
+    "operating_airline": "American Airlines",
+    "operating_airline_iata": "AA",
+    "operating_airline_icao": "AAL",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-05-11T08:09:18+00:00",
+      "match": "AA 3373",
+      "requested": "AA3373"
+    }
   },
   {
     "trip_id": "368482615",
@@ -11957,7 +12206,19 @@
     "service_class": "Economy (Q)",
     "miles": 629.0,
     "duration": "1h, 55m",
-    "stops": "nonstop"
+    "stops": "nonstop",
+    "aircraft_model": "Embraer 175",
+    "operating_airline": "American Airlines",
+    "operating_airline_iata": "AA",
+    "operating_airline_icao": "AAL",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-05-11T08:09:20+00:00",
+      "match": "AA 4161",
+      "requested": "AA4161"
+    }
   },
   {
     "trip_id": "368482615",
@@ -11980,7 +12241,22 @@
     "service_class": "Economy (O)",
     "miles": 629.0,
     "duration": "2h, 05m",
-    "stops": "nonstop"
+    "stops": "nonstop",
+    "tail_number": "N949NN",
+    "aircraft_model": "Boeing 737-800",
+    "aircraft_mode_s": "AD2FD0",
+    "callsign": "AAL2244",
+    "operating_airline": "American Airlines",
+    "operating_airline_iata": "AA",
+    "operating_airline_icao": "AAL",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-05-11T08:09:22+00:00",
+      "match": "AA 2244",
+      "requested": "AA2244"
+    }
   },
   {
     "trip_id": "369579023",
@@ -12003,7 +12279,19 @@
     "service_class": "Economy (S)",
     "miles": 977.0,
     "duration": "2h, 35m",
-    "stops": "nonstop"
+    "stops": "nonstop",
+    "aircraft_model": "Embraer 175",
+    "operating_airline": "American Airlines",
+    "operating_airline_iata": "AA",
+    "operating_airline_icao": "AAL",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-05-11T08:09:23+00:00",
+      "match": "AA 4307",
+      "requested": "AA4307"
+    }
   },
   {
     "trip_id": "369579023",
@@ -12026,7 +12314,19 @@
     "service_class": "Economy (S)",
     "miles": 977.0,
     "duration": "2h, 35m",
-    "stops": "nonstop"
+    "stops": "nonstop",
+    "aircraft_model": "Embraer 175",
+    "operating_airline": "American Airlines",
+    "operating_airline_iata": "AA",
+    "operating_airline_icao": "AAL",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-05-11T08:09:25+00:00",
+      "match": "AA 3652",
+      "requested": "AA3652"
+    }
   },
   {
     "trip_id": "369502890",
@@ -12049,7 +12349,22 @@
     "service_class": "Choice",
     "miles": 461.0,
     "duration": "1h, 35m",
-    "stops": "nonstop"
+    "stops": "nonstop",
+    "tail_number": "N8771D",
+    "aircraft_model": "Boeing 737 MAX 8",
+    "aircraft_mode_s": "AC12D6",
+    "callsign": "SWA2807",
+    "operating_airline": "Southwest Airlines",
+    "operating_airline_iata": "WN",
+    "operating_airline_icao": "SWA",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-05-11T08:09:27+00:00",
+      "match": "WN 2807",
+      "requested": "WN2807"
+    }
   },
   {
     "trip_id": "369502890",
@@ -12072,7 +12387,22 @@
     "service_class": "Choice",
     "miles": 461.0,
     "duration": "1h, 30m",
-    "stops": "nonstop"
+    "stops": "nonstop",
+    "tail_number": "N422WN",
+    "aircraft_model": "Boeing 737-700",
+    "aircraft_mode_s": "A5050E",
+    "callsign": "SWA2181",
+    "operating_airline": "Southwest Airlines",
+    "operating_airline_iata": "WN",
+    "operating_airline_icao": "SWA",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-05-11T08:09:28+00:00",
+      "match": "WN 2181",
+      "requested": "WN2181"
+    }
   },
   {
     "trip_id": "370189266",
@@ -12095,7 +12425,19 @@
     "service_class": "Economy (S)",
     "miles": 977.0,
     "duration": "2h, 38m",
-    "stops": "nonstop"
+    "stops": "nonstop",
+    "aircraft_model": "Embraer 175",
+    "operating_airline": "American Airlines",
+    "operating_airline_iata": "AA",
+    "operating_airline_icao": "AAL",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-05-11T08:09:30+00:00",
+      "match": "AA 3343",
+      "requested": "AA3343"
+    }
   },
   {
     "trip_id": "370189266",
@@ -12118,7 +12460,19 @@
     "service_class": "Economy (S)",
     "miles": 977.0,
     "duration": "2h, 37m",
-    "stops": "nonstop"
+    "stops": "nonstop",
+    "aircraft_model": "Embraer 170",
+    "operating_airline": "American Airlines",
+    "operating_airline_iata": "AA",
+    "operating_airline_icao": "AAL",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-05-11T08:09:32+00:00",
+      "match": "AA 3839",
+      "requested": "AA3839"
+    }
   },
   {
     "trip_id": "371010501",
@@ -12141,7 +12495,19 @@
     "service_class": "Economy (S)",
     "miles": 977.0,
     "duration": "2h, 37m",
-    "stops": "nonstop"
+    "stops": "nonstop",
+    "aircraft_model": "Boeing 737-700",
+    "operating_airline": "American Airlines",
+    "operating_airline_iata": "AA",
+    "operating_airline_icao": "AAL",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-05-11T08:09:33+00:00",
+      "match": "AA 3661",
+      "requested": "AA3661"
+    }
   },
   {
     "trip_id": "371010501",
@@ -12164,7 +12530,19 @@
     "service_class": "Economy (S)",
     "miles": 977.0,
     "duration": "2h, 39m",
-    "stops": "nonstop"
+    "stops": "nonstop",
+    "aircraft_model": "Embraer 175",
+    "operating_airline": "American Airlines",
+    "operating_airline_iata": "AA",
+    "operating_airline_icao": "AAL",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-05-11T08:09:35+00:00",
+      "match": "AA 3839",
+      "requested": "AA3839"
+    }
   },
   {
     "trip_id": "371998889",
@@ -12187,7 +12565,22 @@
     "service_class": "Economy (G)",
     "miles": 1558.0,
     "duration": "3h, 37m",
-    "stops": "nonstop"
+    "stops": "nonstop",
+    "tail_number": "N925AN",
+    "aircraft_model": "Boeing 737-800",
+    "aircraft_mode_s": "ACD0CA",
+    "callsign": "AAL1366",
+    "operating_airline": "American Airlines",
+    "operating_airline_iata": "AA",
+    "operating_airline_icao": "AAL",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-05-11T08:09:36+00:00",
+      "match": "AA 1366",
+      "requested": "AA1366"
+    }
   },
   {
     "trip_id": "371998889",
@@ -12210,7 +12603,22 @@
     "service_class": "Economy (L)",
     "miles": 1558.0,
     "duration": "4h, 25m",
-    "stops": "nonstop"
+    "stops": "nonstop",
+    "tail_number": "N986AN",
+    "aircraft_model": "Airbus A321",
+    "aircraft_mode_s": "ADC17B",
+    "callsign": "AAL2661",
+    "operating_airline": "American Airlines",
+    "operating_airline_iata": "AA",
+    "operating_airline_icao": "AAL",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-05-11T08:09:38+00:00",
+      "match": "AA 2661",
+      "requested": "AA2661"
+    }
   },
   {
     "trip_id": "372252580",
@@ -12233,7 +12641,22 @@
     "service_class": "Choice",
     "miles": 650.0,
     "duration": "2h, 00m",
-    "stops": "nonstop"
+    "stops": "nonstop",
+    "tail_number": "N8626B",
+    "aircraft_model": "Boeing 737-800",
+    "aircraft_mode_s": "ABD971",
+    "callsign": "SWA2175",
+    "operating_airline": "Southwest Airlines",
+    "operating_airline_iata": "WN",
+    "operating_airline_icao": "SWA",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-05-11T08:09:40+00:00",
+      "match": "WN 2175",
+      "requested": "WN2175"
+    }
   },
   {
     "trip_id": "372252580",
@@ -12256,7 +12679,22 @@
     "service_class": "Basic",
     "miles": 650.0,
     "duration": "1h, 55m",
-    "stops": "nonstop"
+    "stops": "nonstop",
+    "tail_number": "N8611F",
+    "aircraft_model": "Boeing 737-800",
+    "aircraft_mode_s": "ABD50F",
+    "callsign": "SWA3217",
+    "operating_airline": "Southwest Airlines",
+    "operating_airline_iata": "WN",
+    "operating_airline_icao": "SWA",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-05-11T08:09:41+00:00",
+      "match": "WN 3217",
+      "requested": "WN3217"
+    }
   },
   {
     "trip_id": "372001564",
@@ -12279,7 +12717,22 @@
     "service_class": "Economy (N)",
     "miles": 1189.0,
     "duration": "2h, 49m",
-    "stops": "nonstop"
+    "stops": "nonstop",
+    "tail_number": "N868NN",
+    "aircraft_model": "Boeing 737-800",
+    "aircraft_mode_s": "ABEDC8",
+    "callsign": "AAL1244",
+    "operating_airline": "American Airlines",
+    "operating_airline_iata": "AA",
+    "operating_airline_icao": "AAL",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-05-11T08:09:43+00:00",
+      "match": "AA 1244",
+      "requested": "AA1244"
+    }
   },
   {
     "trip_id": "372001564",
@@ -12302,7 +12755,22 @@
     "service_class": "Economy (V)",
     "miles": 1189.0,
     "duration": "3h, 45m",
-    "stops": "nonstop"
+    "stops": "nonstop",
+    "tail_number": "N865NN",
+    "aircraft_model": "Boeing 737-800",
+    "aircraft_mode_s": "ABE2A3",
+    "callsign": "AAL336",
+    "operating_airline": "American Airlines",
+    "operating_airline_iata": "AA",
+    "operating_airline_icao": "AAL",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-05-11T08:09:45+00:00",
+      "match": "AA 336",
+      "requested": "AA336"
+    }
   },
   {
     "trip_id": "373567277",
@@ -12325,7 +12793,22 @@
     "service_class": "Economy (V)",
     "miles": 1657.0,
     "duration": "4h, 27m",
-    "stops": "nonstop"
+    "stops": "nonstop",
+    "tail_number": "N442AN",
+    "aircraft_model": "Airbus A321 NEO",
+    "aircraft_mode_s": "A55218",
+    "callsign": "AAL1241",
+    "operating_airline": "American Airlines",
+    "operating_airline_iata": "AA",
+    "operating_airline_icao": "AAL",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-05-11T08:09:46+00:00",
+      "match": "AA 1241",
+      "requested": "AA1241"
+    }
   },
   {
     "trip_id": "373567277",
@@ -12348,7 +12831,22 @@
     "service_class": "Economy (S)",
     "miles": 1657.0,
     "duration": "3h, 50m",
-    "stops": "nonstop"
+    "stops": "nonstop",
+    "tail_number": "N921US",
+    "aircraft_model": "Airbus A321",
+    "aircraft_mode_s": "ACC3B4",
+    "callsign": "AAL757",
+    "operating_airline": "American Airlines",
+    "operating_airline_iata": "AA",
+    "operating_airline_icao": "AAL",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-05-11T08:09:48+00:00",
+      "match": "AA 757",
+      "requested": "AA757"
+    }
   },
   {
     "trip_id": "368957082",
@@ -12371,7 +12869,22 @@
     "service_class": "Economy (Y)",
     "miles": 865.0,
     "duration": "2h, 59m",
-    "stops": "nonstop"
+    "stops": "nonstop",
+    "tail_number": "N471AN",
+    "aircraft_model": "Airbus A321 NEO",
+    "aircraft_mode_s": "A5C4DE",
+    "callsign": "AAL1496",
+    "operating_airline": "American Airlines",
+    "operating_airline_iata": "AA",
+    "operating_airline_icao": "AAL",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-05-11T08:09:50+00:00",
+      "match": "AA 1496",
+      "requested": "AA1496"
+    }
   },
   {
     "trip_id": "368957082",
@@ -12394,7 +12907,22 @@
     "service_class": "Economy (Y)",
     "miles": 865.0,
     "duration": "2h, 25m",
-    "stops": "nonstop"
+    "stops": "nonstop",
+    "tail_number": "N453AA",
+    "aircraft_model": "Airbus A321 NEO",
+    "aircraft_mode_s": "A57D42",
+    "callsign": "AAL2849",
+    "operating_airline": "American Airlines",
+    "operating_airline_iata": "AA",
+    "operating_airline_icao": "AAL",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-05-11T08:09:52+00:00",
+      "match": "AA 2849",
+      "requested": "AA2849"
+    }
   },
   {
     "trip_id": "375162801",
@@ -12417,7 +12945,19 @@
     "service_class": "Economy (O)",
     "miles": 977.0,
     "duration": "2h, 44m",
-    "stops": "nonstop"
+    "stops": "nonstop",
+    "aircraft_model": "Embraer 175",
+    "operating_airline": "American Airlines",
+    "operating_airline_iata": "AA",
+    "operating_airline_icao": "AAL",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-05-11T08:09:53+00:00",
+      "match": "AA 3839",
+      "requested": "AA3839"
+    }
   },
   {
     "trip_id": "375162801",
@@ -12440,7 +12980,19 @@
     "service_class": "Economy (N)",
     "miles": 977.0,
     "duration": "2h, 44m",
-    "stops": "nonstop"
+    "stops": "nonstop",
+    "aircraft_model": "Embraer 175",
+    "operating_airline": "American Airlines",
+    "operating_airline_iata": "AA",
+    "operating_airline_icao": "AAL",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-05-11T08:09:55+00:00",
+      "match": "AA 3839",
+      "requested": "AA3839"
+    }
   },
   {
     "trip_id": "376497494",
@@ -12463,7 +13015,19 @@
     "service_class": "Economy (S)",
     "miles": 977.0,
     "duration": "3h, 07m",
-    "stops": "nonstop"
+    "stops": "nonstop",
+    "aircraft_model": "Embraer 175",
+    "operating_airline": "American Airlines",
+    "operating_airline_iata": "AA",
+    "operating_airline_icao": "AAL",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-05-11T08:09:57+00:00",
+      "match": "AA 3675",
+      "requested": "AA3675"
+    }
   },
   {
     "trip_id": "375345860",
@@ -12486,7 +13050,22 @@
     "service_class": "Economy (Q)",
     "miles": 1558.0,
     "duration": "3h, 31m",
-    "stops": "nonstop"
+    "stops": "nonstop",
+    "tail_number": "N807NN",
+    "aircraft_model": "Boeing 737-800",
+    "aircraft_mode_s": "AAFD17",
+    "callsign": "AAL2850",
+    "operating_airline": "American Airlines",
+    "operating_airline_iata": "AA",
+    "operating_airline_icao": "AAL",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-05-11T08:09:59+00:00",
+      "match": "AA 2850",
+      "requested": "AA2850"
+    }
   },
   {
     "trip_id": "375345860",
@@ -12509,7 +13088,22 @@
     "service_class": "Economy (N)",
     "miles": 1558.0,
     "duration": "4h, 45m",
-    "stops": "nonstop"
+    "stops": "nonstop",
+    "tail_number": "N970AN",
+    "aircraft_model": "Boeing 737-800",
+    "aircraft_mode_s": "AD83B2",
+    "callsign": "AAL1148",
+    "operating_airline": "American Airlines",
+    "operating_airline_iata": "AA",
+    "operating_airline_icao": "AAL",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-05-11T08:10:00+00:00",
+      "match": "AA 1148",
+      "requested": "AA1148"
+    }
   },
   {
     "trip_id": "376920246",
@@ -12532,7 +13126,22 @@
     "service_class": "Economy (L)",
     "miles": 1189.0,
     "duration": "2h, 48m",
-    "stops": "nonstop"
+    "stops": "nonstop",
+    "tail_number": "N991AN",
+    "aircraft_model": "Boeing 737-800",
+    "aircraft_mode_s": "ADD667",
+    "callsign": "AAL2029",
+    "operating_airline": "American Airlines",
+    "operating_airline_iata": "AA",
+    "operating_airline_icao": "AAL",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-05-11T08:10:02+00:00",
+      "match": "AA 2029",
+      "requested": "AA2029"
+    }
   },
   {
     "trip_id": "376920246",
@@ -12555,7 +13164,22 @@
     "service_class": "Economy (L)",
     "miles": 1169.0,
     "duration": "3h, 46m",
-    "stops": "nonstop"
+    "stops": "nonstop",
+    "tail_number": "N904AA",
+    "aircraft_model": "Airbus A321",
+    "aircraft_mode_s": "AC7E09",
+    "callsign": "AAL2414",
+    "operating_airline": "American Airlines",
+    "operating_airline_iata": "AA",
+    "operating_airline_icao": "AAL",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-05-11T08:10:03+00:00",
+      "match": "AA 2414",
+      "requested": "AA2414"
+    }
   },
   {
     "trip_id": "376997051",
@@ -12578,7 +13202,19 @@
     "service_class": "Economy (G)",
     "miles": 835.0,
     "duration": "2h, 30m",
-    "stops": "nonstop"
+    "stops": "nonstop",
+    "aircraft_model": "Embraer 175",
+    "operating_airline": "American Airlines",
+    "operating_airline_iata": "AA",
+    "operating_airline_icao": "AAL",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-05-11T08:10:05+00:00",
+      "match": "AA 3535",
+      "requested": "AA3535"
+    }
   },
   {
     "trip_id": "376997051",
@@ -12601,7 +13237,19 @@
     "service_class": "Economy (N)",
     "miles": 835.0,
     "duration": "2h, 30m",
-    "stops": "nonstop"
+    "stops": "nonstop",
+    "aircraft_model": "Embraer 175",
+    "operating_airline": "American Airlines",
+    "operating_airline_iata": "AA",
+    "operating_airline_icao": "AAL",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-05-11T08:10:07+00:00",
+      "match": "AA 3535",
+      "requested": "AA3535"
+    }
   },
   {
     "trip_id": "378197019",
@@ -12624,7 +13272,22 @@
     "service_class": "Economy (H)",
     "miles": 5209.0,
     "duration": "9h, 50m",
-    "stops": "nonstop"
+    "stops": "nonstop",
+    "tail_number": "OH-LWL",
+    "aircraft_model": "Airbus A350",
+    "aircraft_mode_s": "461F53",
+    "callsign": "FIN20",
+    "operating_airline": "Finnair",
+    "operating_airline_iata": "AY",
+    "operating_airline_icao": "FIN",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-05-11T08:10:09+00:00",
+      "match": "AY 20",
+      "requested": "AA9018"
+    }
   },
   {
     "trip_id": "378197019",
@@ -12647,7 +13310,22 @@
     "service_class": "Economy (H)",
     "miles": 554.0,
     "duration": "1h, 40m",
-    "stops": "nonstop"
+    "stops": "nonstop",
+    "tail_number": "OY-JZT",
+    "aircraft_model": "Boeing 737-800",
+    "aircraft_mode_s": "45AB54",
+    "callsign": "FIN7LT",
+    "operating_airline": "Finnair",
+    "operating_airline_iata": "AY",
+    "operating_airline_icao": "FIN",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-05-11T08:10:10+00:00",
+      "match": "AY 955",
+      "requested": "AY955"
+    }
   },
   {
     "trip_id": "378197019",
@@ -12670,7 +13348,22 @@
     "service_class": "Economy (K)",
     "miles": 607.0,
     "duration": "2h, 15m",
-    "stops": "nonstop"
+    "stops": "nonstop",
+    "tail_number": "G-TTNX",
+    "aircraft_model": "Airbus A320 NEO",
+    "aircraft_mode_s": "4080E1",
+    "callsign": "BAW819K",
+    "operating_airline": "British Airways",
+    "operating_airline_iata": "BA",
+    "operating_airline_icao": "BAW",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-05-11T08:10:12+00:00",
+      "match": "BA 819",
+      "requested": "AA6762"
+    }
   },
   {
     "trip_id": "378197019",
@@ -12693,7 +13386,22 @@
     "service_class": "Economy (K)",
     "miles": 3980.0,
     "duration": "9h, 00m",
-    "stops": "nonstop"
+    "stops": "nonstop",
+    "tail_number": "N768AA",
+    "aircraft_model": "Boeing 777-200",
+    "aircraft_mode_s": "AA5F41",
+    "callsign": "AAL731",
+    "operating_airline": "American Airlines",
+    "operating_airline_iata": "AA",
+    "operating_airline_icao": "AAL",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-05-11T08:10:14+00:00",
+      "match": "AA 731",
+      "requested": "AA731"
+    }
   },
   {
     "trip_id": "378197019",
@@ -12716,7 +13424,22 @@
     "service_class": "Economy (K)",
     "miles": 213.0,
     "duration": "1h, 18m",
-    "stops": "nonstop"
+    "stops": "nonstop",
+    "tail_number": "N597NN",
+    "aircraft_model": "Canadair CRJ 900",
+    "aircraft_mode_s": "A7B8A1",
+    "callsign": "JIA5343",
+    "operating_airline": "American Airlines",
+    "operating_airline_iata": "AA",
+    "operating_airline_icao": "AAL",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-05-11T08:10:16+00:00",
+      "match": "AA 5343",
+      "requested": "AA5343"
+    }
   },
   {
     "trip_id": "378197019",
@@ -12739,7 +13462,22 @@
     "service_class": "Economy (Y)",
     "miles": 922.0,
     "duration": "3h, 02m",
-    "stops": "nonstop"
+    "stops": "nonstop",
+    "tail_number": "N103US",
+    "aircraft_model": "Airbus A320",
+    "aircraft_mode_s": "A011AC",
+    "callsign": "AAL753",
+    "operating_airline": "American Airlines",
+    "operating_airline_iata": "AA",
+    "operating_airline_icao": "AAL",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-05-11T08:10:17+00:00",
+      "match": "AA 753",
+      "requested": "AA753"
+    }
   },
   {
     "trip_id": "379335866",
@@ -12762,7 +13500,19 @@
     "service_class": "Economy (S)",
     "miles": 977.0,
     "duration": "2h, 47m",
-    "stops": "nonstop"
+    "stops": "nonstop",
+    "aircraft_model": "Embraer 175",
+    "operating_airline": "American Airlines",
+    "operating_airline_iata": "AA",
+    "operating_airline_icao": "AAL",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-05-11T08:10:19+00:00",
+      "match": "AA 3380",
+      "requested": "AA3380"
+    }
   },
   {
     "trip_id": "379335866",
@@ -12785,7 +13535,19 @@
     "service_class": "Economy (S)",
     "miles": 977.0,
     "duration": "2h, 45m",
-    "stops": "nonstop"
+    "stops": "nonstop",
+    "aircraft_model": "Embraer 175",
+    "operating_airline": "American Airlines",
+    "operating_airline_iata": "AA",
+    "operating_airline_icao": "AAL",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-05-11T08:10:21+00:00",
+      "match": "AA 3469",
+      "requested": "AA3469"
+    }
   },
   {
     "trip_id": "380150726",
@@ -12808,7 +13570,19 @@
     "service_class": "Economy (G)",
     "miles": 835.0,
     "duration": "2h, 27m",
-    "stops": "nonstop"
+    "stops": "nonstop",
+    "aircraft_model": "Embraer 175",
+    "operating_airline": "American Airlines",
+    "operating_airline_iata": "AA",
+    "operating_airline_icao": "AAL",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-05-11T08:10:23+00:00",
+      "match": "AA 3567",
+      "requested": "AA3567"
+    }
   },
   {
     "trip_id": "380150726",
@@ -12831,7 +13605,19 @@
     "service_class": "Economy (N)",
     "miles": 977.0,
     "duration": "2h, 45m",
-    "stops": "nonstop"
+    "stops": "nonstop",
+    "aircraft_model": "Embraer 175",
+    "operating_airline": "American Airlines",
+    "operating_airline_iata": "AA",
+    "operating_airline_icao": "AAL",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-05-11T08:10:25+00:00",
+      "match": "AA 3469",
+      "requested": "AA3469"
+    }
   },
   {
     "trip_id": "380150726",
@@ -12854,7 +13640,19 @@
     "service_class": "Economy (N)",
     "miles": 977.0,
     "duration": "2h, 45m",
-    "stops": "nonstop"
+    "stops": "nonstop",
+    "aircraft_model": "Embraer 175",
+    "operating_airline": "American Airlines",
+    "operating_airline_iata": "AA",
+    "operating_airline_icao": "AAL",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-05-11T08:10:26+00:00",
+      "match": "AA 3469",
+      "requested": "AA3469"
+    }
   },
   {
     "trip_id": "380772343",
@@ -12877,7 +13675,19 @@
     "service_class": "Economy (S)",
     "miles": 977.0,
     "duration": "2h, 47m",
-    "stops": "nonstop"
+    "stops": "nonstop",
+    "aircraft_model": "Embraer 175",
+    "operating_airline": "American Airlines",
+    "operating_airline_iata": "AA",
+    "operating_airline_icao": "AAL",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-05-11T08:10:27+00:00",
+      "match": "AA 3469",
+      "requested": "AA3469"
+    }
   },
   {
     "trip_id": "380772343",
@@ -12900,6 +13710,18 @@
     "service_class": "Economy (S)",
     "miles": 977.0,
     "duration": "2h, 49m",
-    "stops": "nonstop"
+    "stops": "nonstop",
+    "aircraft_model": "Embraer 175",
+    "operating_airline": "American Airlines",
+    "operating_airline_iata": "AA",
+    "operating_airline_icao": "AAL",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-05-11T08:10:29+00:00",
+      "match": "AA 3371",
+      "requested": "AA3371"
+    }
   }
 ]

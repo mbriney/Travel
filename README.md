@@ -62,6 +62,28 @@ python3 tools/fetch_tripit.py
 
 After that, just rerun `python3 tools/fetch_tripit.py` whenever you want a fresh snapshot.
 
+## Optional: tail-number enrichment (AeroDataBox)
+
+TripIt only gives you a short aircraft type code (e.g. `738`). If you want
+the actual **tail number** that flew each route — plus aircraft model, ATC
+callsign, and Mode-S transponder hex — run the AeroDataBox enrichment
+script:
+
+```bash
+python3 tools/enrich_aerodatabox.py            # incremental
+python3 tools/enrich_aerodatabox.py --dry-run  # show what would be fetched
+python3 tools/enrich_aerodatabox.py --limit 50 # cap a single run
+```
+
+1. Grab a free RapidAPI key at https://rapidapi.com/aedbx-aedbx/api/aerodatabox (Free tier: 600 requests/month, ~last 365 days only).
+2. Add it to `tools/credentials.json`:
+   ```json
+   { "aerodatabox_rapidapi_key": "YOUR_RAPIDAPI_KEY_HERE" }
+   ```
+3. Run the script. It rate-limits to 1 req/sec and caches every response under `data/_aerodatabox_cache/` so re-runs are free against your quota.
+
+**Coverage:** AeroDataBox's historical window is roughly the last 365 days. Older flights can't be enriched from any public API. After running, the Stats tab grows a "Specific aircraft" card showing your most-flown tails, and each flight's detail modal shows its registration.
+
 ## TripIt credentials
 
 The fetcher uses OAuth 1.0a. You'll need:

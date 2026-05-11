@@ -1226,6 +1226,27 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   font-size: 10px;
 }
 
+/* Enrichment hint card */
+.enrich-hint {
+  border-left: 3px solid var(--accent);
+}
+.enrich-hint p {
+  font-size: 13px;
+  color: var(--ink-2);
+  margin: 0;
+  line-height: 1.55;
+}
+.enrich-hint code {
+  background: rgba(167, 139, 250, 0.12);
+  border: 1px solid rgba(167, 139, 250, 0.30);
+  border-radius: 6px;
+  padding: 2px 7px;
+  font-size: 12px;
+  color: var(--ink-1);
+  font-family: var(--font-mrz);
+}
+.enrich-hint em { color: var(--accent); font-style: normal; font-weight: 600; }
+
 /* Cabin class chart */
 .class-bar {
   display: flex;

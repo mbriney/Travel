@@ -109,6 +109,22 @@ function renderAircraftList(s) {
     </ul>`;
 }
 
+function renderTailList(s) {
+  if (!s.topTails.length) return "";
+  const max = s.topTails[0].value;
+  return `
+    <ul class="rank-list">
+      ${s.topTails.map(t => `
+        <li>
+          <code>${t.key}</code>
+          <div class="rank-bar" style="width:${(t.value/max)*100}%" title="${escapeHtml(s.tailModels.get(t.key) || "")}"></div>
+          <span class="v">${t.value}×</span>
+        </li>
+        ${s.tailModels.has(t.key) ? `<li class="rank-sub muted small">${escapeHtml(s.tailModels.get(t.key))}</li>` : ""}
+      `).join("")}
+    </ul>`;
+}
+
 function renderClassChart(s) {
   const buckets = s.classBuckets;
   const total = Object.values(buckets).reduce((a, b) => a + b, 0) || 1;
@@ -343,6 +359,17 @@ export function renderStatsView(root, ctx) {
           <h2>Cabin class</h2>
           ${renderClassChart(s)}
         </section>
+
+        ${s.enrichedFlights > 0 ? `
+        <section class="card span-2">
+          <h2>Specific aircraft <span class="muted">${s.uniqueTails} unique tails · ${s.enrichedFlights} flights enriched</span></h2>
+          ${renderTailList(s)}
+          <div class="muted small mt-8">Tail numbers, models, and callsigns pulled via AeroDataBox. Coverage is limited to flights within ~365 days of when the enrichment was run.</div>
+        </section>` : `
+        <section class="card span-2 enrich-hint">
+          <h2>Tail-number tracking <span class="muted">optional</span></h2>
+          <p>Want to see <em>which specific aircraft</em> you've been on? Run <code>python tools/enrich_aerodatabox.py</code> with an AeroDataBox API key (free tier 600 req/mo) to fill in tail numbers, aircraft models, and ATC callsigns for flights within the last 365 days. See the README for setup.</p>
+        </section>`}
 
         <!-- ── GEOGRAPHY ───────────────────────────────────────────── -->
         <h2 class="section-head span-2">Geography</h2>
@@ -646,10 +673,14 @@ function openFlightModal(f, ctx) {
       ${row("Arrival",     formatDate(f.arrive) + (f.arrive ? " · " + new Date(f.arrive).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : ""))}
       ${row("Duration",    f.duration)}
       ${row("Distance",    f._miles ? `${Math.round(f._miles).toLocaleString()} mi · ${Math.round(km).toLocaleString()} km` : "")}
-      ${row("Aircraft",    f.aircraft)}
-      ${row("Seat",        f.seat)}
-      ${row("Class",       f.service_class)}
-      ${row("Airline",     (airline?.name) || f.airline)}
+      ${row("Aircraft",        [f.aircraft_model, f.aircraft && f.aircraft_model ? `(${f.aircraft})` : f.aircraft].filter(Boolean).join(" "))}
+      ${row("Tail number",     f.tail_number)}
+      ${row("Mode-S hex",      f.aircraft_mode_s)}
+      ${row("Callsign",        f.callsign)}
+      ${row("Seat",            f.seat)}
+      ${row("Class",           f.service_class)}
+      ${row("Airline",         (airline?.name) || f.airline)}
+      ${row("Operating",       f.is_codeshare ? `${escapeHtml(f.operating_airline || "")} (codeshare)` : "")}
       ${row("From city",   `${escapeHtml(f.from_city || aFrom?.city || "")} ${aFrom ? `· ${aFrom.flag || ""} ${escapeHtml(aFrom.country_name || aFrom.country || "")}` : ""}`)}
       ${row("To city",     `${escapeHtml(f.to_city   || aTo?.city   || "")} ${aTo   ? `· ${aTo.flag   || ""} ${escapeHtml(aTo.country_name   || aTo.country   || "")}` : ""}`)}
       ${row("Trip",        f.trip_name)}

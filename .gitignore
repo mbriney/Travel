@@ -4,6 +4,9 @@ tools/credentials.json
 # Raw TripIt API dumps (large, not needed in repo)
 data/raw/
 
+# AeroDataBox per-flight cache (local-only — saves API quota across reruns)
+data/_aerodatabox_cache/
+
 # Python
 __pycache__/
 *.pyc
