@@ -1151,24 +1151,37 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   margin-bottom: 14px;
 }
 
-/* Rank-list rows with leading logo */
-.rank-list li.with-logo {
-  grid-template-columns: 22px 56px 1fr auto;
+/* Rank list: logo + code packed into the first column so the bar still uses
+   its own 1fr column. Keeps the grid consistent across logo/no-logo rows. */
+.rank-list .logo-code {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--font-mrz);
 }
-.rank-list li.with-logo .airline-logo { width: 22px; height: 22px; }
-/* Sub rows (e.g. aircraft name under top aircraft) span full width */
+.rank-list .logo-code .airline-logo { width: 20px; height: 20px; }
+.rank-list .logo-code code { font-size: 11px; }
 .rank-list .rank-sub { grid-column: 1 / -1; }
 
-/* Log table — give the airline cell room for the logo */
+/* Log table: keep the table-cell display intact, use a flex wrapper instead. */
 .log-table td.airline {
-  display: flex; align-items: center; gap: 8px;
   font-family: var(--font-mrz);
+  white-space: nowrap;
+}
+.log-table td.airline .airline-logo {
+  display: inline-block;
+  width: 20px; height: 20px;
+  vertical-align: middle;
+  margin-right: 8px;
 }
 .stamp-flight-table td.airline {
-  display: flex; align-items: center; gap: 6px;
   font-family: var(--font-mrz);
+  white-space: nowrap;
 }
-.stamp-flight-table .airline-logo { width: 18px; height: 18px; }
+.stamp-flight-table .airline-logo {
+  display: inline-block;
+  width: 18px; height: 18px;
+  vertical-align: middle;
+  margin-right: 6px;
+}
 
 /* Notable flights extreme cards */
 .flight-extreme {
@@ -1843,15 +1856,28 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   margin-bottom: 6px;
 }
 .earned-flight {
-  padding: 8px 12px;
+  padding: 10px 12px;
   background: rgba(167, 139, 250, 0.10);
   border: 1px solid rgba(167, 139, 250, 0.30);
   border-radius: 8px;
   display: flex; align-items: center; justify-content: space-between;
+  gap: 12px;
   font-family: var(--font-mrz);
   font-size: 13px;
 }
+.earned-flight .earned-left {
+  display: flex; align-items: center; gap: 10px;
+  min-width: 0;
+}
+.earned-flight .earned-left .airline-logo {
+  width: 32px; height: 32px;
+}
+.earned-flight .earned-text { display: flex; flex-direction: column; min-width: 0; }
 .earned-flight .route { color: var(--accent); font-weight: 700; }
+.earned-flight .earned-date {
+  font-size: 11px;
+  white-space: nowrap;
+}
 
 .ach-items-list {
   display: flex; flex-wrap: wrap;

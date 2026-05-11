@@ -1,7 +1,7 @@
 // views.js — top-level standalone views (Stats, World Map, US States).
 // These render into their own <section> elements rather than passport pages.
 
-import { formatNumber, formatDuration, formatDate, aircraftName, aircraftFamily, airlineLogoUrl, airlineBannerUrl } from "./stats.js";
+import { formatNumber, formatDuration, formatDate, aircraftName, aircraftFamily, airlineLogoUrl, airlineBannerUrl, airlineDisplayName } from "./stats.js";
 
 // Helper: small <img> for an airline. Hides itself gracefully if 404.
 function airlineLogoImg(iata, airlinesIndex, alt) {
@@ -121,19 +121,24 @@ function renderAircraftList(s) {
     </ul>`;
 }
 
-function renderTailList(s) {
+function renderTailList(s, ctx) {
   if (!s.topTails.length) return "";
   const max = s.topTails[0].value;
   return `
     <ul class="rank-list">
-      ${s.topTails.map(t => `
+      ${s.topTails.map(t => {
+        const airlineCode = s.tailAirlines?.get(t.key);
+        const airlineName = airlineCode ? airlineDisplayName(airlineCode, ctx.airlines) : "";
+        const logo = airlineCode ? airlineLogoImg(airlineCode, ctx.airlines, airlineName) : "";
+        return `
         <li>
-          <code>${t.key}</code>
+          <span class="logo-code" title="${escapeHtml(airlineName)}">${logo}<code>${t.key}</code></span>
           <div class="rank-bar" style="width:${(t.value/max)*100}%" title="${escapeHtml(s.tailModels.get(t.key) || "")}"></div>
           <span class="v">${t.value}×</span>
         </li>
-        ${s.tailModels.has(t.key) ? `<li class="rank-sub muted small">${escapeHtml(s.tailModels.get(t.key))}</li>` : ""}
-      `).join("")}
+        ${s.tailModels.has(t.key) ? `<li class="rank-sub muted small">${escapeHtml(s.tailModels.get(t.key))}${airlineName ? " · " + escapeHtml(airlineName) : ""}</li>` : ""}
+      `;
+      }).join("")}
     </ul>`;
 }
 
@@ -215,11 +220,13 @@ export function renderStatsView(root, ctx) {
 
   const alMax = s.topAirlines[0]?.value || 1;
   const alRows = s.topAirlines.slice(0,10).map(r => {
-    const name = r.info?.name || r.key;
-    return `<li class="with-logo">
-      ${airlineLogoImg(r.key, ctx.airlines, name)}
-      <code>${r.key}</code>
-      <div class="rank-bar" style="width:${(r.value/alMax)*100}%" title="${escapeHtml(name)}"></div>
+    const name = airlineDisplayName(r.key, ctx.airlines, r.info?.name);
+    return `<li>
+      <span class="logo-code" title="${escapeHtml(name)}">
+        ${airlineLogoImg(r.key, ctx.airlines, name)}
+        <code>${r.key}</code>
+      </span>
+      <div class="rank-bar" style="width:${(r.value/alMax)*100}%"></div>
       <span class="v">${r.value}</span>
     </li>`;
   }).join("");
@@ -470,7 +477,7 @@ export function renderStatsView(root, ctx) {
         ${s.enrichedFlights > 0 ? `
         <section class="card span-2">
           <h2>Specific aircraft <span class="muted">${s.uniqueTails} unique tails · ${s.enrichedFlights} flights enriched</span></h2>
-          ${renderTailList(s)}
+          ${renderTailList(s, ctx)}
           <div class="muted small mt-8">Tail numbers, models, and callsigns pulled via AeroDataBox. Coverage is limited to flights within ~365 days of when the enrichment was run.</div>
         </section>` : `
         <section class="card span-2 enrich-hint">
@@ -647,7 +654,9 @@ function ensureModalWired() {
   _modalOnceWired = true;
   const modal = document.getElementById("detail-modal");
   modal.addEventListener("click", (e) => {
-    if (e.target.dataset.close !== undefined) closeDetailModal();
+    // Use closest() so clicks on the SVG path inside the X button still match
+    // the [data-close] attribute on the parent button.
+    if (e.target.closest("[data-close]")) closeDetailModal();
   });
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape" && !modal.hidden) closeDetailModal();

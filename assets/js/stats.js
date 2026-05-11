@@ -251,13 +251,18 @@ export function computeStats(ctx) {
   // ── Specific tail-number tracking (AeroDataBox enrichment only) ────────
   const tailCount = new Map();
   const tailModel = new Map();
+  const tailAirline = new Map();   // tail -> first-seen IATA airline_code
   for (const f of flights) {
     if (!f.tail_number) continue;
     inc(tailCount, f.tail_number);
     if (f.aircraft_model) tailModel.set(f.tail_number, f.aircraft_model);
+    if (f.airline_code && !tailAirline.has(f.tail_number)) {
+      tailAirline.set(f.tail_number, f.airline_code);
+    }
   }
   out.tails = tailCount;
   out.tailModels = tailModel;
+  out.tailAirlines = tailAirline;
   out.topTails = topN(tailCount, 8);
   out.uniqueTails = tailCount.size;
   out.enrichedFlights = flights.filter(f => f.tail_number).length;
@@ -436,8 +441,24 @@ export function formatDate(d, opts = {}) {
 // IATA -> ICAO via our airlines.json (OpenFlights), then build the raw URL.
 // ---------------------------------------------------------------------------
 const LOGO_BASE = "https://raw.githubusercontent.com/Jxck-S/airline-logos/main";
+
+// Historical / defunct airline overrides. IATA codes get reassigned by IATA
+// when a carrier folds, so OpenFlights's current-owner data is misleading
+// for flights from before those mergers. These entries override both the
+// airline NAME shown to the user and the ICAO used for logo lookups.
+const HISTORICAL_AIRLINES = {
+  FL: { name: "AirTran Airways",      icao: "TRS" }, // merged into Southwest 2014
+  CO: { name: "Continental Airlines", icao: "COA" }, // merged into United 2012
+  US: { name: "US Airways",           icao: "USA" }, // merged into American 2015
+  NW: { name: "Northwest Airlines",   icao: "NWA" }, // merged into Delta 2010
+  TW: { name: "TWA",                  icao: "TWA" }, // merged into American 2001
+  VX: { name: "Virgin America",       icao: "VRD" }, // merged into Alaska 2018
+  HP: { name: "America West",         icao: "AWE" }, // merged into US 2007
+  YX: { name: "Republic Airways",     icao: "RPA" }, // YX was Midwest pre-2009, then Republic
+};
+
 // A few well-known IATA->ICAO mappings used when OpenFlights doesn't have
-// the airline (e.g. ultra low-cost or defunct carriers in your history).
+// the airline (e.g. ultra low-cost carriers in your history).
 const IATA_TO_ICAO_OVERRIDES = {
   AA: "AAL", WN: "SWA", UA: "UAL", DL: "DAL", AS: "ASA",
   B6: "JBU", F9: "FFT", NK: "NKS", G4: "AAY", HA: "HAL", SY: "SCX",
@@ -455,8 +476,21 @@ const IATA_TO_ICAO_OVERRIDES = {
 export function airlineIcao(iata, airlinesIndex) {
   if (!iata) return null;
   const code = iata.toUpperCase();
+  // Historical first so reassigned IATA codes resolve to their original carrier.
+  if (HISTORICAL_AIRLINES[code]) return HISTORICAL_AIRLINES[code].icao;
   if (IATA_TO_ICAO_OVERRIDES[code]) return IATA_TO_ICAO_OVERRIDES[code];
   return airlinesIndex?.[code]?.icao || null;
+}
+// Display name that prefers the historical carrier when the IATA code has
+// been reassigned. Fall back to OpenFlights lookup, then to the code itself.
+export function airlineDisplayName(iata, airlinesIndex, tripitName) {
+  if (!iata) return tripitName || "";
+  const code = iata.toUpperCase();
+  if (HISTORICAL_AIRLINES[code]) return HISTORICAL_AIRLINES[code].name;
+  // Trust TripIt's marketing_airline next — it was correct at the time of the
+  // booking confirmation, even for now-rare carriers.
+  if (tripitName) return tripitName;
+  return airlinesIndex?.[code]?.name || code;
 }
 export function airlineLogoUrl(iata, airlinesIndex) {
   const icao = airlineIcao(iata, airlinesIndex);

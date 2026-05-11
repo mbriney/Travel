@@ -1,7 +1,7 @@
 // achievements.js — TravStats-inspired achievement system.
 // `openDetailModal` from views.js is imported dynamically inside the click
 // handler so this module remains pure (testable in plain Node without DOM).
-import { formatDate, formatDuration, formatNumber } from "./stats.js";
+import { formatDate, formatDuration, formatNumber, airlineLogoUrl, airlineDisplayName } from "./stats.js";
 // Definitions are a curated subset of https://github.com/Abrechen2/TravStats's
 // `backend/src/data/achievements.ts` — only the ones we can evaluate from
 // TripIt data (no aircraft, seat, cancellation, or service-class info).
@@ -968,12 +968,23 @@ async function openAchievementModal(ach, ctx) {
   const earnedSection = (() => {
     if (!ach.unlocked) return "";
     if (unlockingFlight) {
+      const logoUrl = airlineLogoUrl(unlockingFlight.airline_code, ctx.airlines);
+      const airlineName = airlineDisplayName(unlockingFlight.airline_code, ctx.airlines, unlockingFlight.airline);
+      const logo = logoUrl
+        ? `<img class="airline-logo" src="${logoUrl}" alt="${escapeHtml(airlineName)}" onerror="this.classList.add('is-missing')"/>`
+        : "";
       return `
         <div class="ach-earned">
           <div class="lbl">Unlocked by this flight</div>
           <div class="earned-flight">
-            <span class="route">${unlockingFlight.from} → ${unlockingFlight.to}</span>
-            <span class="muted">${formatDate(unlockingFlight.depart)} · ${escapeHtml([unlockingFlight.airline_code, unlockingFlight.flight_number].filter(Boolean).join(" "))}</span>
+            <div class="earned-left">
+              ${logo}
+              <div class="earned-text">
+                <span class="route">${unlockingFlight.from} → ${unlockingFlight.to}</span>
+                <span class="muted">${escapeHtml(airlineName)} · ${escapeHtml([unlockingFlight.airline_code, unlockingFlight.flight_number].filter(Boolean).join(" "))}</span>
+              </div>
+            </div>
+            <span class="muted earned-date">${formatDate(unlockingFlight.depart)}</span>
           </div>
         </div>`;
     }
