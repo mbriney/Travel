@@ -23,6 +23,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import sys
 import time
 import webbrowser
@@ -336,6 +337,15 @@ def extract_flights(airs: list[dict], airports: dict[str, dict],
             miles = parse_distance(seg.get("distance"))
             if miles is None:
                 miles = airport_distance_haversine(from_ap, to_ap)
+            # TripIt sometimes returns the IATA code in marketing_airline and
+            # leaves marketing_airline_code empty (notably for VX / NK
+            # historical records). Normalize: if the code is missing but the
+            # name field looks like a 2-3 char IATA code, promote it.
+            airline_name = seg.get("marketing_airline") or ""
+            airline_code = seg.get("marketing_airline_code") or ""
+            if not airline_code and re.fullmatch(r"[A-Z0-9]{2,3}", airline_name.strip().upper() or ""):
+                airline_code = airline_name.strip().upper()
+                airline_name = ""  # don't double-display the code as a name
             flights.append({
                 "trip_id": air.get("trip_id"),
                 "trip_name":        meta.get("display_name"),
@@ -349,8 +359,8 @@ def extract_flights(airs: list[dict], airports: dict[str, dict],
                 "to_city": seg.get("end_city_name"),
                 "depart": parse_datetime(seg.get("StartDateTime")),
                 "arrive": parse_datetime(seg.get("EndDateTime")),
-                "airline": seg.get("marketing_airline"),
-                "airline_code": seg.get("marketing_airline_code"),
+                "airline": airline_name or None,
+                "airline_code": airline_code or None,
                 "flight_number": seg.get("marketing_flight_number"),
                 "aircraft": seg.get("aircraft"),
                 "seat": seg.get("seats"),

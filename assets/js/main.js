@@ -79,6 +79,21 @@ async function boot() {
   if (!flights || !flights.length) { showEmptyState(); return; }
   if (!airports) { showEmptyState("airports.json is missing. Run python tools/build_airports.py first."); return; }
 
+  // Some TripIt records have the airline IATA code in `airline` (the name
+  // field) instead of `airline_code`. Normalize so every downstream consumer
+  // can trust f.airline_code, and back-fill the proper airline name from
+  // the airlines DB when available.
+  let fixed = 0;
+  for (const f of flights) {
+    if (!f.airline_code && f.airline && /^[A-Z0-9]{2,3}$/.test(String(f.airline).trim())) {
+      f.airline_code = String(f.airline).trim().toUpperCase();
+      const entry = airlines?.[f.airline_code];
+      f.airline = entry?.name || f.airline;
+      fixed++;
+    }
+  }
+  if (fixed) console.log(`Normalized airline_code on ${fixed} flights`);
+
   const ctx = {
     flights,
     airports,
