@@ -187,8 +187,9 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   perspective-origin: 50% 35%;
 }
 
-/* Each page lives in the book; the active one is shown, others are hidden.
-   We use a 3D rotate-Y transform tied to .is-flipping for the page-turn anim. */
+/* Every page is absolutely positioned and hinged on its left edge.
+   The visual state is fully controlled by the data-state attribute — JS only
+   toggles that attribute and manages stacking via inline z-index. */
 .page {
   position: absolute; inset: 0;
   border-radius: 14px;
@@ -196,15 +197,17 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   overflow: hidden;
   transform-origin: left center;
   backface-visibility: hidden;
-  transition: transform 800ms cubic-bezier(.6, .05, .25, 1),
-              opacity 300ms ease;
+  -webkit-backface-visibility: hidden;
+  transition: transform 800ms cubic-bezier(.6, .05, .25, 1);
   will-change: transform;
   display: flex;
 }
-.page[data-state="back"]   { transform: rotateY(0deg);    z-index: 1; visibility: hidden; }
-.page[data-state="current"]{ transform: rotateY(0deg);    z-index: 10; }
-.page[data-state="flipping-forward"]  { transform: rotateY(-180deg); z-index: 20; }
-.page[data-state="next"]   { transform: rotateY(0deg);    z-index: 0; visibility: hidden; }
+.page[data-state="current"] { transform: rotateY(0deg); }
+.page[data-state="flipped"] { transform: rotateY(-180deg); }
+.page[data-state="stack"]   { transform: rotateY(0deg); }
+
+/* Suppress the transition during multi-page jumps. */
+.book.no-anim .page { transition: none !important; }
 
 /* Paper styling shared by passport interior pages */
 .paper {
