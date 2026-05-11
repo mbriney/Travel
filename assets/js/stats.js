@@ -430,3 +430,39 @@ export function formatDate(d, opts = {}) {
   if (isNaN(date)) return "—";
   return date.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric", ...opts });
 }
+
+// ---------------------------------------------------------------------------
+// Airline logo / banner URLs from https://github.com/Jxck-S/airline-logos
+// IATA -> ICAO via our airlines.json (OpenFlights), then build the raw URL.
+// ---------------------------------------------------------------------------
+const LOGO_BASE = "https://raw.githubusercontent.com/Jxck-S/airline-logos/main";
+// A few well-known IATA->ICAO mappings used when OpenFlights doesn't have
+// the airline (e.g. ultra low-cost or defunct carriers in your history).
+const IATA_TO_ICAO_OVERRIDES = {
+  AA: "AAL", WN: "SWA", UA: "UAL", DL: "DAL", AS: "ASA",
+  B6: "JBU", F9: "FFT", NK: "NKS", G4: "AAY", HA: "HAL", SY: "SCX",
+  VX: "VRD", US: "USA", CO: "COA", NW: "NWA", TW: "TWA",
+  AC: "ACA", WS: "WJA", PD: "POE",
+  BA: "BAW", LH: "DLH", AF: "AFR", KL: "KLM", IB: "IBE", LX: "SWR",
+  AY: "FIN", OS: "AUA", SK: "SAS", AZ: "AZA", EI: "EIN", TP: "TAP",
+  SN: "BEL", LO: "LOT", FR: "RYR", U2: "EZY", VS: "VIR", BE: "BEE",
+  EK: "UAE", QR: "QTR", EY: "ETD", TK: "THY", SV: "SVA",
+  QF: "QFA", JQ: "JST", VA: "VOZ", NZ: "ANZ", FJ: "FJI",
+  JL: "JAL", NH: "ANA", SQ: "SIA", CX: "CPA", KE: "KAL", OZ: "AAR",
+  CI: "CAL", BR: "EVA", MH: "MAS", TG: "THA", VN: "HVN",
+  AI: "AIC", "6E": "IGO", UK: "VTI",
+};
+export function airlineIcao(iata, airlinesIndex) {
+  if (!iata) return null;
+  const code = iata.toUpperCase();
+  if (IATA_TO_ICAO_OVERRIDES[code]) return IATA_TO_ICAO_OVERRIDES[code];
+  return airlinesIndex?.[code]?.icao || null;
+}
+export function airlineLogoUrl(iata, airlinesIndex) {
+  const icao = airlineIcao(iata, airlinesIndex);
+  return icao ? `${LOGO_BASE}/radarbox_logos/${icao}.png` : null;
+}
+export function airlineBannerUrl(iata, airlinesIndex) {
+  const icao = airlineIcao(iata, airlinesIndex);
+  return icao ? `${LOGO_BASE}/radarbox_banners/${icao}.png` : null;
+}

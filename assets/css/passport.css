@@ -1124,6 +1124,63 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .ach-card.is-unlocked .ach-progress { color: #4ade80; }
 
 /* ===========================================================================
+   Airline logos (Jxck-S/airline-logos)
+   --------------------------------------------------------------------------- */
+.airline-logo {
+  width: 22px; height: 22px;
+  object-fit: contain;
+  border-radius: 4px;
+  background: rgba(255,255,255,0.06);
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+.airline-logo.is-missing { display: none; }
+
+.airline-banner {
+  max-width: 100%;
+  max-height: 36px;
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.35));
+}
+.airline-banner.is-missing { display: none; }
+.flight-airline-banner {
+  display: flex; justify-content: center;
+  padding: 8px 0 14px;
+  border-bottom: 1px dashed rgba(255,255,255,0.08);
+  margin-bottom: 14px;
+}
+
+/* Rank-list rows with leading logo */
+.rank-list li.with-logo {
+  grid-template-columns: 22px 56px 1fr auto;
+}
+.rank-list li.with-logo .airline-logo { width: 22px; height: 22px; }
+/* Sub rows (e.g. aircraft name under top aircraft) span full width */
+.rank-list .rank-sub { grid-column: 1 / -1; }
+
+/* Log table — give the airline cell room for the logo */
+.log-table td.airline {
+  display: flex; align-items: center; gap: 8px;
+  font-family: var(--font-mrz);
+}
+.stamp-flight-table td.airline {
+  display: flex; align-items: center; gap: 6px;
+  font-family: var(--font-mrz);
+}
+.stamp-flight-table .airline-logo { width: 18px; height: 18px; }
+
+/* Notable flights extreme cards */
+.flight-extreme {
+  align-items: center;
+}
+.extreme-info {
+  display: flex; align-items: center; gap: 12px;
+  min-width: 0;
+}
+.extreme-info > div { min-width: 0; }
+
+/* ===========================================================================
    Stats — new sections (cadence, aviation, geography)
    --------------------------------------------------------------------------- */
 

@@ -1,7 +1,19 @@
 // views.js — top-level standalone views (Stats, World Map, US States).
 // These render into their own <section> elements rather than passport pages.
 
-import { formatNumber, formatDuration, formatDate, aircraftName, aircraftFamily } from "./stats.js";
+import { formatNumber, formatDuration, formatDate, aircraftName, aircraftFamily, airlineLogoUrl, airlineBannerUrl } from "./stats.js";
+
+// Helper: small <img> for an airline. Hides itself gracefully if 404.
+function airlineLogoImg(iata, airlinesIndex, alt) {
+  const url = airlineLogoUrl(iata, airlinesIndex);
+  if (!url) return "";
+  return `<img class="airline-logo" src="${url}" alt="${escapeHtml(alt || iata || "")}" loading="lazy" onerror="this.classList.add('is-missing')" />`;
+}
+function airlineBannerImg(iata, airlinesIndex, alt) {
+  const url = airlineBannerUrl(iata, airlinesIndex);
+  if (!url) return "";
+  return `<img class="airline-banner" src="${url}" alt="${escapeHtml(alt || iata || "")}" loading="lazy" onerror="this.classList.add('is-missing')" />`;
+}
 import { drawWorldMap } from "./worldmap.js";
 import { drawUSMap }    from "./usmap.js";
 
@@ -204,7 +216,12 @@ export function renderStatsView(root, ctx) {
   const alMax = s.topAirlines[0]?.value || 1;
   const alRows = s.topAirlines.slice(0,10).map(r => {
     const name = r.info?.name || r.key;
-    return `<li><code>${r.key}</code><div class="rank-bar" style="width:${(r.value/alMax)*100}%" title="${escapeHtml(name)}"></div><span class="v">${r.value}</span></li>`;
+    return `<li class="with-logo">
+      ${airlineLogoImg(r.key, ctx.airlines, name)}
+      <code>${r.key}</code>
+      <div class="rank-bar" style="width:${(r.value/alMax)*100}%" title="${escapeHtml(name)}"></div>
+      <span class="v">${r.value}</span>
+    </li>`;
   }).join("");
 
   const rtMax = s.topRoutes[0]?.value || 1;
@@ -214,9 +231,12 @@ export function renderStatsView(root, ctx) {
 
   const fe = (f, valFmt) => f
     ? `<div class="flight-extreme">
-        <div>
-          <div class="leg">${escapeHtml(f.from_city || f.from)} → ${escapeHtml(f.to_city || f.to)}</div>
-          <div class="meta">${escapeHtml([f.airline_code, f.flight_number].filter(Boolean).join(" "))} · ${formatDate(f.depart)}</div>
+        <div class="extreme-info">
+          ${airlineLogoImg(f.airline_code, ctx.airlines, f.airline)}
+          <div>
+            <div class="leg">${escapeHtml(f.from_city || f.from)} → ${escapeHtml(f.to_city || f.to)}</div>
+            <div class="meta">${escapeHtml([f.airline_code, f.flight_number].filter(Boolean).join(" "))} · ${formatDate(f.depart)}</div>
+          </div>
         </div>
         <div class="val">${valFmt(f)}</div>
       </div>`
@@ -557,7 +577,10 @@ export function renderLogView(root, ctx) {
         <span class="to">${f.to}</span>
         <span class="cities muted">${escapeHtml(f.from_city || "")} – ${escapeHtml(f.to_city || "")}</span>
       </td>
-      <td class="airline">${escapeHtml([f.airline_code, f.flight_number].filter(Boolean).join(" "))}</td>
+      <td class="airline">
+        ${airlineLogoImg(f.airline_code, ctx.airlines, f.airline)}
+        <span>${escapeHtml([f.airline_code, f.flight_number].filter(Boolean).join(" "))}</span>
+      </td>
       <td class="miles">${f._miles ? Math.round(f._miles).toLocaleString() : "—"}</td>
       <td class="duration">${f.duration || "—"}</td>
     </tr>`).join("");
@@ -666,8 +689,10 @@ function openFlightModal(f, ctx) {
     return `<div class="detail-row"><dt>${label}</dt><dd>${val}</dd></div>`;
   }
 
+  const bannerHtml = airlineBannerImg(f.airline_code, ctx.airlines, (airline?.name) || f.airline);
   body.innerHTML = `
     <header class="flight-detail-head">
+      ${bannerHtml ? `<div class="flight-airline-banner">${bannerHtml}</div>` : ""}
       <div class="route-big">
         <div class="airport">
           <div class="code">${f.from || "—"}</div>
@@ -782,7 +807,10 @@ export function openStampModal(kind, code, ctx) {
     <tr>
       <td>${formatDate(f.depart, { year:"2-digit", month:"short", day:"numeric" })}</td>
       <td class="route">${f.from} → ${f.to}</td>
-      <td class="airline">${escapeHtml([f.airline_code, f.flight_number].filter(Boolean).join(" "))}</td>
+      <td class="airline">
+        ${airlineLogoImg(f.airline_code, ctx.airlines, f.airline)}
+        ${escapeHtml([f.airline_code, f.flight_number].filter(Boolean).join(" "))}
+      </td>
       <td class="miles">${f._miles ? Math.round(f._miles).toLocaleString() : "—"}</td>
     </tr>`).join("");
 
