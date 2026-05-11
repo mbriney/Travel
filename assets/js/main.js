@@ -15,7 +15,11 @@ const DATA_PATHS = {
 };
 
 async function loadJSON(path) {
-  const r = await fetch(path, { cache: "force-cache" });
+  // "default" lets the browser revalidate with the server using Last-Modified
+  // / ETag — so rebuilt data files reach the page after a refresh instead of
+  // being shadowed by a previously-cached version (which was the symptom
+  // behind Alliance Ace failing to register after we expanded the data).
+  const r = await fetch(path, { cache: "default" });
   if (!r.ok) throw new Error(`fetch ${path}: ${r.status}`);
   return r.json();
 }

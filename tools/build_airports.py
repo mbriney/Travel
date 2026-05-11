@@ -101,7 +101,35 @@ def build_airports(countries: dict[str, dict]) -> dict[str, dict]:
     return out
 
 
-CURATED_AIRLINES_FILE = Path(__file__).resolve().parent / "curated_airlines.json"
+CURATED_AIRLINES_FILE   = Path(__file__).resolve().parent / "curated_airlines.json"
+CURATED_ALLIANCES_FILE  = Path(__file__).resolve().parent / "curated_alliances.json"
+
+
+def build_alliances() -> dict[str, dict]:
+    """Build the IATA → {alliance, name, ...} map from curated_alliances.json.
+    Returns a dict keyed by IATA code (suitable for direct lookup).
+    """
+    if not CURATED_ALLIANCES_FILE.exists():
+        print(f"  no curated alliances file at {CURATED_ALLIANCES_FILE}")
+        return {}
+    raw = json.loads(CURATED_ALLIANCES_FILE.read_text())
+    out: dict[str, dict] = {}
+    for alliance, members in raw.items():
+        if alliance.startswith("_") or not isinstance(members, list):
+            continue
+        for m in members:
+            iata = (m.get("iata") or "").upper()
+            if not iata:
+                continue
+            out[iata] = {
+                "iata": iata,
+                "alliance": alliance,
+                "name": m.get("name"),
+                "country": m.get("country"),
+                "joined": m.get("joined"),
+                "notes": m.get("notes"),
+            }
+    return out
 
 
 def build_airlines() -> dict[str, dict]:
@@ -137,7 +165,9 @@ def build_airlines() -> dict[str, dict]:
             "source": "openflights",
         }
 
-    # Pass 2: apply the curated overlay (overrides OpenFlights for that IATA)
+    # Pass 2: apply the curated airline overlay. We strip any `alliance`
+    # field from these entries — alliance membership is owned exclusively by
+    # tools/curated_alliances.json so there's only one source of truth.
     if CURATED_AIRLINES_FILE.exists():
         curated = json.loads(CURATED_AIRLINES_FILE.read_text())
         applied = 0
@@ -147,12 +177,36 @@ def build_airlines() -> dict[str, dict]:
             if not isinstance(entry, dict):
                 continue
             entry = dict(entry)
+            entry.pop("alliance", None)
             entry["source"] = "curated"
             out[code] = entry
             applied += 1
         print(f"  applied {applied} curated airline overrides")
     else:
         print(f"  no curated overlay at {CURATED_AIRLINES_FILE}")
+
+    # Also strip any pre-existing alliance carry-over from OpenFlights data
+    # so we don't keep stale info (e.g. SAS's old Star Alliance affiliation).
+    for entry in out.values():
+        entry.pop("alliance", None)
+
+    # Pass 3: apply curated alliance membership (the only authoritative source)
+    alliances = build_alliances()
+    if alliances:
+        ally_applied = 0
+        for iata, info in alliances.items():
+            if iata not in out:
+                out[iata] = {
+                    "iata": iata,
+                    "icao": "",
+                    "name": info["name"],
+                    "country": info["country"],
+                    "active": True,
+                    "source": "alliance",
+                }
+            out[iata]["alliance"] = info["alliance"]
+            ally_applied += 1
+        print(f"  applied alliance membership to {ally_applied} airlines")
 
     print(f"  kept {len(out)} airlines")
     return out
@@ -173,6 +227,12 @@ def main() -> None:
     airlines = build_airlines()
     (DATA / "airlines.json").write_text(json.dumps(airlines, separators=(",", ":")))
     print(f"  wrote data/airlines.json ({(DATA / 'airlines.json').stat().st_size // 1024} KB)")
+
+    print("Writing standalone alliances lookup...")
+    flat = {iata: {"alliance": e["alliance"], "name": e.get("name"), "country": e.get("country")}
+            for iata, e in airlines.items() if e.get("alliance")}
+    (DATA / "alliances.json").write_text(json.dumps(flat, indent=2))
+    print(f"  wrote data/alliances.json ({len(flat)} airlines mapped)")
 
     (DATA / "countries.json").write_text(json.dumps(countries, indent=2))
     print(f"  wrote data/countries.json")

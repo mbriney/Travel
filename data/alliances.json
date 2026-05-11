@@ -1,0 +1,287 @@
+{
+  "AA": {
+    "alliance": "oneworld",
+    "name": "American Airlines",
+    "country": "United States"
+  },
+  "OZ": {
+    "alliance": "Star Alliance",
+    "name": "Asiana Airlines",
+    "country": "South Korea"
+  },
+  "UX": {
+    "alliance": "SkyTeam",
+    "name": "Air Europa",
+    "country": "Spain"
+  },
+  "AF": {
+    "alliance": "SkyTeam",
+    "name": "Air France",
+    "country": "France"
+  },
+  "AM": {
+    "alliance": "SkyTeam",
+    "name": "AeroM\u00e9xico",
+    "country": "Mexico"
+  },
+  "NH": {
+    "alliance": "Star Alliance",
+    "name": "All Nippon Airways",
+    "country": "Japan"
+  },
+  "AC": {
+    "alliance": "Star Alliance",
+    "name": "Air Canada",
+    "country": "Canada"
+  },
+  "NZ": {
+    "alliance": "Star Alliance",
+    "name": "Air New Zealand",
+    "country": "New Zealand"
+  },
+  "AR": {
+    "alliance": "SkyTeam",
+    "name": "Aerol\u00edneas Argentinas",
+    "country": "Argentina"
+  },
+  "AS": {
+    "alliance": "oneworld",
+    "name": "Alaska Airlines",
+    "country": "United States"
+  },
+  "OS": {
+    "alliance": "Star Alliance",
+    "name": "Austrian Airlines",
+    "country": "Austria"
+  },
+  "AV": {
+    "alliance": "Star Alliance",
+    "name": "Avianca - Aerovias Nacionales de Colombia",
+    "country": "AVIANCA"
+  },
+  "AZ": {
+    "alliance": "SkyTeam",
+    "name": "ITA Airways",
+    "country": "Italy"
+  },
+  "CA": {
+    "alliance": "Star Alliance",
+    "name": "Air China",
+    "country": "China"
+  },
+  "FJ": {
+    "alliance": "oneworld",
+    "name": "Fiji Airways",
+    "country": "Fiji"
+  },
+  "BA": {
+    "alliance": "oneworld",
+    "name": "British Airways",
+    "country": "United Kingdom"
+  },
+  "SN": {
+    "alliance": "Star Alliance",
+    "name": "Brussels Airlines",
+    "country": "Belgium"
+  },
+  "CX": {
+    "alliance": "oneworld",
+    "name": "Cathay Pacific",
+    "country": "Hong Kong"
+  },
+  "CI": {
+    "alliance": "SkyTeam",
+    "name": "China Airlines",
+    "country": "Taiwan"
+  },
+  "MU": {
+    "alliance": "SkyTeam",
+    "name": "China Eastern Airlines",
+    "country": "China"
+  },
+  "CM": {
+    "alliance": "Star Alliance",
+    "name": "Copa Airlines",
+    "country": "Panama"
+  },
+  "XK": {
+    "alliance": "SkyTeam",
+    "name": "Corse-Mediterranee",
+    "country": "France"
+  },
+  "OU": {
+    "alliance": "Star Alliance",
+    "name": "Croatia Airlines",
+    "country": "Croatia"
+  },
+  "DL": {
+    "alliance": "SkyTeam",
+    "name": "Delta Air Lines",
+    "country": "United States"
+  },
+  "BR": {
+    "alliance": "Star Alliance",
+    "name": "EVA Air",
+    "country": "Taiwan"
+  },
+  "MS": {
+    "alliance": "Star Alliance",
+    "name": "Egyptair",
+    "country": "Egypt"
+  },
+  "ET": {
+    "alliance": "Star Alliance",
+    "name": "Ethiopian Airlines",
+    "country": "Ethiopia"
+  },
+  "AY": {
+    "alliance": "oneworld",
+    "name": "Finnair",
+    "country": "Finland"
+  },
+  "GA": {
+    "alliance": "SkyTeam",
+    "name": "Garuda Indonesia",
+    "country": "Indonesia"
+  },
+  "IB": {
+    "alliance": "oneworld",
+    "name": "Iberia",
+    "country": "Spain"
+  },
+  "JL": {
+    "alliance": "oneworld",
+    "name": "Japan Airlines",
+    "country": "Japan"
+  },
+  "KL": {
+    "alliance": "SkyTeam",
+    "name": "KLM Royal Dutch Airlines",
+    "country": "Netherlands"
+  },
+  "KQ": {
+    "alliance": "SkyTeam",
+    "name": "Kenya Airways",
+    "country": "Kenya"
+  },
+  "KE": {
+    "alliance": "SkyTeam",
+    "name": "Korean Air",
+    "country": "South Korea"
+  },
+  "LO": {
+    "alliance": "Star Alliance",
+    "name": "LOT Polish Airlines",
+    "country": "Poland"
+  },
+  "LH": {
+    "alliance": "Star Alliance",
+    "name": "Lufthansa",
+    "country": "Germany"
+  },
+  "MH": {
+    "alliance": "oneworld",
+    "name": "Malaysia Airlines",
+    "country": "Malaysia"
+  },
+  "ME": {
+    "alliance": "SkyTeam",
+    "name": "Middle East Airlines",
+    "country": "Lebanon"
+  },
+  "QF": {
+    "alliance": "oneworld",
+    "name": "Qantas",
+    "country": "Australia"
+  },
+  "QR": {
+    "alliance": "oneworld",
+    "name": "Qatar Airways",
+    "country": "Qatar"
+  },
+  "AT": {
+    "alliance": "oneworld",
+    "name": "Royal Air Maroc",
+    "country": "Morocco"
+  },
+  "RJ": {
+    "alliance": "oneworld",
+    "name": "Royal Jordanian",
+    "country": "Jordan"
+  },
+  "SA": {
+    "alliance": "Star Alliance",
+    "name": "South African Airways",
+    "country": "South Africa"
+  },
+  "SK": {
+    "alliance": "SkyTeam",
+    "name": "SAS Scandinavian Airlines",
+    "country": "Scandinavia"
+  },
+  "UL": {
+    "alliance": "oneworld",
+    "name": "SriLankan Airlines",
+    "country": "Sri Lanka"
+  },
+  "SQ": {
+    "alliance": "Star Alliance",
+    "name": "Singapore Airlines",
+    "country": "Singapore"
+  },
+  "SV": {
+    "alliance": "SkyTeam",
+    "name": "Saudia",
+    "country": "Saudi Arabia"
+  },
+  "LX": {
+    "alliance": "Star Alliance",
+    "name": "Swiss International Air Lines",
+    "country": "Switzerland"
+  },
+  "ZH": {
+    "alliance": "Star Alliance",
+    "name": "Shenzhen Airlines",
+    "country": "China"
+  },
+  "TP": {
+    "alliance": "Star Alliance",
+    "name": "TAP Air Portugal",
+    "country": "Portugal"
+  },
+  "TG": {
+    "alliance": "Star Alliance",
+    "name": "Thai Airways",
+    "country": "Thailand"
+  },
+  "TK": {
+    "alliance": "Star Alliance",
+    "name": "Turkish Airlines",
+    "country": "Turkey"
+  },
+  "RO": {
+    "alliance": "SkyTeam",
+    "name": "Tarom",
+    "country": "Romania"
+  },
+  "UA": {
+    "alliance": "Star Alliance",
+    "name": "United Airlines",
+    "country": "United States"
+  },
+  "VN": {
+    "alliance": "SkyTeam",
+    "name": "Vietnam Airlines",
+    "country": "Vietnam"
+  },
+  "VS": {
+    "alliance": "SkyTeam",
+    "name": "Virgin Atlantic",
+    "country": "United Kingdom"
+  },
+  "MF": {
+    "alliance": "SkyTeam",
+    "name": "Xiamen Airlines",
+    "country": "China"
+  }
+}

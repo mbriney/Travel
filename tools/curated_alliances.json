@@ -1,0 +1,77 @@
+{
+  "_comment": "Current members of the three global airline alliances, keyed by IATA airline code. Built into data/alliances.json by tools/build_airports.py and also merged into data/airlines.json's per-airline `alliance` field. Update this list when alliance membership changes; the JSON is the single source of truth.",
+
+  "_source": "https://en.wikipedia.org/wiki/Airline_alliance — verified Jan 2026",
+
+  "_alliances": {
+    "Star Alliance": "Founded 1997 · ~25 members · world's largest by passenger count",
+    "oneworld":      "Founded 1999 · ~14 members",
+    "SkyTeam":       "Founded 2000 · ~19 members"
+  },
+
+  "Star Alliance": [
+    { "iata": "AC", "name": "Air Canada",                "country": "Canada",        "joined": "1997-05-14" },
+    { "iata": "CA", "name": "Air China",                 "country": "China",         "joined": "2007-12-15" },
+    { "iata": "NZ", "name": "Air New Zealand",           "country": "New Zealand",   "joined": "1999-03-24" },
+    { "iata": "NH", "name": "All Nippon Airways",        "country": "Japan",         "joined": "1999-10-15" },
+    { "iata": "OZ", "name": "Asiana Airlines",           "country": "South Korea",   "joined": "2003-03-01" },
+    { "iata": "OS", "name": "Austrian Airlines",         "country": "Austria",       "joined": "2000-03-26" },
+    { "iata": "AV", "name": "Avianca",                   "country": "Colombia",      "joined": "2012-06-21" },
+    { "iata": "SN", "name": "Brussels Airlines",         "country": "Belgium",       "joined": "2009-12-09" },
+    { "iata": "CM", "name": "Copa Airlines",             "country": "Panama",        "joined": "2012-06-21" },
+    { "iata": "OU", "name": "Croatia Airlines",          "country": "Croatia",       "joined": "2004-11-18" },
+    { "iata": "MS", "name": "EgyptAir",                  "country": "Egypt",         "joined": "2008-07-11" },
+    { "iata": "ET", "name": "Ethiopian Airlines",        "country": "Ethiopia",      "joined": "2011-12-13" },
+    { "iata": "BR", "name": "EVA Air",                   "country": "Taiwan",        "joined": "2013-06-18" },
+    { "iata": "LO", "name": "LOT Polish Airlines",       "country": "Poland",        "joined": "2003-10-26" },
+    { "iata": "LH", "name": "Lufthansa",                 "country": "Germany",       "joined": "1997-05-14" },
+    { "iata": "ZH", "name": "Shenzhen Airlines",         "country": "China",         "joined": "2012-11-29" },
+    { "iata": "SQ", "name": "Singapore Airlines",        "country": "Singapore",     "joined": "2000-04-01" },
+    { "iata": "SA", "name": "South African Airways",     "country": "South Africa",  "joined": "2006-04-10" },
+    { "iata": "LX", "name": "Swiss International Air Lines","country": "Switzerland","joined": "2006-04-01" },
+    { "iata": "TP", "name": "TAP Air Portugal",          "country": "Portugal",      "joined": "2005-03-14" },
+    { "iata": "TG", "name": "Thai Airways",              "country": "Thailand",      "joined": "1997-05-14" },
+    { "iata": "TK", "name": "Turkish Airlines",          "country": "Turkey",        "joined": "2008-04-01" },
+    { "iata": "UA", "name": "United Airlines",           "country": "United States", "joined": "1997-05-14" }
+  ],
+
+  "oneworld": [
+    { "iata": "AA", "name": "American Airlines",         "country": "United States", "joined": "1999-02-01" },
+    { "iata": "AS", "name": "Alaska Airlines",           "country": "United States", "joined": "2021-03-31" },
+    { "iata": "BA", "name": "British Airways",           "country": "United Kingdom","joined": "1999-02-01" },
+    { "iata": "CX", "name": "Cathay Pacific",            "country": "Hong Kong",     "joined": "1999-02-01" },
+    { "iata": "AY", "name": "Finnair",                   "country": "Finland",       "joined": "1999-09-25" },
+    { "iata": "IB", "name": "Iberia",                    "country": "Spain",         "joined": "1999-09-01" },
+    { "iata": "JL", "name": "Japan Airlines",            "country": "Japan",         "joined": "2007-04-01" },
+    { "iata": "MH", "name": "Malaysia Airlines",         "country": "Malaysia",      "joined": "2013-02-01" },
+    { "iata": "QF", "name": "Qantas",                    "country": "Australia",     "joined": "1999-02-01" },
+    { "iata": "QR", "name": "Qatar Airways",             "country": "Qatar",         "joined": "2013-10-30" },
+    { "iata": "RJ", "name": "Royal Jordanian",           "country": "Jordan",        "joined": "2007-04-01" },
+    { "iata": "AT", "name": "Royal Air Maroc",           "country": "Morocco",       "joined": "2020-04-01" },
+    { "iata": "UL", "name": "SriLankan Airlines",        "country": "Sri Lanka",     "joined": "2014-05-01" },
+    { "iata": "FJ", "name": "Fiji Airways",              "country": "Fiji",          "joined": "2024-04-01" }
+  ],
+
+  "SkyTeam": [
+    { "iata": "SK", "name": "SAS Scandinavian Airlines", "country": "Sweden/Denmark/Norway", "joined": "2024-09-01", "notes": "Moved from Star Alliance" },
+    { "iata": "AR", "name": "Aerolíneas Argentinas",     "country": "Argentina",     "joined": "2012-08-29" },
+    { "iata": "AM", "name": "Aeroméxico",                "country": "Mexico",        "joined": "2000-06-22" },
+    { "iata": "UX", "name": "Air Europa",                "country": "Spain",         "joined": "2007-09-04" },
+    { "iata": "AF", "name": "Air France",                "country": "France",        "joined": "2000-06-22" },
+    { "iata": "AZ", "name": "ITA Airways",               "country": "Italy",         "joined": "2021-10-15", "notes": "Successor of Alitalia" },
+    { "iata": "CI", "name": "China Airlines",            "country": "Taiwan",        "joined": "2011-09-28" },
+    { "iata": "MU", "name": "China Eastern Airlines",    "country": "China",         "joined": "2011-06-21" },
+    { "iata": "DL", "name": "Delta Air Lines",           "country": "United States", "joined": "2000-06-22" },
+    { "iata": "GA", "name": "Garuda Indonesia",          "country": "Indonesia",     "joined": "2014-03-05" },
+    { "iata": "KQ", "name": "Kenya Airways",             "country": "Kenya",         "joined": "2010-06-04" },
+    { "iata": "KL", "name": "KLM Royal Dutch Airlines",  "country": "Netherlands",   "joined": "2004-09-13" },
+    { "iata": "KE", "name": "Korean Air",                "country": "South Korea",   "joined": "2000-06-22" },
+    { "iata": "ME", "name": "Middle East Airlines",      "country": "Lebanon",       "joined": "2012-06-28" },
+    { "iata": "SV", "name": "Saudia",                    "country": "Saudi Arabia",  "joined": "2012-05-29" },
+    { "iata": "RO", "name": "TAROM",                     "country": "Romania",       "joined": "2010-06-25" },
+    { "iata": "VN", "name": "Vietnam Airlines",          "country": "Vietnam",       "joined": "2010-06-10" },
+    { "iata": "VS", "name": "Virgin Atlantic",           "country": "United Kingdom","joined": "2023-03-02" },
+    { "iata": "XK", "name": "Air Corsica",               "country": "France",        "joined": "2024-07-01" },
+    { "iata": "MF", "name": "Xiamen Air",                "country": "China",         "joined": "2012-11-21" }
+  ]
+}
