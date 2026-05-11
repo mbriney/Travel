@@ -168,6 +168,20 @@ export const ACHIEVEMENTS = [
   { code: "MIDDLE_EAST_HUB",    name: "Middle East Hub",       desc: "Connect through DXB, DOH, and AUH",                     category: "collector",icon: "🕌", tier: "silver",   req: 3,    type: "middle_east_set",   points: 60 },
   { code: "THE_SOUTHERNER",     name: "The Southerner",        desc: "Fly to Australia, New Zealand, and South Africa",       category: "collector",icon: "🦘", tier: "gold",     req: 3,    type: "southerner_set",    points: 150 },
 
+  // ── EXPANSION v2: more from GitHub issue #12 ──────────────────────────
+  { code: "FREQUENT_FLYER_20Y",  name: "Frequent Flyer (20/yr)", desc: "Log at least 20 flights in a single calendar year",      category: "special",   icon: "📈", tier: "bronze",   req: 20,  type: "flights_per_year",     points: 40 },
+  { code: "CONTINENTAL_LINK",    name: "Continental Link",       desc: "Visit airports on two different continents in a single trip", category: "explorer", icon: "🛬", tier: "silver",   req: 2,   type: "max_continents_per_trip", points: 60 },
+  { code: "CAPITAL_LINK",        name: "Capital Link",           desc: "Fly between two national capital cities",                category: "explorer",  icon: "🏛️", tier: "silver",   req: 1,   type: "capital_link",         points: 50 },
+  { code: "HIGH_ALTITUDE",       name: "High Altitude",          desc: "Land at an airport over 10,000 ft (e.g. La Paz)",        category: "explorer",  icon: "🏔️", tier: "gold",     req: 10000, type: "max_airport_elevation",points: 100 },
+  { code: "LOW_ALTITUDE",        name: "Low Altitude",           desc: "Land at an airport below sea level (e.g. Amsterdam)",    category: "explorer",  icon: "🌊", tier: "silver",   req: 1,    type: "below_sea_level",      points: 40 },
+  { code: "ALPINE_ARRIVAL",      name: "Alpine Arrival",         desc: "Land at an airport higher than 5,000 ft",                category: "explorer",  icon: "⛰️", tier: "silver",   req: 5000, type: "max_airport_elevation",points: 50 },
+  { code: "GLOBAL_NORTH",        name: "Global North",           desc: "Touch an airport at 60°N or higher",                     category: "explorer",  icon: "🧭", tier: "silver",   req: 60,   type: "max_lat_n",            points: 50 },
+  { code: "GLOBAL_SOUTH",        name: "Global South",           desc: "Touch an airport at 40°S or lower",                      category: "explorer",  icon: "🐧", tier: "gold",     req: 40,   type: "max_lat_s",            points: 100 },
+  { code: "ANTIPODEAN",          name: "Antipodean Adventure",   desc: "Fly to a country geographically opposite Washington D.C. (the Indian Ocean / W. Australia region)", category: "explorer", icon: "🌐", tier: "diamond", req: 1, type: "antipode_visited", points: 200 },
+  { code: "TRI_JET",             name: "Tri-Jet Tribute",        desc: "Fly on a three-engined aircraft (MD-11, L-1011, DC-10)", category: "collector", icon: "🛫", tier: "gold",     req: 1,    type: "has_trijet",           points: 80 },
+  { code: "ALLIANCE_ACE",        name: "Alliance Ace",           desc: "Fly on members of all three major alliances (Star, oneworld, SkyTeam)", category: "elite", icon: "🤝", tier: "gold", req: 3, type: "alliances",               points: 150 },
+  { code: "CODESHARE",           name: "Code-Share Confusion",   desc: "Fly on a flight operated by an airline other than the one you booked (needs AeroDataBox enrichment)", category: "elite", icon: "🔀", tier: "silver", req: 1, type: "codeshare_count",     points: 40 },
+
   // ── META ──────────────────────────────────────────────────────────────
   { code: "WRIGHT_STUFF",       name: "The Wright Stuff",      desc: "Unlock at least one achievement in every category",     category: "special",  icon: "✈️", tier: "diamond",  req: 1,    type: "wright_stuff",      points: 500 },
 ];
@@ -178,6 +192,108 @@ export const ACHIEVEMENTS = [
 
 const MI_TO_KM = 1.60934;
 const ARCTIC_LAT = 66.5;
+
+// Curated list of national-capital airports (used for the Capital Link
+// achievement). Mix of the primary international airport in each capital
+// city; not exhaustive but covers the world's major political centres.
+const CAPITAL_AIRPORTS = new Set([
+  "DCA","IAD","BWI",                                  // Washington DC
+  "YOW",                                              // Ottawa
+  "MEX","NLU",                                        // Mexico City
+  "LHR","LGW","STN","LTN","LCY",                      // London
+  "CDG","ORY","BVA",                                  // Paris
+  "BER",                                              // Berlin (Brandenburg)
+  "FCO","CIA",                                        // Rome
+  "MAD",                                              // Madrid
+  "LIS",                                              // Lisbon
+  "AMS",                                              // Amsterdam
+  "VIE",                                              // Vienna
+  "BRU","CRL",                                        // Brussels
+  "BRN","ZRH",                                        // Bern (capital) / Zurich primary
+  "CPH",                                              // Copenhagen
+  "OSL",                                              // Oslo
+  "ARN","BMA",                                        // Stockholm
+  "HEL",                                              // Helsinki
+  "WAW","WMI",                                        // Warsaw
+  "PRG",                                              // Prague
+  "BUD",                                              // Budapest
+  "ATH",                                              // Athens
+  "DUB",                                              // Dublin
+  "KEF","RKV",                                        // Reykjavik
+  "SVO","DME","VKO",                                  // Moscow
+  "KBP","IEV",                                        // Kyiv
+  "ESB",                                              // Ankara
+  "TLV",                                              // Tel Aviv (de-facto for Israel)
+  "AMM",                                              // Amman
+  "BEY",                                              // Beirut
+  "DOH",                                              // Doha
+  "AUH",                                              // Abu Dhabi
+  "KWI",                                              // Kuwait City
+  "RUH",                                              // Riyadh
+  "MCT",                                              // Muscat
+  "BAH",                                              // Manama
+  "TLV",                                              // Tel Aviv
+  "CAI",                                              // Cairo
+  "NBO",                                              // Nairobi
+  "ADD",                                              // Addis Ababa
+  "JNB","PRY",                                        // Pretoria capital / Joburg primary
+  "DAR",                                              // Dar es Salaam
+  "DEL",                                              // Delhi
+  "ISB",                                              // Islamabad
+  "DAC",                                              // Dhaka
+  "KTM",                                              // Kathmandu
+  "CMB",                                              // Colombo (Sri Jayawardenepura Kotte de jure)
+  "MLE",                                              // Malé
+  "PEK","PKX",                                        // Beijing
+  "TPE","TSA",                                        // Taipei
+  "HND","NRT",                                        // Tokyo
+  "ICN","GMP",                                        // Seoul
+  "FNJ",                                              // Pyongyang
+  "BKK","DMK",                                        // Bangkok
+  "HAN",                                              // Hanoi
+  "PNH",                                              // Phnom Penh
+  "VTE",                                              // Vientiane
+  "RGN",                                              // Yangon
+  "SIN",                                              // Singapore
+  "KUL",                                              // KL
+  "CGK","HLP",                                        // Jakarta
+  "MNL",                                              // Manila
+  "BWN",                                              // Bandar Seri Begawan
+  "CBR",                                              // Canberra
+  "WLG",                                              // Wellington
+  "SUV","NAN",                                        // Suva (Nausori)
+  "BSB",                                              // Brasília
+  "EZE","AEP",                                        // Buenos Aires
+  "LIM",                                              // Lima
+  "SCL",                                              // Santiago
+  "BOG",                                              // Bogotá
+  "CCS",                                              // Caracas
+  "PTY",                                              // Panama City
+  "SJO",                                              // San José
+  "GUA",                                              // Guatemala City
+  "MGA",                                              // Managua
+  "TGU",                                              // Tegucigalpa
+  "SAL",                                              // San Salvador
+  "BZE",                                              // Belmopan (BZE serves capital)
+  "HAV",                                              // Havana
+  "SDQ",                                              // Santo Domingo
+  "SJU",                                              // San Juan (PR)
+  "PAP",                                              // Port-au-Prince
+  "KIN",                                              // Kingston
+  "NAS",                                              // Nassau
+  "ASU",                                              // Asunción
+  "MVD",                                              // Montevideo
+  "LPB",                                              // La Paz
+  "POS",                                              // Port of Spain
+]);
+
+// Antipode of Matt's home base (Washington DC, ~38.85°N, -77.04°E). The
+// geographic point on the opposite side of the Earth is roughly (-38.85,
+// 102.96) — south-east of Madagascar / Indian Ocean / SW Australia. Any
+// visited airport within ~1500 mi of this point earns "Antipodean Adventure."
+const ANTIPODE_LAT = -38.85;
+const ANTIPODE_LON = 102.96;
+const ANTIPODE_RADIUS_MI = 1500;
 
 // World's busiest top-50 hubs (used for Point-to-Point detection).
 const TOP_HUBS_SET = new Set([
@@ -242,6 +358,13 @@ export function evaluateAchievements(ctx) {
   let boeingSegments = 0, airbusSegments = 0;
   let hasNarrowbody = 0, hasWidebody = 0, hasA380 = 0, hasB747 = 0, hasB787 = 0;
   let hasNeo = 0, hasProp = 0, hasRegional = 0, hasMD80 = 0, hasDoubleDecker = 0;
+  let hasTrijet = 0;
+  let codeshareCount = 0;
+  let capitalLink = 0;
+  let maxAirportElevation = 0, belowSeaLevel = 0;
+  let maxLatN = 0, maxLatS = 0;       // northernmost lat seen, southernmost (positive number magnitude)
+  let antipodeVisited = 0;
+  const alliancesSeen = new Set();
   const aircraftFamiliesSet = new Set();
   const flightNumberCount = new Map();       // "AA1839" -> n
   const tailCount = new Map();               // "N802NN" -> n
@@ -342,16 +465,44 @@ export function evaluateAchievements(ctx) {
     }
     // Point-to-point (neither endpoint in top-50 hub list)
     if (aFrom && aTo && !TOP_HUBS_SET.has(aFrom.code) && !TOP_HUBS_SET.has(aTo.code)) pointToPoint++;
+    // Capital Link (both endpoints in the curated capital-airports set)
+    if (aFrom && aTo && CAPITAL_AIRPORTS.has(aFrom.code) && CAPITAL_AIRPORTS.has(aTo.code)) capitalLink++;
 
     // Geographic curiosities (existing + extensions)
     if (aFrom && aTo && aFrom.lat != null && aTo.lat != null) {
       if (Math.sign(aFrom.lat) !== Math.sign(aTo.lat) && aFrom.lat !== 0 && aTo.lat !== 0) equatorCrossing = 1;
       if (aFrom.lat >= ARCTIC_LAT || aTo.lat >= ARCTIC_LAT) arcticFlight = 1;
-      // Date Line crossings: Pacific-basin pair where lons sit on opposite sides of ~±90°
       const lo1 = aFrom.lon, lo2 = aTo.lon;
-      if (lo1 < -90 && lo2 > 90) idlWest++;       // e.g. LAX → SYD
-      else if (lo1 > 90 && lo2 < -90) idlEast++;  // e.g. SYD → LAX
+      if (lo1 < -90 && lo2 > 90) idlWest++;
+      else if (lo1 > 90 && lo2 < -90) idlEast++;
+      // Northernmost / southernmost latitudes touched
+      for (const ap of [aFrom, aTo]) {
+        if (ap.lat >  maxLatN) maxLatN = ap.lat;
+        if (ap.lat < -maxLatS) maxLatS = -ap.lat;
+      }
     }
+
+    // Airport elevation extremes (needs the rebuilt airports.json with elevation_ft)
+    for (const ap of [aFrom, aTo]) {
+      if (!ap) continue;
+      const e = ap.elevation_ft || 0;
+      if (e > maxAirportElevation) maxAirportElevation = e;
+      if (e < 0) belowSeaLevel = 1;
+      // Antipodean: any visited airport within ~1500 mi of Matt's antipode
+      if (ap.lat != null && ap.lon != null) {
+        const dist = airportHaversineMiles(ap.lat, ap.lon, ANTIPODE_LAT, ANTIPODE_LON);
+        if (dist <= ANTIPODE_RADIUS_MI) antipodeVisited = 1;
+      }
+    }
+
+    // Alliance of the marketing carrier (from curated_airlines overlay)
+    if (f.airline_code) {
+      const al = ctx.airlines?.[f.airline_code]?.alliance;
+      if (al) alliancesSeen.add(al);
+    }
+
+    // Codeshare flag set by AeroDataBox enrichment
+    if (f.is_codeshare) codeshareCount++;
 
     // Flight duration extremes
     const mins = f._minutes || 0;
@@ -375,6 +526,8 @@ export function evaluateAchievements(ctx) {
       if (ac.retro)      hasMD80 = 1;
       if (ac.doubleDeck) hasDoubleDecker = 1;
     }
+    // Tri-jets: MD-11 (M11), DC-10 (D10), L-1011 (L10), Falcon (F50/F2T), B727 (72S)
+    if (/^(M11|D10|L10|72S|F50|F2T)/.test(f.aircraft || "")) hasTrijet = 1;
 
     // Same flight number repeats
     if (f.airline_code && f.flight_number) {
@@ -510,6 +663,17 @@ export function evaluateAchievements(ctx) {
   metrics.middle_east_set = MIDDLE_EAST_HUBS.filter(c => stats.airports.has(c)).length;
   metrics.southerner_set  = SOUTHERNER_COUNTRIES.filter(c => stats.countries.has(c)).length;
 
+  // Expansion v2 metrics
+  metrics.capital_link            = capitalLink;
+  metrics.max_airport_elevation   = maxAirportElevation;
+  metrics.below_sea_level         = belowSeaLevel;
+  metrics.max_lat_n               = maxLatN;
+  metrics.max_lat_s               = maxLatS;
+  metrics.antipode_visited        = antipodeVisited;
+  metrics.has_trijet              = hasTrijet;
+  metrics.codeshare_count         = codeshareCount;
+  metrics.alliances               = alliancesSeen.size;
+
   // ── Layover analysis (requires consecutive flights within a trip) ─────
   // Without trip metadata, fall back to "consecutive flights within 24h"
   // grouped by trip_id when present, by date-proximity when not.
@@ -549,6 +713,25 @@ export function evaluateAchievements(ctx) {
   metrics.max_trip_legs       = maxTripLegs;
   metrics.back_to_back        = backToBack;
 
+  // Continental Link — max number of continents touched in a single trip
+  let maxContinentsPerTrip = 0;
+  {
+    const tripContinents = new Map();
+    for (const f of flights) {
+      if (!f.trip_id) continue;   // requires trip_id from /list/trip enrichment
+      const set = tripContinents.get(f.trip_id) || new Set();
+      for (const code of [f.from, f.to]) {
+        const ap = airports[code];
+        if (ap?.continent) set.add(ap.continent);
+      }
+      tripContinents.set(f.trip_id, set);
+    }
+    for (const set of tripContinents.values()) {
+      if (set.size > maxContinentsPerTrip) maxContinentsPerTrip = set.size;
+    }
+  }
+  metrics.max_continents_per_trip = maxContinentsPerTrip;
+
   // Decorate each definition with its progress.
   // Two-pass: skip the "wright_stuff" meta on the first pass so we can derive
   // it from how many categories have at least one unlocked achievement.
@@ -581,6 +764,16 @@ export function evaluateAchievements(ctx) {
     maxPoints,
     metrics,
   };
+}
+
+// Great-circle distance in miles between two lat/lon points
+function airportHaversineMiles(lat1, lon1, lat2, lon2) {
+  const R = 3958.7613;
+  const toRad = d => d * Math.PI / 180;
+  const dLat = toRad(lat2 - lat1), dLon = toRad(lon2 - lon1);
+  const a = Math.sin(dLat/2)**2 +
+            Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon/2)**2;
+  return 2 * R * Math.asin(Math.sqrt(a));
 }
 
 function longestConsecutiveMonths(monthSet) {
@@ -933,6 +1126,17 @@ function describeRequirement(ach) {
     case "middle_east_set":        return `Visit all of DXB, DOH, and AUH`;
     case "southerner_set":         return `Visit all of Australia, New Zealand, and South Africa`;
     case "wright_stuff":           return `Unlock at least one achievement in every category`;
+    // Expansion v2
+    case "capital_link":           return `A flight where both airports serve national capital cities`;
+    case "max_airport_elevation":  return `Land at an airport at or above ${ach.req.toLocaleString()} ft elevation`;
+    case "below_sea_level":        return `Land at an airport below sea level`;
+    case "max_lat_n":              return `Touch an airport at ${ach.req}°N or further north`;
+    case "max_lat_s":              return `Touch an airport at ${ach.req}°S or further south`;
+    case "antipode_visited":       return `Fly to an airport on the opposite side of the world from Washington D.C.`;
+    case "has_trijet":             return `One flight on a 3-engined aircraft (MD-11, L-1011, DC-10, B727)`;
+    case "codeshare_count":        return `Fly a flight where the operating airline differs from the marketing carrier`;
+    case "alliances":              return `Fly on members of all three global alliances (Star, oneworld, SkyTeam)`;
+    case "max_continents_per_trip":return `A trip whose flights touch ${ach.req} different continents`;
     default:                       return ach.desc;
   }
 }
@@ -994,7 +1198,7 @@ function buildAchievementDetail(ach, ctx) {
   // ── progress banner ────────────────────────────────────────────────────
   if (ach.unlocked) {
     const summary = buildUnlockedSummary(ach, ctx);
-    blocks.push({ html: `<div class="ach-detail-progress unlocked">✓ ${summary}</div>` });
+    blocks.push({ html: `<div class="ach-detail-progress unlocked">${summary}</div>` });
   } else {
     let remaining = Math.max(0, ach.req - ach.current);
     let remStr;
@@ -1145,35 +1349,52 @@ function buildAchievementDetail(ach, ctx) {
   return blocks;
 }
 
-// "Unlocked …" headline that varies by type
+// "Unlocked …" headline. Two-line: "✓ Unlocked at TARGET" + "Now at CURRENT".
+// Phrasing varies by metric kind so each one reads naturally.
 function buildUnlockedSummary(ach, ctx) {
   const kind = metricKind(ach.type);
-  const s = ctx.stats;
-  if (kind === "set") {
-    // Use the cardinality, not "X/Y"
-    return `Unlocked — ${formatNumber(ach.current)} ${itemNoun(ach.type)} collected`;
+  const noun = itemNoun(ach.type);
+
+  function format(value) {
+    switch (ach.type) {
+      case "distance_km":   return `${formatNumber(value)} km`;
+      case "distance_mi":   return `${formatNumber(value)} mi`;
+      case "flight_hours":  return `${Number(value).toFixed(1)} hours`;
+      case "earth_laps":    return `${Number(value).toFixed(2)}× around Earth`;
+      case "moon_trips":    return `${Number(value).toFixed(2)}× to the Moon`;
+      case "years_span":    return `${Math.round(value)} year${Math.round(value) === 1 ? "" : "s"}`;
+      default:              return `${formatNumber(value)}${noun && noun !== "items" ? " " + noun : ""}`;
+    }
   }
+
+  // Maxof — the unlock condition itself is the best instance; no separate "now" line.
   if (kind === "maxof") {
-    return `Unlocked — ${maxOfSummary(ach, ctx)}`;
+    return `<strong>✓ Unlocked.</strong> ${maxOfSummary(ach, ctx)}`;
   }
+  // Meta (Wright Stuff)
+  if (kind === "meta") {
+    return `<strong>✓ Unlocked.</strong> All <strong>${ach.current}</strong> categories covered.`;
+  }
+
+  const target = format(ach.req);
+  const now    = format(ach.current);
+
   if (kind === "span") {
-    return `Unlocked — ${ach.current} years on record`;
+    return `<strong>✓ Unlocked at ${target}.</strong> You now span <strong>${now}</strong>.`;
+  }
+  if (kind === "set") {
+    return `<strong>✓ Unlocked at ${target}.</strong> You've now collected <strong>${now}</strong>.`;
   }
   if (kind === "event") {
-    return ach.current === 1
-      ? `Unlocked once`
-      : `Unlocked — completed ${formatNumber(ach.current)} times`;
-  }
-  if (kind === "meta") {
-    return `Unlocked — all ${ach.current} categories covered`;
+    if (ach.req === 1) {
+      return ach.current === 1
+        ? `<strong>✓ Unlocked</strong> on your first qualifying flight.`
+        : `<strong>✓ Unlocked</strong> on your first qualifying flight. You've now done this <strong>${formatNumber(ach.current)}</strong> times.`;
+    }
+    return `<strong>✓ Unlocked at ${formatNumber(ach.req)}.</strong> You're now at <strong>${formatNumber(ach.current)}</strong>.`;
   }
   // count
-  if (ach.type === "distance_km") return `Unlocked at ${formatNumber(ach.current)} km (target: ${formatNumber(ach.req)} km)`;
-  if (ach.type === "distance_mi") return `Unlocked at ${formatNumber(ach.current)} mi (target: ${formatNumber(ach.req)} mi)`;
-  if (ach.type === "flight_hours") return `Unlocked at ${ach.current.toFixed(1)} hours (target: ${ach.req} hours)`;
-  if (ach.type === "earth_laps") return `Unlocked at ${ach.current.toFixed(2)}× Earth laps`;
-  if (ach.type === "moon_trips") return `Unlocked at ${ach.current.toFixed(2)}× Moon trips`;
-  return `Unlocked — ${formatNumber(ach.current)} total`;
+  return `<strong>✓ Unlocked at ${target}.</strong> You're now at <strong>${now}</strong>.`;
 }
 
 function itemNoun(type) {

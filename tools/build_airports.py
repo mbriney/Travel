@@ -78,6 +78,10 @@ def build_airports(countries: dict[str, dict]) -> dict[str, dict]:
         country = countries.get(country_code, {})
         region = (row.get("iso_region") or "").upper()  # e.g. "US-TX"
         state = region.split("-", 1)[1] if "-" in region else ""
+        try:
+            elev = int(float(row.get("elevation_ft") or "0"))
+        except Exception:
+            elev = 0
         out[iata] = {
             "code": iata,
             "icao": row.get("ident") or "",
@@ -90,6 +94,7 @@ def build_airports(countries: dict[str, dict]) -> dict[str, dict]:
             "continent": country.get("continent", ""),
             "lat": lat,
             "lon": lon,
+            "elevation_ft": elev,
             "flag": flag_emoji(country_code),
         }
     print(f"  kept {len(out)} airports (skipped {skipped} closed/heliport/seaplane)")
