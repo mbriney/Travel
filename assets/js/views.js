@@ -376,6 +376,35 @@ export function renderStatsView(root, ctx) {
           </div>
         </section>
 
+        <section class="card span-2 carbon-card">
+          <h2>Carbon footprint <span class="muted">estimated</span></h2>
+          <div class="carbon-grid">
+            <div class="carbon-headline">
+              <div class="num">${(s.co2Tonnes).toFixed(1)}<span class="den"> t</span></div>
+              <div class="label">CO₂ emitted across all flights</div>
+              <div class="sub">${Math.round(s.co2Kg).toLocaleString()} kg total · ${(s.co2Kg / Math.max(s.total, 1)).toFixed(0)} kg per flight avg</div>
+            </div>
+            <div class="carbon-context">
+              <div class="row">
+                <span class="emoji">🌳</span>
+                <div><strong>${Math.round(s.treesNeededPerYear).toLocaleString()}</strong> mature trees, working for a year, to absorb that</div>
+              </div>
+              <div class="row">
+                <span class="emoji">🚗</span>
+                <div><strong>${Math.round(s.carEquivalentMiles).toLocaleString()} mi</strong> in an average gasoline car</div>
+              </div>
+              <div class="row">
+                <span class="emoji">🏠</span>
+                <div><strong>${(s.co2Tonnes / 4.6).toFixed(1)}</strong> years of an average US household's electricity</div>
+              </div>
+              <div class="row caveat">
+                <span class="emoji">ℹ️</span>
+                <div class="muted">ICAO-style economy-class factors (158/133/115 g/pkm by haul) plus ~30 kg LTO per leg. Premium-cabin multipliers not applied; actual emissions depend on aircraft, load factor, routing, and seat class.</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <!-- ── CADENCE ─────────────────────────────────────────────── -->
         <h2 class="section-head span-2">Cadence</h2>
 
@@ -428,35 +457,6 @@ export function renderStatsView(root, ctx) {
           <h2>Tail-number tracking <span class="muted">optional</span></h2>
           <p>Want to see <em>which specific aircraft</em> you've been on? Run <code>python tools/enrich_aerodatabox.py</code> with an AeroDataBox API key (free tier 600 req/mo) to fill in tail numbers, aircraft models, and ATC callsigns for flights within the last 365 days. See the README for setup.</p>
         </section>`}
-
-        <section class="card span-2 carbon-card">
-          <h2>Carbon footprint <span class="muted">estimated</span></h2>
-          <div class="carbon-grid">
-            <div class="carbon-headline">
-              <div class="num">${(s.co2Tonnes).toFixed(1)}<span class="den"> t</span></div>
-              <div class="label">CO₂ emitted across all flights</div>
-              <div class="sub">${Math.round(s.co2Kg).toLocaleString()} kg total · ${(s.co2Kg / Math.max(s.total, 1)).toFixed(0)} kg per flight avg</div>
-            </div>
-            <div class="carbon-context">
-              <div class="row">
-                <span class="emoji">🌳</span>
-                <div><strong>${Math.round(s.treesNeededPerYear).toLocaleString()}</strong> mature trees, working for a year, to absorb that</div>
-              </div>
-              <div class="row">
-                <span class="emoji">🚗</span>
-                <div><strong>${Math.round(s.carEquivalentMiles).toLocaleString()} mi</strong> in an average gasoline car</div>
-              </div>
-              <div class="row">
-                <span class="emoji">🏠</span>
-                <div><strong>${(s.co2Tonnes / 4.6).toFixed(1)}</strong> years of an average US household's electricity</div>
-              </div>
-              <div class="row caveat">
-                <span class="emoji">ℹ️</span>
-                <div class="muted">ICAO-style economy-class factors (158/133/115 g/pkm by haul) plus ~30 kg LTO per leg. Premium-cabin multipliers not applied; actual emissions depend on aircraft, load factor, routing, and seat class.</div>
-              </div>
-            </div>
-          </div>
-        </section>
 
       </div>
     </div>`;
