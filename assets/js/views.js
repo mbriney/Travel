@@ -318,59 +318,6 @@ export function renderStatsView(root, ctx) {
           </div>
         </section>
 
-        <!-- ── CADENCE ─────────────────────────────────────────────── -->
-        <h2 class="section-head span-2">Cadence</h2>
-
-        <section class="card span-2">
-          <h2>Flights by year</h2>
-          ${renderYearlyChart(s)}
-        </section>
-
-        <section class="card">
-          <h2>Busiest months <span class="muted">all-time</span></h2>
-          ${renderMonthOfYearChart(s)}
-          <div class="muted small mt-8">Most-flown: <strong>${MONTH_FULL[s.busiestMonth]}</strong></div>
-        </section>
-
-        <section class="card">
-          <h2>Velocity</h2>
-          <div class="kpi"><span class="big">${Math.round(s.avgSpeedMph)}</span> <span class="den">mph avg</span></div>
-          <div class="muted small">Total miles ÷ total time aloft across all flights</div>
-          <div class="kpi-row mt-12">
-            <div><div class="lbl">Total time</div><div class="val">${formatDuration(s.minutes)}</div></div>
-            <div><div class="lbl">Avg per leg</div><div class="val">${formatDuration(s.avgMinutes)}</div></div>
-          </div>
-        </section>
-
-        <section class="card span-2">
-          <h2>Travel intensity <span class="muted">heatmap · darker = more flights</span></h2>
-          ${renderHeatmap(s)}
-        </section>
-
-        <!-- ── AVIATION ────────────────────────────────────────────── -->
-        <h2 class="section-head span-2">Aviation</h2>
-
-        <section class="card">
-          <h2>Top aircraft <span class="muted">${s.aircraft.size} types</span></h2>
-          ${renderAircraftList(s)}
-        </section>
-
-        <section class="card">
-          <h2>Cabin class</h2>
-          ${renderClassChart(s)}
-        </section>
-
-        ${s.enrichedFlights > 0 ? `
-        <section class="card span-2">
-          <h2>Specific aircraft <span class="muted">${s.uniqueTails} unique tails · ${s.enrichedFlights} flights enriched</span></h2>
-          ${renderTailList(s)}
-          <div class="muted small mt-8">Tail numbers, models, and callsigns pulled via AeroDataBox. Coverage is limited to flights within ~365 days of when the enrichment was run.</div>
-        </section>` : `
-        <section class="card span-2 enrich-hint">
-          <h2>Tail-number tracking <span class="muted">optional</span></h2>
-          <p>Want to see <em>which specific aircraft</em> you've been on? Run <code>python tools/enrich_aerodatabox.py</code> with an AeroDataBox API key (free tier 600 req/mo) to fill in tail numbers, aircraft models, and ATC callsigns for flights within the last 365 days. See the README for setup.</p>
-        </section>`}
-
         <!-- ── GEOGRAPHY ───────────────────────────────────────────── -->
         <h2 class="section-head span-2">Geography</h2>
 
@@ -428,6 +375,59 @@ export function renderStatsView(root, ctx) {
             ${renderHubChips(s)}
           </div>
         </section>
+
+        <!-- ── CADENCE ─────────────────────────────────────────────── -->
+        <h2 class="section-head span-2">Cadence</h2>
+
+        <section class="card span-2">
+          <h2>Flights by year</h2>
+          ${renderYearlyChart(s)}
+        </section>
+
+        <section class="card">
+          <h2>Busiest months <span class="muted">all-time</span></h2>
+          ${renderMonthOfYearChart(s)}
+          <div class="muted small mt-8">Most-flown: <strong>${MONTH_FULL[s.busiestMonth]}</strong></div>
+        </section>
+
+        <section class="card">
+          <h2>Velocity</h2>
+          <div class="kpi"><span class="big">${Math.round(s.avgSpeedMph)}</span> <span class="den">mph avg</span></div>
+          <div class="muted small">Total miles ÷ total time aloft across all flights</div>
+          <div class="kpi-row mt-12">
+            <div><div class="lbl">Total time</div><div class="val">${formatDuration(s.minutes)}</div></div>
+            <div><div class="lbl">Avg per leg</div><div class="val">${formatDuration(s.avgMinutes)}</div></div>
+          </div>
+        </section>
+
+        <section class="card span-2">
+          <h2>Travel intensity <span class="muted">heatmap · darker = more flights</span></h2>
+          ${renderHeatmap(s)}
+        </section>
+
+        <!-- ── AVIATION ────────────────────────────────────────────── -->
+        <h2 class="section-head span-2">Aviation</h2>
+
+        <section class="card">
+          <h2>Top aircraft <span class="muted">${s.aircraft.size} types</span></h2>
+          ${renderAircraftList(s)}
+        </section>
+
+        <section class="card">
+          <h2>Cabin class</h2>
+          ${renderClassChart(s)}
+        </section>
+
+        ${s.enrichedFlights > 0 ? `
+        <section class="card span-2">
+          <h2>Specific aircraft <span class="muted">${s.uniqueTails} unique tails · ${s.enrichedFlights} flights enriched</span></h2>
+          ${renderTailList(s)}
+          <div class="muted small mt-8">Tail numbers, models, and callsigns pulled via AeroDataBox. Coverage is limited to flights within ~365 days of when the enrichment was run.</div>
+        </section>` : `
+        <section class="card span-2 enrich-hint">
+          <h2>Tail-number tracking <span class="muted">optional</span></h2>
+          <p>Want to see <em>which specific aircraft</em> you've been on? Run <code>python tools/enrich_aerodatabox.py</code> with an AeroDataBox API key (free tier 600 req/mo) to fill in tail numbers, aircraft models, and ATC callsigns for flights within the last 365 days. See the README for setup.</p>
+        </section>`}
 
         <section class="card span-2 carbon-card">
           <h2>Carbon footprint <span class="muted">estimated</span></h2>

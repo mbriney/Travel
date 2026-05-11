@@ -790,6 +790,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   border: 1px solid rgba(255,255,255,0.08);
   border-radius: 14px;
 }
+.span-2,
 .card.span-2 { grid-column: 1 / -1; }
 .card h2 {
   margin: 0 0 12px;
@@ -1107,6 +1108,8 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
    --------------------------------------------------------------------------- */
 
 .section-head {
+  /* Always span both columns of the parent grid */
+  grid-column: 1 / -1;
   font-family: var(--font-display);
   font-size: 14px;
   font-weight: 600;
