@@ -125,35 +125,39 @@ export async function drawWorldGlobe(svg, ctx) {
     .attr("opacity", d => 0.20 + 0.55 * d.weight)
     .attr("d", path);
 
-  // Airport dots — top hubs bigger. Create ALL of them once, then on every
-  // redraw just update cx/cy + visibility. Avoids the data-join + enter/exit
-  // dance that was leaving some dots in their initial position.
+  // Airport dots — top hubs bigger. Plain DOM (no D3 data joins) so every dot
+  // is guaranteed to be repositioned on every redraw. Keep an explicit array
+  // of {node, ap} pairs so we never lose the airport reference.
   const topSet = new Set(ctx.stats.topAirports.slice(0, 6).map(r => r.key));
-  const dotsLayer = root.append("g").attr("class", "dots");
-  dotsLayer.selectAll("circle")
-    .data(visitedAirports, ap => ap.code)
-    .enter().append("circle")
-      .attr("class", ap => "airport-dot" + (topSet.has(ap.code) ? " big" : ""))
-      .attr("r", ap => topSet.has(ap.code) ? 3.5 : 1.6)
-      .attr("fill", ap => topSet.has(ap.code) ? "#c8a04a" : "#7a1a1a")
-      .attr("stroke", "white")
-      .attr("stroke-width", ap => topSet.has(ap.code) ? 1.2 : 0.8)
-      .each(function (ap) {
-        d3.select(this).append("title").text(`${ap.code} — ${ap.name} (${ap.city})`);
-      });
+  const dotsLayer = root.append("g").attr("class", "dots").node();
+  const SVGNS = "http://www.w3.org/2000/svg";
+  const dotEntries = [];
+  for (const ap of visitedAirports) {
+    const isTop = topSet.has(ap.code);
+    const c = document.createElementNS(SVGNS, "circle");
+    c.setAttribute("class", "airport-dot" + (isTop ? " big" : ""));
+    c.setAttribute("r", isTop ? "3.5" : "1.6");
+    c.setAttribute("fill", isTop ? "#c8a04a" : "#7a1a1a");
+    c.setAttribute("stroke", "white");
+    c.setAttribute("stroke-width", isTop ? "1.2" : "0.8");
+    const t = document.createElementNS(SVGNS, "title");
+    t.textContent = `${ap.code} — ${ap.name} (${ap.city})`;
+    c.appendChild(t);
+    dotsLayer.appendChild(c);
+    dotEntries.push({ node: c, ap });
+  }
 
   function updateDots() {
-    dotsLayer.selectAll("circle").each(function (ap) {
+    for (const { node, ap } of dotEntries) {
       const pt = projection([ap.lon, ap.lat]);
-      const node = this;
       if (!pt) {
         node.style.display = "none";
       } else {
         node.style.display = "";
-        node.setAttribute("cx", pt[0]);
-        node.setAttribute("cy", pt[1]);
+        node.setAttribute("cx", String(pt[0]));
+        node.setAttribute("cy", String(pt[1]));
       }
-    });
+    }
   }
 
   function redraw() {
@@ -167,24 +171,22 @@ export async function drawWorldGlobe(svg, ctx) {
   updateDots();
 
   // ── Auto-rotation + drag handling ─────────────────────────────────────
-  let rotationLon = projection.rotate()[0];
-  const rotationLat = projection.rotate()[1];
   let dragging = false;
   let dragStart = null;
   let lastFrame = performance.now();
   let stopped = false;
   let userIdleSince = performance.now();
-  // Degrees per second when auto-rotating
   const DEG_PER_SEC = 8;
 
   function tick(now) {
     if (stopped) return;
     const dt = (now - lastFrame) / 1000;
     lastFrame = now;
-    // Resume auto-rotation if user has been idle for 1.5s after a drag
     if (!dragging && now - userIdleSince > 1500) {
-      rotationLon = (rotationLon + DEG_PER_SEC * dt) % 360;
-      projection.rotate([rotationLon, rotationLat, 0]);
+      // Read the current rotation each frame so any drag-induced tilt
+      // (the latitude component) is preserved across the auto-rotation loop.
+      const r = projection.rotate();
+      projection.rotate([(r[0] + DEG_PER_SEC * dt) % 360, r[1], r[2]]);
       redraw();
     }
     requestAnimationFrame(tick);
@@ -210,7 +212,6 @@ export async function drawWorldGlobe(svg, ctx) {
       Math.max(-85, Math.min(85, r[1] - (y1 - y0) * sensitivity)),
       r[2],
     ]);
-    rotationLon = projection.rotate()[0];
     redraw();
   }
   function onDragEnd() {
