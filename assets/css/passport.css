@@ -891,7 +891,10 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 }
 .map-svg { width: 100%; height: 100%; }
 .world-svg.world-flat  { aspect-ratio: 2 / 1; height: auto; }
-.world-svg.world-globe { aspect-ratio: 1 / 1; height: auto; max-width: 640px; margin: 0 auto; display: block; }
+.world-svg.world-globe { aspect-ratio: 1 / 1; height: auto; max-width: 640px; margin: 0 auto; }
+/* The [hidden] HTML attribute is the source of truth for which view is
+   shown; ensure no other rule (display: block, etc.) shadows it. */
+.world-svg[hidden] { display: none !important; }
 .us-svg                { aspect-ratio: 8 / 5; height: auto; }
 
 /* Map / Globe toggle (in the World view) */

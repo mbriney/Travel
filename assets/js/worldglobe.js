@@ -125,27 +125,35 @@ export async function drawWorldGlobe(svg, ctx) {
     .attr("opacity", d => 0.20 + 0.55 * d.weight)
     .attr("d", path);
 
-  // Airport dots — top hubs bigger
+  // Airport dots — top hubs bigger. Create ALL of them once, then on every
+  // redraw just update cx/cy + visibility. Avoids the data-join + enter/exit
+  // dance that was leaving some dots in their initial position.
   const topSet = new Set(ctx.stats.topAirports.slice(0, 6).map(r => r.key));
   const dotsLayer = root.append("g").attr("class", "dots");
-
-  function updateDots() {
-    const visible = visitedAirports.filter(ap => {
-      const pt = projection([ap.lon, ap.lat]);
-      return pt != null;
-    });
-    const sel = dotsLayer.selectAll("circle").data(visible, ap => ap.code);
-    sel.exit().remove();
-    const enter = sel.enter().append("circle")
+  dotsLayer.selectAll("circle")
+    .data(visitedAirports, ap => ap.code)
+    .enter().append("circle")
       .attr("class", ap => "airport-dot" + (topSet.has(ap.code) ? " big" : ""))
       .attr("r", ap => topSet.has(ap.code) ? 3.5 : 1.6)
       .attr("fill", ap => topSet.has(ap.code) ? "#c8a04a" : "#7a1a1a")
       .attr("stroke", "white")
-      .attr("stroke-width", ap => topSet.has(ap.code) ? 1.2 : 0.8);
-    enter.append("title").text(ap => `${ap.code} — ${ap.name} (${ap.city})`);
-    sel.merge(enter)
-      .attr("cx", ap => projection([ap.lon, ap.lat])[0])
-      .attr("cy", ap => projection([ap.lon, ap.lat])[1]);
+      .attr("stroke-width", ap => topSet.has(ap.code) ? 1.2 : 0.8)
+      .each(function (ap) {
+        d3.select(this).append("title").text(`${ap.code} — ${ap.name} (${ap.city})`);
+      });
+
+  function updateDots() {
+    dotsLayer.selectAll("circle").each(function (ap) {
+      const pt = projection([ap.lon, ap.lat]);
+      const node = this;
+      if (!pt) {
+        node.style.display = "none";
+      } else {
+        node.style.display = "";
+        node.setAttribute("cx", pt[0]);
+        node.setAttribute("cy", pt[1]);
+      }
+    });
   }
 
   function redraw() {
