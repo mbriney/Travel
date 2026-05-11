@@ -105,7 +105,15 @@ python tools/fetch_tripit.py</code></pre>
         <button class="modal-close" data-close aria-label="Close">
           <svg viewBox="0 0 24 24" width="20" height="20"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M6 6l12 12M18 6L6 18"/></svg>
         </button>
-        <div id="detail-modal-body"></div>
+        <div class="modal-panes">
+          <div id="detail-modal-body" class="modal-body"></div>
+          <div id="detail-modal-side" class="modal-side" hidden>
+            <button class="modal-side-close" data-side-close aria-label="Close detail">
+              <svg viewBox="0 0 24 24" width="16" height="16"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M6 6l12 12M18 6L6 18"/></svg>
+            </button>
+            <div id="detail-modal-side-body"></div>
+          </div>
+        </div>
       </div>
     </div>
 

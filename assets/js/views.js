@@ -654,12 +654,17 @@ function ensureModalWired() {
   _modalOnceWired = true;
   const modal = document.getElementById("detail-modal");
   modal.addEventListener("click", (e) => {
-    // Use closest() so clicks on the SVG path inside the X button still match
-    // the [data-close] attribute on the parent button.
+    if (e.target.closest("[data-side-close]")) { clearModalSide(); return; }
     if (e.target.closest("[data-close]")) closeDetailModal();
   });
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && !modal.hidden) closeDetailModal();
+    if (modal.hidden) return;
+    if (e.key === "Escape") {
+      // Esc closes the side pane first if it's open, then the whole modal.
+      const side = document.getElementById("detail-modal-side");
+      if (side && !side.hidden) clearModalSide();
+      else closeDetailModal();
+    }
   });
 }
 
@@ -668,6 +673,7 @@ export function openDetailModal(html) {
   const modal = document.getElementById("detail-modal");
   const body  = document.getElementById("detail-modal-body");
   body.innerHTML = html;
+  clearModalSide();
   modal.hidden = false;
   modal.setAttribute("aria-hidden", "false");
   document.body.style.overflow = "hidden";
@@ -677,14 +683,32 @@ export function closeDetailModal() {
   const modal = document.getElementById("detail-modal");
   modal.hidden = true;
   modal.setAttribute("aria-hidden", "true");
+  clearModalSide();
   document.body.style.overflow = "";
 }
 
-function openFlightModal(f, ctx) {
-  const modal = document.getElementById("detail-modal");
-  const body  = document.getElementById("detail-modal-body");
+// Open the secondary side pane next to the main modal content.
+export function setModalSide(html) {
   ensureModalWired();
+  const modal = document.getElementById("detail-modal");
+  const side  = document.getElementById("detail-modal-side");
+  const sideBody = document.getElementById("detail-modal-side-body");
+  sideBody.innerHTML = html;
+  side.hidden = false;
+  modal.classList.add("has-side");
+}
+export function clearModalSide() {
+  const modal = document.getElementById("detail-modal");
+  const side  = document.getElementById("detail-modal-side");
+  if (!side) return;
+  side.hidden = true;
+  modal.classList.remove("has-side");
+  document.getElementById("detail-modal-side-body").innerHTML = "";
+}
 
+// Render the flight-detail HTML standalone. Used by the main flight modal
+// AND by the achievement-modal side pane.
+export function renderFlightDetailHtml(f, ctx) {
   const aFrom = ctx.airports[f.from];
   const aTo   = ctx.airports[f.to];
   const airline = ctx.airlines && ctx.airlines[f.airline_code];
@@ -699,7 +723,7 @@ function openFlightModal(f, ctx) {
   }
 
   const bannerHtml = airlineBannerImg(f.airline_code, ctx.airlines, (airline?.name) || f.airline);
-  body.innerHTML = `
+  return `
     <header class="flight-detail-head">
       ${bannerHtml ? `<div class="flight-airline-banner">${bannerHtml}</div>` : ""}
       <div class="route-big">
@@ -747,10 +771,10 @@ function openFlightModal(f, ctx) {
       ${row("Stops",       f.stops)}
       ${row("CO₂ estimate", co2kg > 0 ? `${Math.round(co2kg).toLocaleString()} kg <span class="muted">(${haul})</span>` : "")}
     </dl>`;
+}
 
-  modal.hidden = false;
-  modal.setAttribute("aria-hidden", "false");
-  document.body.style.overflow = "hidden";
+function openFlightModal(f, ctx) {
+  openDetailModal(renderFlightDetailHtml(f, ctx));
 }
 
 // ---------------------------------------------------------------------------

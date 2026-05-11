@@ -1162,7 +1162,9 @@ function metricKind(type) {
   return "event";
 }
 
-// Format a single flight as a compact row with its airline logo
+// Format a single flight as a compact row with its airline logo.
+// Includes a stable data-fi handle so the modal can wire a click handler that
+// opens the side pane with full flight detail.
 function flightRow(f, ctx, opts = {}) {
   const code = f.airline_code;
   const name = airlineDisplayName(code, ctx.airlines, f.airline);
@@ -1170,9 +1172,10 @@ function flightRow(f, ctx, opts = {}) {
   const logo = url
     ? `<img class="airline-logo" src="${url}" alt="${escapeHtml(name || code || "")}" onerror="this.classList.add('is-missing')"/>`
     : "";
-  const extra = opts.extra ? `<span class="muted small">${opts.extra}</span>` : "";
+  const extra = opts.extra ? `<span class="muted small">${escapeHtml(opts.extra)}</span>` : "";
+  const fi = f.__fi != null ? f.__fi : (ctx._flightIndex?.get?.(f) ?? "");
   return `
-    <div class="ach-flight-row">
+    <div class="ach-flight-row" data-fi="${fi}" tabindex="0" role="button" title="Click for full details">
       ${logo}
       <div class="ach-flight-info">
         <div class="ach-flight-route">${f.from} → ${f.to}</div>
@@ -1929,14 +1932,111 @@ function buildMaxOf(ach, ctx) {
     case "max_layover_minutes": {
       const lay = findMaxLayover(ctx);
       if (!lay) return { record: null };
+      // Show both the arriving and the departing flight as proper rows so
+      // each one is clickable into the side pane.
       return {
-        record: `<div class="ach-flight-row">
-          <div class="ach-flight-info">
-            <div class="ach-flight-route">${lay.prev.to} (layover)</div>
-            <div class="ach-flight-meta muted">arrived ${escapeHtml([lay.prev.airline_code, lay.prev.flight_number].filter(Boolean).join(" "))} → next ${escapeHtml([lay.next.airline_code, lay.next.flight_number].filter(Boolean).join(" "))}</div>
-          </div>
-          <div class="ach-flight-side"><div>${formatDuration(lay.minutes)}</div><div class="muted small">${formatDate(lay.prev.arrive)}</div></div>
-        </div>`,
+        record: `
+          <div class="ach-layover-pair">
+            <div class="ach-layover-label">
+              <strong>${formatDuration(lay.minutes)}</strong> on the ground at
+              <strong>${lay.prev.to}</strong> on <span class="muted">${formatDate(lay.prev.arrive)}</span>
+            </div>
+            <div class="ach-layover-step">
+              <div class="ach-layover-arrow">arrived on</div>
+              ${flightRow(lay.prev, ctx, { extra: `landed ${formatDate(lay.prev.arrive)}` })}
+            </div>
+            <div class="ach-layover-step">
+              <div class="ach-layover-arrow">connected to</div>
+              ${flightRow(lay.next, ctx, { extra: `departed ${formatDate(lay.next.depart)}` })}
+            </div>
+          </div>`,
+      };
+    }
+    case "max_trip_legs": {
+      const byTrip = new Map();
+      for (const f of ctx.flights) {
+        if (!f.trip_id) continue;
+        if (!byTrip.has(f.trip_id)) byTrip.set(f.trip_id, []);
+        byTrip.get(f.trip_id).push(f);
+      }
+      let best = null;
+      for (const list of byTrip.values()) {
+        if (!best || list.length > best.length) best = list;
+      }
+      if (!best) return { record: `<div class="muted small">Run <code>tools/fetch_tripit.py</code> to populate trip groupings.</div>` };
+      best.sort((a, b) => (a.depart || "").localeCompare(b.depart || ""));
+      const totalMiles = best.reduce((s, f) => s + (f._miles || 0), 0);
+      const totalMin   = best.reduce((s, f) => s + (f._minutes || 0), 0);
+      const startDate  = best[0]?.depart ? formatDate(best[0].depart) : "—";
+      const endDate    = best[best.length - 1]?.arrive ? formatDate(best[best.length - 1].arrive) : "—";
+      const name = best[0]?.trip_name || best[0]?.trip_location || `${best[0]?.from} loop`;
+      return {
+        record: `
+          <div class="ach-trip-detail">
+            <div class="ach-trip-summary">
+              <strong>${escapeHtml(name)}</strong>
+              <div class="muted small">${best.length} flights · ${Math.round(totalMiles).toLocaleString()} mi · ${formatDuration(totalMin)} aloft · ${startDate} → ${endDate}</div>
+            </div>
+            ${best.map((f, i) => `
+              <div class="ach-trip-leg">
+                <div class="ach-trip-leg-num">${i + 1}</div>
+                ${flightRow(f, ctx, { extra: f._miles ? `${Math.round(f._miles).toLocaleString()} mi` : "" })}
+              </div>`).join("")}
+          </div>`,
+      };
+    }
+    case "consecutive_months": {
+      // Find the actual longest streak window in monthSet
+      const monthsSeen = new Set();
+      const flightsByMonth = new Map();
+      for (const f of ctx.flights) {
+        const d = new Date(f.depart);
+        if (isNaN(d)) continue;
+        const ym = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+        monthsSeen.add(ym);
+        if (!flightsByMonth.has(ym)) flightsByMonth.set(ym, []);
+        flightsByMonth.get(ym).push(f);
+      }
+      const sorted = [...monthsSeen].sort();
+      let bestStart = sorted[0], bestLen = 1, curStart = sorted[0], curLen = 1;
+      for (let i = 1; i < sorted.length; i++) {
+        const prev = sorted[i - 1].split("-").map(Number);
+        const next = new Date(prev[0], prev[1], 1);
+        const expected = `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, "0")}`;
+        if (sorted[i] === expected) {
+          curLen++;
+        } else {
+          curStart = sorted[i];
+          curLen = 1;
+        }
+        if (curLen > bestLen) { bestLen = curLen; bestStart = curStart; }
+      }
+      // Compute end month from bestStart + bestLen-1
+      const [sy, sm] = bestStart.split("-").map(Number);
+      const endDate = new Date(sy, sm - 1 + bestLen - 1, 1);
+      const monthLabel = (ym) => {
+        const [y, m] = ym.split("-").map(Number);
+        return new Date(y, m - 1).toLocaleDateString("en-US", { month: "short", year: "numeric" });
+      };
+      const endYm = `${endDate.getFullYear()}-${String(endDate.getMonth() + 1).padStart(2, "0")}`;
+      // Collect all months in the streak, with their flight counts
+      const streakMonths = [];
+      for (let i = 0; i < bestLen; i++) {
+        const d = new Date(sy, sm - 1 + i, 1);
+        const ym = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+        streakMonths.push({ ym, count: (flightsByMonth.get(ym) || []).length, label: monthLabel(ym) });
+      }
+      return {
+        record: `
+          <div class="ach-streak-detail">
+            <div class="ach-streak-window">
+              <strong>${monthLabel(bestStart)} → ${monthLabel(endYm)}</strong>
+              <div class="muted small">${bestLen} consecutive months with at least one flight</div>
+            </div>
+            <div class="ach-streak-grid">
+              ${streakMonths.map(m => `<div class="ach-streak-cell"><div class="m">${m.label.split(" ")[0]}</div><div class="y muted">${m.label.split(" ")[1]}</div><div class="c">${m.count}×</div></div>`).join("")}
+            </div>
+          </div>`,
       };
     }
     case "max_repeat_flightno": {
@@ -2009,7 +2109,18 @@ function topRepeatedFlightNumber(ctx) {
 }
 
 async function openAchievementModal(ach, ctx) {
-  const { openDetailModal } = await import("./views.js");
+  const { openDetailModal, setModalSide, renderFlightDetailHtml } = await import("./views.js");
+
+  // Tag each flight with a stable index so the modal-side click handler can
+  // find it by data-fi. Also build a lookup map so flightRow can read fi.
+  if (!ctx._flightIndex) {
+    ctx._flightIndex = new Map();
+    ctx.flights.forEach((f, i) => {
+      f.__fi = String(i);
+      ctx._flightIndex.set(f, String(i));
+    });
+  }
+
   const blocks = buildAchievementDetail(ach, ctx);
   openDetailModal(`
     <header class="ach-detail-head">
@@ -2022,6 +2133,32 @@ async function openAchievementModal(ach, ctx) {
     </header>
     ${blocks.map(b => b.html).join("")}
   `);
+
+  // Wire click → open side pane with full flight detail.
+  const body = document.getElementById("detail-modal-body");
+  function openForRow(row) {
+    if (!row) return;
+    const fi = row.dataset.fi;
+    if (!fi) return;
+    const f = ctx.flights[Number(fi)];
+    if (!f) return;
+    setModalSide(renderFlightDetailHtml(f, ctx));
+    // Visual selection state
+    body.querySelectorAll(".ach-flight-row.is-active").forEach(r => r.classList.remove("is-active"));
+    row.classList.add("is-active");
+  }
+  body.addEventListener("click", (e) => {
+    const row = e.target.closest(".ach-flight-row[data-fi]");
+    if (row && row.dataset.fi !== "") openForRow(row);
+  });
+  body.addEventListener("keydown", (e) => {
+    if (e.key !== "Enter" && e.key !== " ") return;
+    const row = e.target.closest(".ach-flight-row[data-fi]");
+    if (row && row.dataset.fi !== "") {
+      e.preventDefault();
+      openForRow(row);
+    }
+  });
 }
 
 function escapeHtml(s) {
