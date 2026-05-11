@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Matt Briney — Travel Passport</title>
+  <meta name="description" content="An interactive virtual passport built from Matt's TripIt flight history." />
+  <meta name="theme-color" content="#0a0f2c" />
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+  <link rel="stylesheet" href="assets/css/passport.css" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='5' fill='%230a0f2c'/%3E%3Cpath d='M21 11l-5 8-3-3-3 5h14z' fill='%23a78bfa'/%3E%3C/svg%3E" />
+</head>
+<body>
+  <div class="bg-stars" aria-hidden="true"></div>
+
+  <main id="app" class="app">
+    <header class="topbar" role="banner">
+      <div class="brand">
+        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+          <path fill="currentColor" d="M2 16l8-2 2-3 4-7 2 1-3 7 1 1 5-1 1 2-6 3-2 3-5 6-2-1 3-6-1-1-5 2z"/>
+        </svg>
+        <span>Travel Passport</span>
+      </div>
+      <nav class="page-jump" aria-label="Jump to page">
+        <button data-jump="0" class="is-active">Cover</button>
+        <button data-jump="1">Stats</button>
+        <button data-jump="3">World</button>
+        <button data-jump="4">USA</button>
+        <button data-jump="5">Stamps</button>
+        <button data-jump="-1">Log</button>
+      </nav>
+      <div class="meta">
+        <span id="meta-flights">— flights</span>
+      </div>
+    </header>
+
+    <!-- Loading / empty state -->
+    <section id="empty" class="empty hidden" aria-live="polite">
+      <h1>Welcome aboard.</h1>
+      <p>
+        No flight data yet. Run the TripIt fetcher to populate this passport:
+      </p>
+      <pre><code>cd Travel
+pip install -r tools/requirements.txt
+python tools/build_airports.py        # one-time, downloads airport DB
+python tools/fetch_tripit.py          # first run: OAuth in browser</code></pre>
+      <p class="muted">Then refresh.</p>
+    </section>
+
+    <!-- Passport book -->
+    <section id="book-wrap" class="book-wrap" aria-label="Travel passport">
+      <button class="nav-arrow nav-prev" id="prev" aria-label="Previous page" disabled>
+        <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true">
+          <path fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="M15 5l-7 7 7 7"/>
+        </svg>
+      </button>
+
+      <div class="book" id="book">
+        <!-- Pages injected by JS; first page is the cover, rendered statically below -->
+      </div>
+
+      <button class="nav-arrow nav-next" id="next" aria-label="Next page">
+        <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true">
+          <path fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+        </svg>
+      </button>
+
+      <div class="page-indicator" id="indicator" aria-live="polite"></div>
+    </section>
+
+    <footer class="footer">
+      <span>Data: <a href="https://www.tripit.com" rel="noopener">TripIt</a> · Built with D3, vanilla JS · <a href="https://github.com/mbriney/Travel" rel="noopener">source</a></span>
+    </footer>
+  </main>
+
+  <!-- App scripts (loads d3 + topojson-client via ESM as needed) -->
+  <script type="module" src="assets/js/main.js"></script>
+</body>
+</html>

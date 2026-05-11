@@ -1,0 +1,17 @@
+# Local OAuth credentials — never commit
+tools/credentials.json
+
+# Raw TripIt API dumps (large, not needed in repo)
+data/raw/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Editor
+.DS_Store
+.idea/
+.vscode/
+node_modules/
