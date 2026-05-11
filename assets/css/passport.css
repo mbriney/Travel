@@ -890,8 +890,42 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   padding: 12px;
 }
 .map-svg { width: 100%; height: 100%; }
-.world-svg { aspect-ratio: 2 / 1; height: auto; }
-.us-svg    { aspect-ratio: 8 / 5; height: auto; }
+.world-svg.world-flat  { aspect-ratio: 2 / 1; height: auto; }
+.world-svg.world-globe { aspect-ratio: 1 / 1; height: auto; max-width: 640px; margin: 0 auto; display: block; }
+.us-svg                { aspect-ratio: 8 / 5; height: auto; }
+
+/* Map / Globe toggle (in the World view) */
+.world-toggle {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  margin: 0 0 10px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 999px;
+}
+.world-toggle button {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  color: var(--ink-2);
+  transition: background 180ms, color 180ms;
+}
+.world-toggle button:hover { color: var(--ink-1); }
+.world-toggle button.is-active {
+  background: linear-gradient(135deg, var(--accent-2), var(--accent));
+  color: white;
+  box-shadow: 0 4px 12px -4px rgba(124, 58, 237, 0.55);
+}
+
+/* Globe-specific styles */
+.world-globe .land   { fill: rgba(255,255,255,0.10); stroke: rgba(255,255,255,0.18); stroke-width: 0.5; }
+.world-globe .land.visited { fill: var(--accent); stroke: var(--accent-2); stroke-width: 0.6; opacity: 0.85; }
+.world-globe .graticule { fill: none; stroke: rgba(167, 139, 250, 0.10); stroke-width: 0.5; }
+.world-globe .arc       { fill: none; stroke-linecap: round; }
+.world-globe .airport-dot { stroke: white; stroke-width: 0.8; }
+.world-globe .globe-sphere { transition: none; }
 
 /* World map fills */
 .world-svg .land   { fill: rgba(255,255,255,0.10); stroke: rgba(255,255,255,0.18); stroke-width: 0.5; }

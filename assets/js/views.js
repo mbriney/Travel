@@ -14,8 +14,9 @@ function airlineBannerImg(iata, airlinesIndex, alt) {
   if (!url) return "";
   return `<img class="airline-banner" src="${url}" alt="${escapeHtml(alt || iata || "")}" loading="lazy" onerror="this.classList.add('is-missing')" />`;
 }
-import { drawWorldMap } from "./worldmap.js";
-import { drawUSMap }    from "./usmap.js";
+import { drawWorldMap }   from "./worldmap.js";
+import { drawWorldGlobe } from "./worldglobe.js";
+import { drawUSMap }      from "./usmap.js";
 
 const MONTH_LABELS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 const MONTH_FULL   = ["January","February","March","April","May","June","July","August","September","October","November","December"];
@@ -494,7 +495,6 @@ export function renderStatsView(root, ctx) {
 // ---------------------------------------------------------------------------
 export function renderWorldView(root, ctx) {
   const s = ctx.stats;
-  // Country list sorted by flight count desc
   const countries = [...s.countries.entries()]
     .map(([code, info]) => ({ code, ...info }))
     .sort((a, b) => b.count - a.count);
@@ -511,8 +511,21 @@ export function renderWorldView(root, ctx) {
         <h1>World Map</h1>
         <p class="muted">${s.countriesCount} countries · ${s.airportsCount} airports · ${s.routes.size} routes</p>
       </header>
-      <div class="map-stage">
-        <svg class="map-svg world-svg" viewBox="0 0 960 480" preserveAspectRatio="xMidYMid meet" aria-label="World map of flight routes"></svg>
+
+      <div class="world-toggle" role="tablist" aria-label="Map view">
+        <button class="is-active" data-mode="flat" role="tab" aria-selected="true">
+          <svg viewBox="0 0 24 24" width="14" height="14"><path fill="none" stroke="currentColor" stroke-width="1.6" d="M3 6h18v12H3z M3 10h18M3 14h18"/></svg>
+          Flat map
+        </button>
+        <button data-mode="globe" role="tab" aria-selected="false">
+          <svg viewBox="0 0 24 24" width="14" height="14"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.6"/><path fill="none" stroke="currentColor" stroke-width="1.4" d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>
+          Globe
+        </button>
+      </div>
+
+      <div class="map-stage" data-mode="flat">
+        <svg class="map-svg world-svg world-flat" viewBox="0 0 960 480" preserveAspectRatio="xMidYMid meet" aria-label="World map of flight routes"></svg>
+        <svg class="map-svg world-svg world-globe" viewBox="0 0 600 600" preserveAspectRatio="xMidYMid meet" aria-label="Rotating globe of flight routes" hidden></svg>
         <div class="map-legend">
           <span><span class="sw" style="background:#2d4d9b"></span> Visited country</span>
           <span><span class="sw" style="background:#a78bfa"></span> Flight route</span>
@@ -520,12 +533,39 @@ export function renderWorldView(root, ctx) {
           <span><span class="sw" style="background:#c8a04a"></span> Top hub</span>
         </div>
       </div>
+
       <section class="card flags-card">
         <h2>Countries visited <span class="muted">${countries.length}</span></h2>
         <div class="flag-strip">${flagStrip}</div>
       </section>
     </div>`;
-  queueMicrotask(() => drawWorldMap(root.querySelector(".world-svg"), ctx).catch(console.error));
+
+  const flatSvg  = root.querySelector(".world-flat");
+  const globeSvg = root.querySelector(".world-globe");
+  const stage    = root.querySelector(".map-stage");
+
+  // Initial draw of the flat map
+  queueMicrotask(() => drawWorldMap(flatSvg, ctx).catch(console.error));
+
+  let globeHandle = null;
+  let globeReady = false;
+
+  function setMode(mode) {
+    for (const btn of root.querySelectorAll(".world-toggle button")) {
+      const active = btn.dataset.mode === mode;
+      btn.classList.toggle("is-active", active);
+      btn.setAttribute("aria-selected", active ? "true" : "false");
+    }
+    stage.dataset.mode = mode;
+    flatSvg.hidden  = (mode !== "flat");
+    globeSvg.hidden = (mode !== "globe");
+    if (mode === "globe" && !globeReady) {
+      drawWorldGlobe(globeSvg, ctx).then(h => { globeHandle = h; globeReady = true; }).catch(console.error);
+    }
+  }
+  root.querySelectorAll(".world-toggle button").forEach(b =>
+    b.addEventListener("click", () => setMode(b.dataset.mode))
+  );
 }
 
 // ---------------------------------------------------------------------------
