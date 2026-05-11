@@ -179,6 +179,66 @@ function geoExtreme(ap, axis, suffix) {
     <div class="muted small">${escapeHtml(ap.city || ap.name || "")} · ${coord.toFixed(2)}${suffix}</div>`;
 }
 
+function renderCountriesAndTerritories(s) {
+  // Top 3 countries by flight count (with flag + count, like Flighty)
+  const top3 = [...s.countries.entries()]
+    .map(([code, info]) => ({ code, ...info }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 3);
+  const topRows = top3.map(c => `
+    <li class="ct-top-row">
+      <span class="ct-flag">${c.flag || ""}</span>
+      <span class="ct-name">${escapeHtml(c.name || c.code)}</span>
+      <span class="ct-flights">${c.count.toLocaleString()} flights</span>
+    </li>`).join("");
+
+  // 9-tile region grid
+  // Lookup by region name from stats.regionStats
+  const byName = new Map(s.regionStats.map(r => [r.name, r]));
+  const order = [
+    "Europe", "Asia", "N. America",
+    "Caribbean", "Middle East", "S. America",
+    "Oceania", "Africa", "C. America",
+  ];
+  const tiles = order.map(name => {
+    const r = byName.get(name) || { count: 0, pct: 0 };
+    const isEmpty = r.count === 0;
+    return `
+      <div class="region-tile${isEmpty ? " is-empty" : ""}">
+        <div class="region-name">${name}</div>
+        <div class="region-row">
+          <span class="region-count">${r.count}</span>
+          <span class="region-pct">${r.pct}%</span>
+        </div>
+      </div>`;
+  }).join("");
+
+  return `
+    <ul class="ct-top-list">${topRows}</ul>
+    <div class="region-grid">${tiles}</div>`;
+}
+
+function renderFlightTimeCard(s) {
+  const t = s.timeBreakdown;
+  function ftHrsMin(min) {
+    const h = Math.floor(min / 60);
+    const m = Math.round(min % 60);
+    return `${h.toLocaleString()}h ${m}m`;
+  }
+  return `
+    <div class="ft-headline">${ftHrsMin(t.totalMinutes)}</div>
+    <div class="ft-conv">
+      <div class="ft-cell"><div class="lbl">Days</div><div class="val">${t.days.toFixed(1)}</div></div>
+      <div class="ft-cell"><div class="lbl">Weeks</div><div class="val">${t.weeks.toFixed(1)}</div></div>
+      <div class="ft-cell"><div class="lbl">Months</div><div class="val">${t.months.toFixed(1)}</div></div>
+      <div class="ft-cell"><div class="lbl">Years</div><div class="val">${t.years.toFixed(2)}</div></div>
+    </div>
+    <div class="ft-row"><span class="lbl">Avg. Flight Time</span><span class="val">${ftHrsMin(t.avgPerLeg)}</span></div>
+    <div class="ft-row"><span class="lbl">In Air <span class="muted small">(est.)</span></span><span class="val">${ftHrsMin(t.inAirMinutes)}</span></div>
+    <div class="ft-row"><span class="lbl">Taxiing <span class="muted small">(~30 min / leg)</span></span><span class="val">${ftHrsMin(t.taxiMinutes)}</span></div>
+  `;
+}
+
 function renderHubChips(s) {
   const visited = new Set(s.topHubsVisited);
   // Show all 50 hubs, visited ones highlighted
@@ -390,6 +450,11 @@ export function renderStatsView(root, ctx) {
           </div>
         </section>
 
+        <section class="card span-2 countries-territories-card">
+          <h2>Countries &amp; Territories <span class="muted">${s.countriesCount} visited</span></h2>
+          ${renderCountriesAndTerritories(s)}
+        </section>
+
         <section class="card span-2">
           <h2>Airport Explorer <span class="muted">global top 50 hubs</span></h2>
           <div class="hub-bar">
@@ -451,10 +516,11 @@ export function renderStatsView(root, ctx) {
           <h2>Velocity</h2>
           <div class="kpi"><span class="big">${Math.round(s.avgSpeedMph)}</span> <span class="den">mph avg</span></div>
           <div class="muted small">Total miles ÷ total time aloft across all flights</div>
-          <div class="kpi-row mt-12">
-            <div><div class="lbl">Total time</div><div class="val">${formatDuration(s.minutes)}</div></div>
-            <div><div class="lbl">Avg per leg</div><div class="val">${formatDuration(s.avgMinutes)}</div></div>
-          </div>
+        </section>
+
+        <section class="card span-2 flight-time-card">
+          <h2>Flight Time</h2>
+          ${renderFlightTimeCard(s)}
         </section>
 
         <section class="card span-2">

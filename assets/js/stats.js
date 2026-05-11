@@ -45,8 +45,76 @@ function topN(map, n) {
     .map(([k,v]) => ({ key: k, value: v }));
 }
 
-const LONG_HAUL_MI = 2400;       // Flighty's rough cutoff: ~6h+ international
-const INTL_COUNTRY_HOME = "US";  // Matt is US-based
+const LONG_HAUL_MI = 2400;
+const INTL_COUNTRY_HOME = "US";
+
+// Region buckets used for the Countries & Territories breakdown.
+// Following Flighty / IATA-style region splits (Central America and the
+// Caribbean broken out from N. America; Middle East split off from Asia).
+export const COUNTRY_REGION_MAP = {
+  // N. America (Anglo-American)
+  US:"N. America", CA:"N. America", MX:"N. America", BM:"N. America", GL:"N. America", PM:"N. America",
+  // C. America
+  BZ:"C. America", CR:"C. America", SV:"C. America", GT:"C. America", HN:"C. America", NI:"C. America", PA:"C. America",
+  // Caribbean
+  AG:"Caribbean", BS:"Caribbean", BB:"Caribbean", CU:"Caribbean", DM:"Caribbean", DO:"Caribbean", GD:"Caribbean",
+  HT:"Caribbean", JM:"Caribbean", KN:"Caribbean", LC:"Caribbean", VC:"Caribbean", TT:"Caribbean", AI:"Caribbean",
+  AW:"Caribbean", BL:"Caribbean", BQ:"Caribbean", CW:"Caribbean", GP:"Caribbean", KY:"Caribbean", MF:"Caribbean",
+  MQ:"Caribbean", MS:"Caribbean", PR:"Caribbean", SX:"Caribbean", TC:"Caribbean", VG:"Caribbean", VI:"Caribbean",
+  // S. America
+  AR:"S. America", BO:"S. America", BR:"S. America", CL:"S. America", CO:"S. America", EC:"S. America",
+  FK:"S. America", GF:"S. America", GY:"S. America", PE:"S. America", PY:"S. America", SR:"S. America",
+  UY:"S. America", VE:"S. America",
+  // Europe (incl. Russia, Turkey, Caucasus per IATA)
+  AD:"Europe", AL:"Europe", AT:"Europe", BA:"Europe", BE:"Europe", BG:"Europe", BY:"Europe", CH:"Europe",
+  CY:"Europe", CZ:"Europe", DE:"Europe", DK:"Europe", EE:"Europe", ES:"Europe", FI:"Europe", FO:"Europe",
+  FR:"Europe", GB:"Europe", GG:"Europe", GI:"Europe", GR:"Europe", HR:"Europe", HU:"Europe", IE:"Europe",
+  IM:"Europe", IS:"Europe", IT:"Europe", JE:"Europe", LI:"Europe", LT:"Europe", LU:"Europe", LV:"Europe",
+  MC:"Europe", MD:"Europe", ME:"Europe", MK:"Europe", MT:"Europe", NL:"Europe", NO:"Europe", PL:"Europe",
+  PT:"Europe", RO:"Europe", RS:"Europe", RU:"Europe", SE:"Europe", SI:"Europe", SK:"Europe", SM:"Europe",
+  TR:"Europe", UA:"Europe", VA:"Europe", XK:"Europe",
+  // Middle East
+  AE:"Middle East", AM:"Middle East", AZ:"Middle East", BH:"Middle East", GE:"Middle East", IL:"Middle East",
+  IQ:"Middle East", IR:"Middle East", JO:"Middle East", KW:"Middle East", LB:"Middle East", OM:"Middle East",
+  PS:"Middle East", QA:"Middle East", SA:"Middle East", SY:"Middle East", YE:"Middle East",
+  // Asia
+  AF:"Asia", BD:"Asia", BN:"Asia", BT:"Asia", CN:"Asia", HK:"Asia", ID:"Asia", IN:"Asia", JP:"Asia",
+  KG:"Asia", KH:"Asia", KP:"Asia", KR:"Asia", KZ:"Asia", LA:"Asia", LK:"Asia", MM:"Asia", MN:"Asia",
+  MO:"Asia", MV:"Asia", MY:"Asia", NP:"Asia", PH:"Asia", PK:"Asia", SG:"Asia", TH:"Asia", TJ:"Asia",
+  TL:"Asia", TM:"Asia", TW:"Asia", UZ:"Asia", VN:"Asia",
+  // Africa
+  AO:"Africa", BF:"Africa", BI:"Africa", BJ:"Africa", BW:"Africa", CD:"Africa", CF:"Africa", CG:"Africa",
+  CI:"Africa", CM:"Africa", CV:"Africa", DJ:"Africa", DZ:"Africa", EG:"Africa", EH:"Africa", ER:"Africa",
+  ET:"Africa", GA:"Africa", GH:"Africa", GM:"Africa", GN:"Africa", GQ:"Africa", GW:"Africa", KE:"Africa",
+  KM:"Africa", LR:"Africa", LS:"Africa", LY:"Africa", MA:"Africa", MG:"Africa", ML:"Africa", MR:"Africa",
+  MU:"Africa", MW:"Africa", MZ:"Africa", NA:"Africa", NE:"Africa", NG:"Africa", RE:"Africa", RW:"Africa",
+  SC:"Africa", SD:"Africa", SL:"Africa", SN:"Africa", SO:"Africa", SS:"Africa", ST:"Africa", SZ:"Africa",
+  TD:"Africa", TG:"Africa", TN:"Africa", TZ:"Africa", UG:"Africa", YT:"Africa", ZA:"Africa", ZM:"Africa", ZW:"Africa",
+  // Oceania
+  AU:"Oceania", CK:"Oceania", FJ:"Oceania", FM:"Oceania", GU:"Oceania", KI:"Oceania", MH:"Oceania",
+  MP:"Oceania", NC:"Oceania", NF:"Oceania", NR:"Oceania", NU:"Oceania", NZ:"Oceania", PF:"Oceania",
+  PG:"Oceania", PN:"Oceania", PW:"Oceania", SB:"Oceania", TK:"Oceania", TO:"Oceania", TV:"Oceania",
+  VU:"Oceania", WF:"Oceania", WS:"Oceania", AS:"Oceania",
+};
+
+// Total UN-recognized countries / territories per region (for "X of Y" %)
+export const REGION_TOTALS = {
+  "N. America": 6,
+  "C. America": 7,
+  "Caribbean":  28,
+  "S. America": 14,
+  "Europe":     51,
+  "Middle East":17,
+  "Asia":       32,
+  "Africa":     54,
+  "Oceania":    25,
+};
+
+export const REGION_DISPLAY_ORDER = [
+  "Europe", "Asia", "N. America",
+  "Caribbean", "Middle East", "S. America",
+  "Oceania", "Africa", "C. America",
+];
 
 // Curated "Top 50 Major Hubs" — used for the Airport Explorer percentage stat.
 // Mix of the world's busiest airports by international + total passenger traffic.
@@ -234,6 +302,44 @@ export function computeStats(ctx) {
 
   out.avgMiles   = out.total ? out.miles   / out.total : 0;
   out.avgMinutes = out.total ? out.minutes / out.total : 0;
+
+  // ── Region breakdown ──────────────────────────────────────────────────
+  // Bucket each visited country into a region, count flights+countries per
+  // region, plus the % of the world's countries in that region you've hit.
+  const regionStats = new Map();
+  for (const r of Object.keys(REGION_TOTALS)) {
+    regionStats.set(r, { name: r, countries: new Set(), flights: 0, total: REGION_TOTALS[r] });
+  }
+  for (const [code, info] of out.countries) {
+    const region = COUNTRY_REGION_MAP[code];
+    if (!region) continue;
+    const bucket = regionStats.get(region);
+    bucket.countries.add(code);
+    bucket.flights += info.count;
+  }
+  out.regionStats = [...regionStats.values()].map(r => ({
+    name: r.name,
+    count: r.countries.size,
+    total: r.total,
+    flights: r.flights,
+    pct: r.total ? Math.round((r.countries.size / r.total) * 100) : 0,
+  }));
+
+  // ── Flight-time unit conversions ──────────────────────────────────────
+  const totalMinutes = out.minutes;
+  out.timeBreakdown = {
+    totalMinutes,
+    totalHours: totalMinutes / 60,
+    days:      totalMinutes / (60 * 24),
+    weeks:     totalMinutes / (60 * 24 * 7),
+    months:    totalMinutes / (60 * 24 * 30.44),
+    years:     totalMinutes / (60 * 24 * 365.25),
+    avgPerLeg: out.avgMinutes,
+    // ICAO's typical taxi block is ~12–15 min per flight on each end.
+    // Use 30 min per leg as a conservative all-in estimate.
+    taxiMinutes:   30 * out.total,
+    inAirMinutes:  Math.max(0, totalMinutes - 30 * out.total),
+  };
 
   // ── Velocity (avg ground speed across all flights) ────────────────────
   out.avgSpeedMph = out.minutes ? (out.miles / (out.minutes / 60)) : 0;

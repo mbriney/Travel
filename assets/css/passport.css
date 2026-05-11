@@ -1457,6 +1457,108 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 }
 
 /* ===========================================================================
+   Countries & Territories card — top countries + region grid
+   --------------------------------------------------------------------------- */
+.countries-territories-card { /* same look as other cards */ }
+.ct-top-list {
+  list-style: none; padding: 0; margin: 0 0 14px;
+  display: grid; gap: 4px;
+}
+.ct-top-row {
+  display: grid;
+  grid-template-columns: 32px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px;
+  font-size: 14px;
+}
+.ct-flag { font-size: 22px; line-height: 1; text-align: center; }
+.ct-name { color: var(--ink-1); font-weight: 600; }
+.ct-flights { color: var(--ink-3); font-variant-numeric: tabular-nums; font-family: var(--font-mrz); font-size: 12px; }
+
+.region-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.region-tile {
+  padding: 10px 12px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px;
+}
+.region-tile.is-empty { opacity: 0.45; }
+.region-name {
+  font-size: 11px; letter-spacing: 0.10em;
+  color: var(--ink-2);
+}
+.region-row {
+  display: flex; align-items: baseline; justify-content: space-between;
+  margin-top: 6px;
+}
+.region-count {
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--ink-1);
+  line-height: 1;
+}
+.region-pct {
+  font-family: var(--font-mrz);
+  color: var(--ink-3);
+  font-size: 13px;
+}
+.region-tile.is-empty .region-count { color: var(--ink-3); }
+
+/* ===========================================================================
+   Flight Time card — Flighty-style breakdown
+   --------------------------------------------------------------------------- */
+.flight-time-card .ft-headline {
+  font-family: var(--font-display);
+  font-size: clamp(36px, 5vw, 56px);
+  font-weight: 700;
+  color: var(--ink-1);
+  line-height: 1;
+  margin-top: 6px;
+}
+.ft-conv {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin: 14px 0;
+}
+.ft-cell {
+  padding: 10px 12px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px;
+}
+.ft-cell .lbl {
+  font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--ink-3);
+}
+.ft-cell .val {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 24px;
+  color: var(--ink-1);
+  margin-top: 4px;
+  line-height: 1;
+}
+.ft-row {
+  display: flex; align-items: baseline; justify-content: space-between;
+  padding: 8px 0;
+  border-top: 1px solid rgba(255,255,255,0.05);
+  font-size: 13px;
+}
+.ft-row:first-of-type { border-top: 0; padding-top: 0; }
+.ft-row .lbl { color: var(--ink-2); }
+.ft-row .val { font-family: var(--font-mrz); color: var(--accent); font-variant-numeric: tabular-nums; }
+
+/* ===========================================================================
    Country flag strip (World view)
    --------------------------------------------------------------------------- */
 .flags-card { margin-top: 14px; }
@@ -2159,6 +2261,8 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   .rank-list.two-col { grid-template-columns: 1fr; }
   .carbon-grid { grid-template-columns: 1fr; }
   .flight-details { grid-template-columns: 1fr; }
+  .region-grid { grid-template-columns: repeat(2, 1fr); }
+  .ft-conv { grid-template-columns: repeat(2, 1fr); }
   .log-table td.route { font-size: 12px; }
   .log-table td.route .cities { display: none; }
 }
