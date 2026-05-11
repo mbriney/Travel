@@ -95,10 +95,15 @@ jobs:
       - name: Enrich (AeroDataBox — recent flights)
         env:
           AERODATABOX_API_KEY: ${{ secrets.AERODATABOX_API_KEY }}
-        # Only run if the secret is present. The script itself reads the
-        # env var so we just gate the entire step on it being non-empty.
-        if: ${{ secrets.AERODATABOX_API_KEY != '' }}
-        run: python tools/enrich_aerodatabox.py
+        # `secrets.*` can't be referenced inside a step-level `if:` (GH Actions
+        # disallows it), so we always *run* the step and gate via bash: if the
+        # secret is empty, log + exit 0 cleanly, otherwise invoke the script.
+        run: |
+          if [ -z "${AERODATABOX_API_KEY:-}" ]; then
+            echo "AERODATABOX_API_KEY secret is not set — skipping AeroDataBox enrichment."
+            exit 0
+          fi
+          python tools/enrich_aerodatabox.py
 
       - name: Show diff
         # Sanity log so you can see what actually changed in the workflow
