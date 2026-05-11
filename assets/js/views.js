@@ -524,8 +524,8 @@ export function renderWorldView(root, ctx) {
       </div>
 
       <div class="map-stage" data-mode="flat">
-        <svg class="map-svg world-svg world-flat" viewBox="0 0 960 480" preserveAspectRatio="xMidYMid meet" aria-label="World map of flight routes"></svg>
-        <svg class="map-svg world-svg world-globe" viewBox="0 0 600 600" preserveAspectRatio="xMidYMid meet" aria-label="Rotating globe of flight routes" hidden></svg>
+        <svg class="map-svg world-svg world-flat" viewBox="0 0 960 480" preserveAspectRatio="xMidYMid meet" aria-label="World map of flight routes" style="display:block"></svg>
+        <svg class="map-svg world-svg world-globe" viewBox="0 0 600 600" preserveAspectRatio="xMidYMid meet" aria-label="Rotating globe of flight routes" style="display:none"></svg>
         <div class="map-legend">
           <span><span class="sw" style="background:#2d4d9b"></span> Visited country</span>
           <span><span class="sw" style="background:#a78bfa"></span> Flight route</span>
@@ -557,15 +557,21 @@ export function renderWorldView(root, ctx) {
       btn.setAttribute("aria-selected", active ? "true" : "false");
     }
     stage.dataset.mode = mode;
-    flatSvg.hidden  = (mode !== "flat");
-    globeSvg.hidden = (mode !== "globe");
+    // Use inline style.display — beats any CSS specificity competition the
+    // [hidden] attribute approach kept losing.
+    flatSvg.style.display  = (mode === "flat")  ? "block" : "none";
+    globeSvg.style.display = (mode === "globe") ? "block" : "none";
     if (mode === "globe" && !globeReady) {
-      drawWorldGlobe(globeSvg, ctx).then(h => { globeHandle = h; globeReady = true; }).catch(console.error);
+      drawWorldGlobe(globeSvg, ctx)
+        .then(h => { globeHandle = h; globeReady = true; })
+        .catch(err => console.error("Globe render failed:", err));
     }
   }
-  root.querySelectorAll(".world-toggle button").forEach(b =>
-    b.addEventListener("click", () => setMode(b.dataset.mode))
-  );
+  // Delegated click handler on the toggle bar — survives any DOM swaps.
+  root.querySelector(".world-toggle").addEventListener("click", (e) => {
+    const btn = e.target.closest("button[data-mode]");
+    if (btn) setMode(btn.dataset.mode);
+  });
 }
 
 // ---------------------------------------------------------------------------
