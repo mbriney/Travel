@@ -224,7 +224,19 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   background:
     linear-gradient(180deg, rgba(0,0,0,0.45), rgba(0,0,0,0.65) 50%, rgba(0,0,0,0.45)) center/4px 100% no-repeat;
   filter: drop-shadow(0 30px 50px rgba(0,0,0,0.55));
+  /* Book-level translate driven by `data-state` from passport.js. When the
+     passport is closed (cover-only or back-cover-only), the visible single
+     panel is offset so it sits at viewport center, mimicking a real passport
+     sitting closed in front of you. Opening to a two-page spread slides the
+     book back to its natural centered position during the same FLIP_MS the
+     page flip uses, so the slide and flip read as a single motion. */
+  transform: translateX(-25%);
+  transition: transform 850ms cubic-bezier(.62, .05, .25, 1);
 }
+.book[data-state="closed-front"] { transform: translateX(-25%); }
+.book[data-state="closed-back"]  { transform: translateX(25%); }
+.book[data-state="open"]         { transform: translateX(0); }
+.book.no-anim { transition: none !important; }
 
 /* Sheets */
 .sheet {
@@ -287,6 +299,39 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 }
 
 .end-paper { flex: 1; background: linear-gradient(135deg, var(--pp-paper), var(--pp-paper-2)); display: grid; place-items: center; color: var(--pp-ink-2); }
+
+/* While a sheet is mid-flip, drape an animated soft shadow across its faces
+   to suggest a real page curl rather than a flat rigid rotation. The
+   gradient sweeps with the rotation so the dark band reads as the moving
+   crease. Pseudo-elements are non-interactive so they can never block
+   clicks on stamps. */
+.sheet.is-flipping .sheet-face::after {
+  content: "";
+  position: absolute; inset: 0;
+  pointer-events: none;
+  background: linear-gradient(90deg,
+    rgba(0,0,0,0.00)   0%,
+    rgba(0,0,0,0.45)  35%,
+    rgba(0,0,0,0.10)  55%,
+    rgba(0,0,0,0.00)  85%);
+  opacity: 0;
+  animation: page-curl-shadow 850ms cubic-bezier(.62, .05, .25, 1) both;
+}
+.sheet.is-flipping .sheet-back::after {
+  /* Mirror the gradient on the back face so the crease reads the same way
+     after the page passes its 90° edge-on midpoint. */
+  background: linear-gradient(270deg,
+    rgba(0,0,0,0.00)   0%,
+    rgba(0,0,0,0.45)  35%,
+    rgba(0,0,0,0.10)  55%,
+    rgba(0,0,0,0.00)  85%);
+}
+@keyframes page-curl-shadow {
+  0%   { opacity: 0;    transform: translateX(-10%); }
+  35%  { opacity: 0.75; transform: translateX(0); }
+  65%  { opacity: 0.75; transform: translateX(0); }
+  100% { opacity: 0;    transform: translateX(10%); }
+}
 
 /* Page base */
 .page {
@@ -429,6 +474,104 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   background-size: 4px 4px;
   border: 0.5px solid rgba(0,0,0,0.4);
   border-radius: 1px;
+}
+
+/* ===========================================================================
+   BACK COVER + INSIDE-BACK-COVER
+   The back cover mirrors the front cover (same .cover base styling: deep
+   blue, gold double-border, shimmer). Content is a trip summary instead
+   of the "Passport / United States of America" title.
+   --------------------------------------------------------------------------- */
+.back-cover-page { display: flex; }
+.back-cover-inner {
+  display: grid; gap: 18px;
+  grid-template-rows: auto auto auto 1fr auto;
+  justify-items: center;
+  align-items: center;
+  width: 100%; max-width: 320px;
+}
+.back-cover-wordmark {
+  font-family: var(--font-display);
+  font-size: clamp(18px, 2.6vw, 22px);
+  font-style: italic;
+  letter-spacing: 0.18em;
+  color: rgba(230, 196, 120, 0.85);
+  text-transform: uppercase;
+}
+.back-cover-rule {
+  width: 60%; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(200, 160, 74, 0.55), transparent);
+}
+.back-cover-stats {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px 12px;
+  margin: 0; padding: 0;
+  width: 100%;
+}
+.back-cover-stats > div { display: grid; gap: 4px; justify-items: center; }
+.back-cover-stats dt {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(20px, 3vw, 28px);
+  font-weight: 600;
+  color: var(--pp-gold);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+.back-cover-stats dd {
+  margin: 0;
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(230, 196, 120, 0.65);
+}
+.back-cover-emblem {
+  width: 120px; height: 120px;
+  background:
+    radial-gradient(circle at 35% 30%, #f7e3a4 0%, #e6c478 35%, #c8a04a 65%, #7a5e1f 100%);
+  -webkit-mask: url("../img/seal.png") center/contain no-repeat;
+          mask: url("../img/seal.png") center/contain no-repeat;
+  opacity: 0.85;
+  filter: drop-shadow(0 4px 12px rgba(230, 196, 120, 0.22));
+}
+.back-cover-footer {
+  display: grid; gap: 4px; text-align: center;
+  font-family: var(--font-mrz);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(230, 196, 120, 0.85);
+}
+.back-cover-footer .back-cover-line.muted { opacity: 0.45; font-size: 9px; }
+
+/* INSIDE-BACK-COVER: a clean cream page, blank by design, with a small
+   "End of stamps" caption so it doesn't read as broken. */
+.inside-back-page { display: flex; }
+.inside-back {
+  position: relative; flex: 1;
+  display: grid; place-items: center;
+  background:
+    radial-gradient(circle at 22% 18%, rgba(255,255,255,0.40), transparent 55%),
+    linear-gradient(135deg, var(--pp-paper) 0%, var(--pp-paper-2) 100%);
+  color: var(--pp-ink-2);
+}
+.inside-back-stamp {
+  text-align: center;
+  padding: 22px 28px;
+  border: 1px dashed rgba(45, 77, 155, 0.25);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.25);
+}
+.inside-back-stamp .ib-tag {
+  font-family: var(--font-mrz);
+  font-size: 11px;
+  letter-spacing: 0.30em;
+  color: var(--pp-blue-deep);
+}
+.inside-back-stamp .ib-note {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--pp-ink-2);
+  letter-spacing: 0.05em;
 }
 
 /* ===========================================================================

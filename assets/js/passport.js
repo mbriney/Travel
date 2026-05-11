@@ -29,6 +29,8 @@ export function initPassport(bookEl, pages) {
 
     const backFace = document.createElement("div");
     backFace.className = "sheet-face sheet-back";
+    // buildPages() now always pads so every sheet has a back, so this `else`
+    // is purely defensive — there should never be a missing back face.
     if (back) {
       backFace.appendChild(back);
     } else {
@@ -77,6 +79,15 @@ export function initPassport(bookEl, pages) {
       }
       s.style.pointerEvents = (i === topFlipped || i === flipped) ? "" : "none";
     });
+    // Book-level state controls the horizontal slide:
+    //   - closed-front: cover-only, shifted so the cover sits at viewport center
+    //   - closed-back:  back-cover-only, shifted the other way for symmetry
+    //   - open:         two-page spread, centered
+    let bookState = "open";
+    if (flipped === 0)             bookState = "closed-front";
+    else if (flipped === maxFlipped) bookState = "closed-back";
+    bookEl.dataset.state = bookState;
+
     prevBtn.disabled = flipped === 0;
     nextBtn.disabled = flipped >= maxFlipped;
     indicator.textContent = `${flipped} / ${maxFlipped} · ${pageNameAt(flipped)}`;
@@ -94,9 +105,32 @@ export function initPassport(bookEl, pages) {
       requestAnimationFrame(() => bookEl.classList.remove("no-anim"));
     } else {
       busy = true;
+      // Which sheet is actually flipping?
+      //   - Forward (newFlipped > flipped): the OLD current sheet[flipped]
+      //     rotates from 0 → -180.
+      //   - Backward (newFlipped < flipped): the topmost-flipped sheet
+      //     [newFlipped] rotates from -180 → 0.
+      // Either way, that sheet needs to be ON TOP of every other sheet during
+      // the transition. applyStates() will assign it a low z-index (because
+      // its end state is either "flipped" or "current" with a normal-tier
+      // z-index that's lower than the new current/future sheet stack on the
+      // other side). Without overriding, the flipping page sinks BEHIND the
+      // newly-visible page mid-flip — that's the "flipping behind" bug.
+      const flippingIdx = newFlipped > flipped ? flipped : newFlipped;
+      const flippingSheet = sheets[flippingIdx];
       flipped = newFlipped;
       applyStates();
-      setTimeout(() => { busy = false; }, FLIP_MS + 50);
+      if (flippingSheet) {
+        flippingSheet.classList.add("is-flipping");
+        flippingSheet.style.zIndex = "1000";
+      }
+      setTimeout(() => {
+        busy = false;
+        if (flippingSheet) flippingSheet.classList.remove("is-flipping");
+        // Re-apply: this restores the sheet's correct resting z-index for
+        // the pile it now belongs to.
+        applyStates();
+      }, FLIP_MS + 50);
     }
   }
 

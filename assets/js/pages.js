@@ -539,12 +539,74 @@ function renderStamp(d) {
 }
 
 // ---------------------------------------------------------------------------
-// Assembly — cover, bio, stamp pages. (Flight log removed.)
+// INSIDE-BACK-COVER — a clean cream page that lives directly opposite the
+// back cover. Used only when we need an even page count so the back cover
+// ends up as the BACK face of the last sheet (i.e. visible on the LEFT
+// when the passport is fully flipped open from the right). Mostly blank
+// with a small "End of stamps" caption so it doesn't look broken.
+// ---------------------------------------------------------------------------
+function buildInsideBackCover(ctx) {
+  const p = page("inside-back", "inside-back-page");
+  p.innerHTML = `
+    <div class="paper inside-back">
+      <div class="bio-watermark watermark-light" aria-hidden="true"></div>
+      <div class="inside-back-stamp">
+        <div class="ib-tag">END OF STAMPS</div>
+        <div class="ib-note">No additional pages may be added.</div>
+      </div>
+    </div>`;
+  return p;
+}
+
+// ---------------------------------------------------------------------------
+// BACK COVER — mirror of the front cover. Same deep blue, same gold
+// trim/seal, but the title text is replaced with a small summary
+// (countries · airports · miles), and "Department of Travel" wordmark.
+// Sits as the BACK of the last sheet so it appears on the LEFT page when
+// the passport is fully flipped open from the right.
+// ---------------------------------------------------------------------------
+function buildBackCover(ctx) {
+  const s = ctx.stats || {};
+  const countries = s.countriesCount ?? (s.countries?.size || 0);
+  const airports  = s.airportsCount  ?? (s.airports?.size  || 0);
+  const miles     = Math.round(s.miles || 0);
+  const p = page("back-cover", "back-cover-page");
+  p.innerHTML = `
+    <div class="cover back-cover">
+      <div class="cover-shimmer" aria-hidden="true"></div>
+      <div class="cover-inner back-cover-inner">
+        <div class="back-cover-wordmark">Department of Travel</div>
+        <div class="back-cover-rule" aria-hidden="true"></div>
+        <dl class="back-cover-stats">
+          <div><dt>${countries.toLocaleString()}</dt><dd>countries</dd></div>
+          <div><dt>${airports.toLocaleString()}</dt><dd>airports</dd></div>
+          <div><dt>${miles.toLocaleString()}</dt><dd>miles flown</dd></div>
+        </dl>
+        <div class="back-cover-emblem" aria-hidden="true"></div>
+        <div class="back-cover-footer">
+          <div class="back-cover-line">An interactive passport · TripIt</div>
+          <div class="back-cover-line muted">This document is non-transferable</div>
+        </div>
+      </div>
+    </div>`;
+  return p;
+}
+
+// ---------------------------------------------------------------------------
+// Assembly — cover, bio, stamp pages, then optional inside-back + back cover.
+//
+// We always want the BACK COVER to land at an ODD index in the pages array
+// so it becomes the BACK face of the last sheet (and is therefore visible on
+// the LEFT side when the passport is fully flipped open from the right).
+// If the running page count is currently EVEN, we slip in an inside-back
+// filler first; otherwise the back cover alone is enough.
 // ---------------------------------------------------------------------------
 export function buildPages(ctx) {
   const pages = [];
   pages.push(buildCover(ctx));
   pages.push(buildBio(ctx));
   for (const p of buildStampPages(ctx)) pages.push(p);
+  if (pages.length % 2 === 0) pages.push(buildInsideBackCover(ctx));
+  pages.push(buildBackCover(ctx));
   return pages;
 }
