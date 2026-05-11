@@ -27,6 +27,21 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Inject build version into JS imports + script tags
+        # Stamps every same-repo `import "./*.js"` and the main.js <script src=>
+        # with `?v=<run-id>-<sha>` so browsers always fetch the latest module
+        # graph on each deploy. Source files in git stay untouched — this only
+        # rewrites the artifact that's uploaded to Pages.
+        run: |
+          BUILD_VERSION="${{ github.run_id }}-${GITHUB_SHA::7}"
+          echo "Build version: $BUILD_VERSION"
+          python tools/cache_bust.py "$BUILD_VERSION"
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
