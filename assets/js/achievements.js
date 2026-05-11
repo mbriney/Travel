@@ -1155,8 +1155,8 @@ function describeRequirement(ach) {
 //   - "meta"   : derived from other achievements.
 function metricKind(type) {
   if (["flights_count","distance_km","distance_mi","flight_hours","earth_laps","moon_trips","boeing_segments","airbus_segments"].includes(type)) return "count";
-  if (["countries","airlines","airports","us_states","continents","domestic_airports","aircraft_families","airport_alphabet","top_10_hubs","eu_countries","as_countries","middle_east_set","southerner_set"].includes(type)) return "set";
-  if (["single_flight_distance","max_flight_minutes","min_flight_minutes","airline_loyalty","same_route","flights_per_month","flights_per_year","best_year_miles","countries_per_year","max_layover_minutes","max_trip_legs","max_repeat_flightno","max_tail_repeats","consecutive_months"].includes(type)) return "maxof";
+  if (["countries","airlines","airports","us_states","continents","domestic_airports","aircraft_families","airport_alphabet","top_10_hubs","eu_countries","as_countries","middle_east_set","southerner_set","alliances"].includes(type)) return "set";
+  if (["single_flight_distance","max_flight_minutes","min_flight_minutes","airline_loyalty","same_route","flights_per_month","flights_per_year","best_year_miles","countries_per_year","max_layover_minutes","max_trip_legs","max_repeat_flightno","max_tail_repeats","consecutive_months","max_lat_n","max_lat_s","max_airport_elevation","max_continents_per_trip"].includes(type)) return "maxof";
   if (type === "years_span") return "span";
   if (type === "wright_stuff") return "meta";
   return "event";
@@ -1415,6 +1415,7 @@ function itemNoun(type) {
     case "as_countries":       return "Asian countries";
     case "middle_east_set":    return "Middle East hubs";
     case "southerner_set":     return "southern-hemisphere countries";
+    case "alliances":          return "alliances";
     default:                   return "items";
   }
 }
@@ -1491,6 +1492,32 @@ function maxOfSummary(ach, ctx) {
     }
     case "consecutive_months":
       return `${ach.current}-month streak`;
+    case "max_lat_n": {
+      let northern = null;
+      for (const code of s.airports.keys()) {
+        const ap = ctx.airports[code];
+        if (ap && ap.lat != null && (!northern || ap.lat > northern.lat)) northern = ap;
+      }
+      return northern ? `${northern.code} — ${northern.city || northern.name} at ${northern.lat.toFixed(2)}°N` : `${ach.current}°N`;
+    }
+    case "max_lat_s": {
+      let southern = null;
+      for (const code of s.airports.keys()) {
+        const ap = ctx.airports[code];
+        if (ap && ap.lat != null && (!southern || ap.lat < southern.lat)) southern = ap;
+      }
+      return southern ? `${southern.code} — ${southern.city || southern.name} at ${Math.abs(southern.lat).toFixed(2)}°S` : `${ach.current}°S`;
+    }
+    case "max_airport_elevation": {
+      let highest = null;
+      for (const code of s.airports.keys()) {
+        const ap = ctx.airports[code];
+        if (ap && ap.elevation_ft && (!highest || ap.elevation_ft > highest.elevation_ft)) highest = ap;
+      }
+      return highest ? `${highest.code} — ${highest.city || highest.name} at ${highest.elevation_ft.toLocaleString()} ft` : `${ach.current} ft`;
+    }
+    case "max_continents_per_trip":
+      return `Reached ${ach.current} continents in a single trip`;
     default:
       return `${ach.current}`;
   }
@@ -1668,6 +1695,29 @@ function buildSetItems(ach, ctx) {
       return { label: `<code>${code}</code> ${NAMES[code]}`, visited: !!info, date: null };
     });
   }
+  if (ach.type === "alliances") {
+    // Group airlines you've flown by their alliance, show all 3 alliances.
+    const ALLIANCES = ["Star Alliance", "oneworld", "SkyTeam"];
+    const byAlliance = new Map();
+    for (const [code, info] of s.airlines) {
+      const al = ctx.airlines?.[code]?.alliance;
+      if (!al) continue;
+      if (!byAlliance.has(al)) byAlliance.set(al, []);
+      byAlliance.get(al).push({ code, count: info.count, name: airlineDisplayName(code, ctx.airlines, info.name) });
+    }
+    return ALLIANCES.map(al => {
+      const carriers = byAlliance.get(al) || [];
+      carriers.sort((a, b) => b.count - a.count);
+      const chips = carriers.length
+        ? carriers.map(c => `<code title="${escapeHtml(c.name)}">${c.code}</code> <span class="muted small">${c.count}×</span>`).join(", ")
+        : `<span class="muted">— no flights yet</span>`;
+      return {
+        label: `<strong>${al}</strong>${carriers.length ? " · " + chips : ""}`,
+        visited: carriers.length > 0,
+        date: null,
+      };
+    });
+  }
   return [];
 }
 
@@ -1771,6 +1821,21 @@ function qualifyingFlights(ach, ctx) {
     case "has_doubledecker":      return f.filter(x => /^(38|74)/.test(x.aircraft || ""));
     case "has_narrowbody":        return f.filter(x => /^(73|7M|75|31|32|22|BCS|22[013])/.test(x.aircraft || ""));
     case "has_widebody":          return f.filter(x => /^(74|76|77|78|33|34|35|38)/.test(x.aircraft || ""));
+    case "has_trijet":            return f.filter(x => /^(M11|D10|L10|72S|F50|F2T)/.test(x.aircraft || ""));
+    case "capital_link":          return f.filter(x => CAPITAL_AIRPORTS.has(x.from) && CAPITAL_AIRPORTS.has(x.to));
+    case "below_sea_level":       return f.filter(x => {
+      const a = ctx.airports[x.from], b = ctx.airports[x.to];
+      return (a && a.elevation_ft < 0) || (b && b.elevation_ft < 0);
+    });
+    case "antipode_visited":      return f.filter(x => {
+      for (const ap of airportPair(x)) {
+        if (!ap || ap.lat == null) continue;
+        const d = airportHaversineMiles(ap.lat, ap.lon, ANTIPODE_LAT, ANTIPODE_LON);
+        if (d <= ANTIPODE_RADIUS_MI) return true;
+      }
+      return false;
+    });
+    case "codeshare_count":       return f.filter(x => x.is_codeshare);
     default:                      return [];
   }
 }
@@ -2060,6 +2125,82 @@ function buildMaxOf(ach, ctx) {
         record: top[0] ? `<div class="ach-rank-row"><code>${top[0].key}</code> <span class="muted small">${escapeHtml(s.tailModels?.get(top[0].key) || "")}</span><span class="ach-rank-v">${top[0].value}×</span></div>` : null,
         ranking: top.slice(1).map(r => `<div class="ach-rank-row"><code>${r.key}</code> <span class="muted small">${escapeHtml(s.tailModels?.get(r.key) || "")}</span><span class="ach-rank-v">${r.value}×</span></div>`),
         rankingLabel: "Other repeat tail numbers",
+      };
+    }
+    case "max_lat_n":
+    case "max_lat_s": {
+      const sign = ach.type === "max_lat_n" ? 1 : -1;
+      // Find top 6 airports by extreme latitude
+      const all = [];
+      for (const code of s.airports.keys()) {
+        const ap = ctx.airports[code];
+        if (!ap || ap.lat == null) continue;
+        all.push(ap);
+      }
+      const ranked = all.sort((a, b) => sign * (b.lat - a.lat)).slice(0, 6);
+      const fmt = (ap) =>
+        `<div class="ach-rank-row"><code>${ap.code}</code>${ap.flag ? " " + ap.flag : ""}
+          <span class="ach-rank-name">${escapeHtml(ap.city || ap.name || "")}</span>
+          <span class="ach-rank-v">${ap.lat.toFixed(2)}°${ap.lat >= 0 ? "N" : "S"}</span></div>`;
+      return {
+        record: ranked[0] ? fmt(ranked[0]) : null,
+        ranking: ranked.slice(1).map(fmt),
+        rankingLabel: ach.type === "max_lat_n" ? "Other northern airports" : "Other southern airports",
+      };
+    }
+    case "max_airport_elevation": {
+      const all = [];
+      for (const code of s.airports.keys()) {
+        const ap = ctx.airports[code];
+        if (!ap || !ap.elevation_ft) continue;
+        all.push(ap);
+      }
+      const ranked = all.sort((a, b) => b.elevation_ft - a.elevation_ft).slice(0, 6);
+      const fmt = (ap) =>
+        `<div class="ach-rank-row"><code>${ap.code}</code>${ap.flag ? " " + ap.flag : ""}
+          <span class="ach-rank-name">${escapeHtml(ap.city || ap.name || "")}</span>
+          <span class="ach-rank-v">${ap.elevation_ft.toLocaleString()} ft</span></div>`;
+      return {
+        record: ranked[0] ? fmt(ranked[0]) : null,
+        ranking: ranked.slice(1).map(fmt),
+        rankingLabel: "Other high airports you've visited",
+      };
+    }
+    case "max_continents_per_trip": {
+      const byTrip = new Map();
+      for (const f of ctx.flights) {
+        if (!f.trip_id) continue;
+        const list = byTrip.get(f.trip_id) || { flights: [], continents: new Set(), name: f.trip_name || f.trip_location };
+        list.flights.push(f);
+        for (const code of [f.from, f.to]) {
+          const ap = ctx.airports[code];
+          if (ap?.continent) list.continents.add(ap.continent);
+        }
+        byTrip.set(f.trip_id, list);
+      }
+      const ranked = [...byTrip.values()].sort((a, b) => b.continents.size - a.continents.size).slice(0, 4);
+      if (!ranked.length) return { record: `<div class="muted small">Re-run <code>tools/fetch_tripit.py</code> to populate trip groupings.</div>` };
+      const CONTINENT_NAMES = { NA:"N. America", SA:"S. America", EU:"Europe", AF:"Africa", AS:"Asia", OC:"Oceania", AN:"Antarctica" };
+      const top = ranked[0];
+      top.flights.sort((a,b) => (a.depart || "").localeCompare(b.depart || ""));
+      return {
+        record: `
+          <div class="ach-trip-detail">
+            <div class="ach-trip-summary">
+              <strong>${escapeHtml(top.name || "Trip")}</strong>
+              <div class="muted small">${top.flights.length} flights touched ${top.continents.size} continents: ${[...top.continents].map(c => CONTINENT_NAMES[c] || c).join(" · ")}</div>
+            </div>
+            ${top.flights.map((f, i) => `
+              <div class="ach-trip-leg">
+                <div class="ach-trip-leg-num">${i + 1}</div>
+                ${flightRow(f, ctx, { extra: ctx.airports[f.to]?.continent ? CONTINENT_NAMES[ctx.airports[f.to].continent] : "" })}
+              </div>`).join("")}
+          </div>`,
+        ranking: ranked.slice(1).map(t =>
+          `<div class="ach-rank-row"><span class="ach-rank-name">${escapeHtml(t.name || "Trip")}</span>
+            <span class="muted small">${t.flights.length} flights · ${[...t.continents].map(c => CONTINENT_NAMES[c] || c).join(", ")}</span>
+            <span class="ach-rank-v">${t.continents.size}</span></div>`),
+        rankingLabel: "Other multi-continent trips",
       };
     }
     default:

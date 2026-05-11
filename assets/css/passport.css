@@ -1967,21 +1967,32 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .ach-flight-row[data-fi=""] { cursor: default; }
 .ach-flight-row[data-fi=""]:hover { background: rgba(167, 139, 250, 0.06); border-color: rgba(167, 139, 250, 0.20); }
 .ach-flight-row .airline-logo { width: 24px; height: 24px; }
-.ach-flight-info { min-width: 0; }
+.ach-flight-info {
+  min-width: 0;    /* let the meta line shrink+ellipsis instead of pushing layout */
+  overflow: hidden;
+}
 .ach-flight-route {
   font-family: var(--font-mrz);
   color: var(--accent);
   font-weight: 700;
   letter-spacing: 0.04em;
 }
-.ach-flight-meta { font-size: 11px; margin-top: 1px; }
+.ach-flight-meta {
+  font-size: 11px;
+  margin-top: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .ach-flight-side {
   text-align: right;
   font-family: var(--font-mrz);
   font-size: 11px;
   color: var(--ink-2);
   white-space: nowrap;
+  flex-shrink: 0;
 }
+.ach-flight-side .muted.small { font-size: 10px; }
 
 /* Rank rows (airline / route / year / etc.) inside maxof sections */
 .ach-rank-row {
