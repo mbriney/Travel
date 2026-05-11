@@ -217,17 +217,33 @@ export async function drawWorldGlobe(svg, ctx) {
   setTimeout(reportGhosts, 100);
   setTimeout(reportGhosts, 2000);
 
+  // d3.geoOrthographic.clipAngle(90) clips *paths* (the land/arc geometry),
+  // but `projection([lon, lat])` STILL returns coordinates for points on the
+  // back hemisphere — it just projects them onto the same 2D disk as the
+  // front. So a `null` check alone won't hide back-of-globe airports; they
+  // bleed through, appearing on whichever hemisphere is currently facing the
+  // viewer. (Symptom: rotate to look at Africa, and all the US airport dots
+  // float in the Indian Ocean.)
+  //
+  // We do our own visibility test: a point is visible iff its great-circle
+  // distance from the projection's center of view is ≤ 90°. The center of
+  // view is the antipode of the projection's rotation.
+  function isOnVisibleHemisphere(lon, lat) {
+    const r = projection.rotate();
+    const center = [-r[0], -r[1]];
+    return d3.geoDistance([lon, lat], center) <= Math.PI / 2;
+  }
+
   function updateDots() {
     // Defensive: every redraw, purge any <circle> in the SVG that isn't one
     // of ours. Without this, a circle left behind by a previous (interrupted)
-    // build sits frozen at its original projection — exactly the "ghost dots
-    // that don't move with the globe" symptom.
+    // build sits frozen at its original projection.
     for (const c of svg.querySelectorAll("circle")) {
       if (!ownedDotNodes.has(c)) c.remove();
     }
     for (const { node, ap } of dotEntries) {
       const pt = projection([ap.lon, ap.lat]);
-      if (!pt) {
+      if (!pt || !isOnVisibleHemisphere(ap.lon, ap.lat)) {
         node.style.display = "none";
       } else {
         node.style.display = "";
