@@ -17,6 +17,12 @@ concurrency:
   group: "refresh-data"
   cancel-in-progress: false
 
+# GitHub deprecated Node 20 for actions in Sep 2025; runtime is forced to
+# Node 24 by default in Jun 2026. Opt in now so we're on the supported
+# runtime instead of riding the deprecation timer.
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
 jobs:
   refresh:
     runs-on: ubuntu-latest
@@ -27,14 +33,14 @@ jobs:
       name: github-pages
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           # Need a real working copy (not a shallow clone) so the
           # commit-back step works cleanly.
           fetch-depth: 0
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.11"
           cache: pip
@@ -93,6 +99,10 @@ jobs:
         run: python tools/enrich_bts.py
 
       - name: Enrich (AeroDataBox — recent flights)
+        # Optional enrichment; rate-limits / network blips / API errors
+        # shouldn't kill the whole refresh. Worst case: this week's
+        # tail-number lookups are skipped and we get them next week.
+        continue-on-error: true
         env:
           AERODATABOX_API_KEY: ${{ secrets.AERODATABOX_API_KEY }}
         # `secrets.*` can't be referenced inside a step-level `if:` (GH Actions

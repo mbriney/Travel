@@ -1326,26 +1326,26 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .airline-logo {
   width: 22px; height: 22px;
   object-fit: contain;
-  /* Logos sit on a near-white tile so dark blue carriers (AA, DL, UA, AS,
-     B6, COA, USA) don't disappear into our dark UI background. Tiny inset
-     border keeps the white tile from looking too "popping". A few pixels
-     of padding stops the logo art from touching the tile edge. */
-  background: #f7f8fb;
-  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.08);
-  border-radius: 4px;
-  padding: 2px;
+  /* Glow tracing the PNG silhouette instead of a solid background tile.
+     `filter: drop-shadow` respects the image's alpha channel, so dark blue
+     carriers (AA, DL, UA, AS, B6) get a soft white halo around their
+     letterforms — readable on our dark UI — while light/white logos
+     don't gain a useless white tile underneath them. Two drop-shadows
+     stack: a tight 1px outline + a softer 2px halo. */
+  filter:
+    drop-shadow(0 0 1px rgba(255,255,255,0.95))
+    drop-shadow(0 0 2px rgba(255,255,255,0.55));
+  background: transparent;
   flex-shrink: 0;
   vertical-align: middle;
 }
 .airline-logo.is-missing { display: none; }
 /* The .is-placeholder class is added when the generated text-tile SVG is
-   used as the source. That SVG is already a brand-coloured rectangle, so
-   it doesn't need the white tile and padding — they'd just shrink the
-   tile and put a tiny pale border around it. Strip both back off. */
+   used as the source. That SVG is already a brand-coloured rectangle with
+   crisp white text — adding a white drop-shadow would just blur the edge
+   of the tile and make the letters mushy. Strip the filter for these. */
 .airline-logo.is-placeholder {
-  background: transparent;
-  box-shadow: none;
-  padding: 0;
+  filter: none;
 }
 
 .airline-banner {
@@ -1353,7 +1353,16 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   max-height: 36px;
   width: auto;
   object-fit: contain;
-  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.35));
+  /* Same alpha-aware glow technique as .airline-logo, scaled up for the
+     larger banner. The original 4px-soft drop-shadow gave the banner
+     depth but nothing for low-contrast carriers — this pairs that
+     existing depth shadow with a tight white halo that traces letterforms
+     so dark-on-dark banners (United, Alaska, JetBlue, Delta) remain
+     readable on the modal's dark background. */
+  filter:
+    drop-shadow(0 0 1.5px rgba(255,255,255,0.95))
+    drop-shadow(0 0 3px   rgba(255,255,255,0.55))
+    drop-shadow(0 2px 4px rgba(0,0,0,0.35));
 }
 .airline-banner.is-missing { display: none; }
 .flight-airline-banner {

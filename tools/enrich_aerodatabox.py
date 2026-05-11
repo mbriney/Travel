@@ -195,14 +195,19 @@ def main() -> None:
 
     CACHE.mkdir(parents=True, exist_ok=True)
 
-    creds = load_creds()
-    api_key = creds.get("aerodatabox_rapidapi_key")
+    # Two ways to provide the key, in priority order:
+    #   1. AERODATABOX_API_KEY env var — used by the GitHub Action which
+    #      injects the secret without writing to credentials.json.
+    #   2. tools/credentials.json's `aerodatabox_rapidapi_key` field — used
+    #      by local runs alongside the TripIt OAuth creds.
+    api_key = os.environ.get("AERODATABOX_API_KEY") or load_creds().get("aerodatabox_rapidapi_key")
     if not api_key:
-        print("ERROR: tools/credentials.json is missing aerodatabox_rapidapi_key.")
+        print("ERROR: AeroDataBox API key not found.")
         print("Get a key (Free tier 600 req/mo) at:")
         print("  https://rapidapi.com/aedbx-aedbx/api/aerodatabox")
-        print("Then add to credentials.json:")
-        print('  "aerodatabox_rapidapi_key": "YOUR_KEY_HERE"')
+        print("Then either:")
+        print("  • set AERODATABOX_API_KEY in your environment, or")
+        print('  • add "aerodatabox_rapidapi_key": "YOUR_KEY_HERE" to tools/credentials.json')
         sys.exit(1)
 
     flights = load_flights()
