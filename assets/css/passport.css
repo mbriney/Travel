@@ -222,17 +222,36 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   position: absolute; inset: 0;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
+  /* Flatten everything inside the face into the face's plane so children's
+     own transforms can't create separate 3D layers that ignore backface
+     culling. */
+  transform-style: flat;
   overflow: hidden;
   display: flex;
   box-shadow:
     -2px 0 6px rgba(0,0,0,0.20),
     inset 14px 0 28px -14px rgba(0,0,0,0.30);
 }
+.sheet-front {
+  /* Push the front face a hair toward the viewer so the two faces don't
+     z-fight during the flip transition. */
+  transform: translateZ(0.5px);
+}
 .sheet-back {
-  transform: rotateY(180deg);
+  transform: rotateY(180deg) translateZ(0.5px);
   box-shadow:
     2px 0 6px rgba(0,0,0,0.20),
     inset -14px 0 28px -14px rgba(0,0,0,0.30);
+}
+
+/* Belt + suspenders: any transformed or animated descendant inside a sheet
+   inherits backface-visibility:hidden too. Without this, things like the
+   cover shimmer, the mirrored PASSPORT watermark, or the chip's pseudo-
+   element get promoted to their own GPU layers and would otherwise show
+   through during the flip. */
+.sheet, .sheet * {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 .end-paper { flex: 1; background: linear-gradient(135deg, var(--pp-paper), var(--pp-paper-2)); display: grid; place-items: center; color: var(--pp-ink-2); }
