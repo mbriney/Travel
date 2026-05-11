@@ -1,7 +1,21 @@
 // achievements.js — TravStats-inspired achievement system.
 // `openDetailModal` from views.js is imported dynamically inside the click
 // handler so this module remains pure (testable in plain Node without DOM).
-import { formatDate, formatDuration, formatNumber, airlineLogoUrl, airlineDisplayName } from "./stats.js";
+import { formatDate, formatDuration, formatNumber, airlineLogoUrl, airlineLogoFallbackUrl, airlineLogoPlaceholder, airlineDisplayName } from "./stats.js";
+
+// Shared logo <img> with the 3-step fallback chain (local → CDN → text-tile).
+// Mirrors views.js's airlineLogoImg(); kept here to avoid coupling these
+// modules. See that comment for the rationale.
+function _airlineLogoImg(code, alt, airlinesIndex) {
+  const primary = airlineLogoUrl(code, airlinesIndex);
+  if (!primary) return "";
+  const fallback = airlineLogoFallbackUrl(code, airlinesIndex) || "";
+  const placeholder = airlineLogoPlaceholder(code, airlinesIndex);
+  const onErr = `if(this.dataset.step==='1'){this.dataset.step='2';this.src=this.dataset.fallback||this.dataset.placeholder;}else if(this.dataset.step==='2'){this.dataset.step='3';this.src=this.dataset.placeholder;this.classList.add('is-placeholder');}else{this.classList.add('is-missing');this.onerror=null;}`;
+  // Use a tiny escape helper inline (same idea as views.js's escapeHtml).
+  const esc = (s) => String(s ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+  return `<img class="airline-logo" src="${primary}" data-step="1" data-fallback="${esc(fallback)}" data-placeholder="${esc(placeholder)}" alt="${esc(alt || code || "")}" onerror="${onErr}"/>`;
+}
 // Definitions are a curated subset of https://github.com/Abrechen2/TravStats's
 // `backend/src/data/achievements.ts` — only the ones we can evaluate from
 // TripIt data (no aircraft, seat, cancellation, or service-class info).
@@ -492,7 +506,11 @@ export function evaluateAchievements(ctx) {
     // Geographic curiosities (existing + extensions)
     if (aFrom && aTo && aFrom.lat != null && aTo.lat != null) {
       if (Math.sign(aFrom.lat) !== Math.sign(aTo.lat) && aFrom.lat !== 0 && aTo.lat !== 0) equatorCrossing = 1;
-      if (aFrom.lat >= ARCTIC_LAT || aTo.lat >= ARCTIC_LAT) arcticFlight = 1;
+      // Polar Explorer: use the great-circle PATH, not just endpoint
+      // latitudes. A flight LAX→PEK crests above 70°N over the Aleutians
+      // even though neither endpoint is anywhere near the Arctic Circle.
+      const peakLat = maxLatOnGreatCircle(aFrom.lat, aFrom.lon, aTo.lat, aTo.lon);
+      if (peakLat >= ARCTIC_LAT) arcticFlight = 1;
       const lo1 = aFrom.lon, lo2 = aTo.lon;
       if (lo1 < -90 && lo2 > 90) idlWest++;
       else if (lo1 > 90 && lo2 < -90) idlEast++;
@@ -1309,7 +1327,7 @@ function describeRequirement(ach) {
 //   - "meta"   : derived from other achievements.
 function metricKind(type) {
   if (["flights_count","distance_km","distance_mi","flight_hours","earth_laps","moon_trips","boeing_segments","airbus_segments"].includes(type)) return "count";
-  if (["countries","airlines","airports","us_states","continents","domestic_airports","aircraft_families","airport_alphabet","top_10_hubs","eu_countries","as_countries","middle_east_set","southerner_set","alliances"].includes(type)) return "set";
+  if (["countries","airlines","airports","us_states","continents","domestic_airports","aircraft_families","airport_alphabet","top_10_hubs","eu_countries","as_countries","middle_east_set","southerner_set","alliances","island_airports"].includes(type)) return "set";
   if (["single_flight_distance","max_flight_minutes","min_flight_minutes","airline_loyalty","same_route","flights_per_month","flights_per_year","best_year_miles","countries_per_year","max_layover_minutes","max_trip_legs","max_repeat_flightno","max_tail_repeats","consecutive_months","max_lat_n","max_lat_s","max_airport_elevation","max_continents_per_trip"].includes(type)) return "maxof";
   if (type === "years_span") return "span";
   if (type === "wright_stuff") return "meta";
@@ -1322,10 +1340,7 @@ function metricKind(type) {
 function flightRow(f, ctx, opts = {}) {
   const code = f.airline_code;
   const name = airlineDisplayName(code, ctx.airlines, f.airline);
-  const url  = airlineLogoUrl(code, ctx.airlines);
-  const logo = url
-    ? `<img class="airline-logo" src="${url}" alt="${escapeHtml(name || code || "")}" onerror="this.classList.add('is-missing')"/>`
-    : "";
+  const logo = _airlineLogoImg(code, name, ctx.airlines);
   const extra = opts.extra ? `<span class="muted small">${escapeHtml(opts.extra)}</span>` : "";
   const fi = f.__fi != null ? f.__fi : (ctx._flightIndex?.get?.(f) ?? "");
   return `
@@ -1724,8 +1739,7 @@ function buildSetItems(ach, ctx) {
     const all = [...s.airlines.entries()].sort((a,b) => b[1].count - a[1].count);
     return all.map(([code, info]) => {
       const name = airlineDisplayName(code, ctx.airlines, info.name);
-      const url = airlineLogoUrl(code, ctx.airlines);
-      const logo = url ? `<img class="airline-logo" src="${url}" alt="${escapeHtml(name)}" onerror="this.classList.add('is-missing')"/>` : "";
+      const logo = _airlineLogoImg(code, name, ctx.airlines);
       return {
         label: `${logo}<code>${code}</code> ${escapeHtml(name)} <span class="muted">${info.count}×</span>`,
         visited: true,
@@ -1942,7 +1956,26 @@ function qualifyingFlights(ach, ctx) {
     });
     case "arctic_flight":         return f.filter(x => {
       const [a,b] = airportPair(x);
-      return (a && a.lat >= ARCTIC) || (b && b.lat >= ARCTIC);
+      if (!a || !b || a.lat == null || b.lat == null) return false;
+      return maxLatOnGreatCircle(a.lat, a.lon, b.lat, b.lon) >= ARCTIC;
+    });
+    case "transpolar_flight":     return f.filter(x => {
+      const [a,b] = airportPair(x);
+      if (!a || !b || a.lat == null || b.lat == null) return false;
+      const peak = maxLatOnGreatCircle(a.lat, a.lon, b.lat, b.lon);
+      return peak >= 70 || peak <= -70;
+    });
+    case "tight_connection":      return _tightConnectionFlights(f);
+    case "small_airport_landing": return f.filter(x => ctx.airports[x.to]?.type === "small_airport");
+    case "remote_landing":        return f.filter(x => {
+      const ap = ctx.airports[x.to];
+      return ap?.type === "small_airport" && (ap.elevation_ft || 0) >= 8000;
+    });
+    case "new_aircraft":          return f.filter(x => {
+      if (!x.aircraft_year || !x.depart) return false;
+      const ay = parseInt(x.aircraft_year, 10);
+      const fy = parseInt((x.depart || "").slice(0, 4), 10);
+      return Number.isFinite(ay) && Number.isFinite(fy) && (fy - ay) <= 1 && fy >= ay;
     });
     case "micro_flight":          return f.filter(x => flightKm(x) > 0 && flightKm(x) < 250);
     case "ocean_crossing":        return f.filter(x => {
@@ -1994,6 +2027,31 @@ function qualifyingFlights(ach, ctx) {
   }
 }
 
+// Quick Turnaround / tight_connection: pairs of consecutive flights in the
+// same trip whose arrival→next-departure gap is under 60 minutes. Returns the
+// LATER (connecting) flight for each pair so it appears in the modal as
+// "this is the flight you ran to catch."
+function _tightConnectionFlights(flights) {
+  const byTrip = new Map();
+  for (const f of flights) {
+    if (!f.trip_id) continue;
+    const list = byTrip.get(f.trip_id) || [];
+    list.push(f);
+    byTrip.set(f.trip_id, list);
+  }
+  const out = [];
+  for (const list of byTrip.values()) {
+    list.sort((a, b) => (a.depart || "").localeCompare(b.depart || ""));
+    for (let i = 1; i < list.length; i++) {
+      const prev = list[i - 1], cur = list[i];
+      if (!prev.arrive || !cur.depart) continue;
+      const gap = (new Date(cur.depart) - new Date(prev.arrive)) / 60000;
+      if (gap > 0 && gap < 60) out.push(cur);
+    }
+  }
+  return out;
+}
+
 const TRANS_PAIRS_FOR_QUAL = new Set([
   ["NA","EU"].sort().join("|"), ["NA","AS"].sort().join("|"), ["NA","OC"].sort().join("|"), ["NA","AF"].sort().join("|"), ["NA","AN"].sort().join("|"),
   ["SA","EU"].sort().join("|"), ["SA","AS"].sort().join("|"), ["SA","OC"].sort().join("|"), ["SA","AF"].sort().join("|"), ["SA","AN"].sort().join("|"),
@@ -2015,10 +2073,36 @@ function isHolidayFlight(f) {
 // For each event type, optional supplementary text on a row
 function eventExtra(ach, f, ctx) {
   if (ach.type === "max_layover_minutes") return "";
-  if (ach.type === "arctic_flight") {
+  if (ach.type === "arctic_flight" || ach.type === "transpolar_flight") {
     const a = ctx.airports[f.from], b = ctx.airports[f.to];
-    const peak = Math.max(a?.lat || 0, b?.lat || 0).toFixed(1);
-    return `${peak}°N`;
+    if (!a || !b || a.lat == null || b.lat == null) return "";
+    const peak = maxLatOnGreatCircle(a.lat, a.lon, b.lat, b.lon).toFixed(1);
+    const hemi = peak >= 0 ? "N" : "S";
+    return `path crests ${Math.abs(peak).toFixed(1)}°${hemi}`;
+  }
+  if (ach.type === "tight_connection") {
+    // Find the previous segment in the same trip to compute the gap.
+    const sameTrip = ctx.flights.filter(x => x.trip_id === f.trip_id).sort((a, b) => (a.depart || "").localeCompare(b.depart || ""));
+    const idx = sameTrip.indexOf(f);
+    if (idx > 0 && sameTrip[idx - 1].arrive) {
+      const gap = Math.round((new Date(f.depart) - new Date(sameTrip[idx - 1].arrive)) / 60000);
+      return `${gap} min connection from ${sameTrip[idx - 1].to}`;
+    }
+    return "";
+  }
+  if (ach.type === "small_airport_landing" || ach.type === "remote_landing") {
+    const ap = ctx.airports[f.to];
+    if (!ap) return "";
+    const parts = [];
+    if (ap.type === "small_airport") parts.push("small airport");
+    if (ap.elevation_ft) parts.push(`${ap.elevation_ft.toLocaleString()} ft`);
+    return parts.join(" · ");
+  }
+  if (ach.type === "new_aircraft") {
+    if (!f.aircraft_year || !f.depart) return "";
+    const ay = parseInt(f.aircraft_year, 10);
+    const fy = parseInt((f.depart || "").slice(0, 4), 10);
+    return `aircraft built ${ay}, flown ${fy} (${fy - ay} yr old)`;
   }
   if (ach.type === "micro_flight" && f._miles) return `${Math.round(f._miles)} mi`;
   if (ach.type === "has_a380" || ach.type === "has_747" || ach.type === "has_787" || ach.type === "has_md80") return f.aircraft ? `aircraft ${f.aircraft}` : "";
@@ -2363,10 +2447,8 @@ function buildMaxOf(ach, ctx) {
 }
 
 function airlineLogoTag(code, ctx) {
-  const url = airlineLogoUrl(code, ctx.airlines);
-  if (!url) return "";
   const name = airlineDisplayName(code, ctx.airlines);
-  return `<img class="airline-logo" src="${url}" alt="${escapeHtml(name)}" onerror="this.classList.add('is-missing')"/>`;
+  return _airlineLogoImg(code, name, ctx.airlines);
 }
 
 function findMaxLayover(ctx) {

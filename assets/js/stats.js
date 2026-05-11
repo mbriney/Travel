@@ -543,10 +543,58 @@ export function formatDate(d, opts = {}) {
 }
 
 // ---------------------------------------------------------------------------
-// Airline logo / banner URLs from https://github.com/Jxck-S/airline-logos
-// IATA -> ICAO via our airlines.json (OpenFlights), then build the raw URL.
+// Airline logo / banner URLs.
+//
+// Resolution order:
+//   1. Local override at  assets/img/airlines/<ICAO>.png|.svg
+//      — for defunct/merged carriers the CDN doesn't carry (FL, CO, NW, …).
+//      Drop a file there with the right ICAO filename and the UI picks it up.
+//   2. Jxck-S/airline-logos CDN — covers most current carriers.
+//   3. A brand-coloured TEXT TILE rendered as an inline SVG data: URI — so
+//      even when neither source has an image, the row gets a tidy logo
+//      shape instead of a broken-image icon.
+//
+// The local override lookup is implemented inline (just an <img src> string);
+// the actual existence check happens in the browser via the <img onerror>
+// chain wired up in views.js's airlineLogoImg() helper.
 // ---------------------------------------------------------------------------
 const LOGO_BASE = "https://raw.githubusercontent.com/Jxck-S/airline-logos/main";
+const LOCAL_LOGO_BASE = "assets/img/airlines";
+
+// Brand colors for the SVG text-tile placeholder. Keyed by ICAO so we can
+// resolve them even for carriers TripIt only knows by IATA. If a code isn't
+// listed, we fall back to the project accent purple.
+const AIRLINE_BRAND_COLOR = {
+  // Defunct US carriers — these are the ones most likely to need the tile.
+  TRS: "#c81e2e", // AirTran (red)
+  COA: "#053f7c", // Continental (deep blue)
+  NWA: "#a01e1e", // Northwest (red)
+  USA: "#003a70", // US Airways (navy)
+  TWA: "#a31b22", // TWA (red)
+  AWE: "#13418f", // America West (blue)
+  VRD: "#cf1f44", // Virgin America (red)
+  RPA: "#0070b8", // Republic Airways (blue)
+  // Active carriers — only listed where the placeholder might still be
+  // needed (e.g. CDN miss). Most active carriers' real logos come through.
+  AAL: "#0078d2", AA: "#0078d2",   // American
+  DAL: "#003366", DL: "#003366",   // Delta
+  UAL: "#005daa", UA: "#005daa",   // United
+  SWA: "#304cb2", WN: "#304cb2",   // Southwest
+  ASA: "#00529b", AS: "#00529b",   // Alaska
+  JBU: "#003876", B6: "#003876",   // JetBlue
+};
+
+function logoTextTileSvgDataUri(label, fillHex) {
+  // ~64×64 SVG with the airline code centered on a brand-coloured square.
+  // Encoded as a data URI so a single <img src=...> works without any
+  // extra file. Letters lighten for very dark backgrounds.
+  const fg = "#fff";
+  // Escape the label minimally — labels are always 2-3 ASCII letters in
+  // practice, but defensive in case someone passes a longer name.
+  const safe = String(label).replace(/[<>&"]/g, "").slice(0, 3) || "?";
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="8" fill="${fillHex}"/><text x="32" y="42" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-weight="700" font-size="${safe.length > 2 ? 22 : 26}" fill="${fg}" text-anchor="middle" letter-spacing="0.5">${safe}</text></svg>`;
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+}
 
 // All airline metadata now lives in data/airlines.json — built from
 // OpenFlights with a hand-curated overlay (tools/curated_airlines.json) that
@@ -568,10 +616,28 @@ export function airlineDisplayName(iata, airlinesIndex, tripitName) {
   if (tripitName) return tripitName;
   return iata || "";
 }
+// Returns the FIRST URL to try (local override). Use `airlineLogoFallbackUrl`
+// for the second-pass CDN URL, and `airlineLogoPlaceholder` for the final
+// brand-coloured text-tile. Callers wire these together with <img onerror>.
 export function airlineLogoUrl(iata, airlinesIndex) {
+  const icao = airlineIcao(iata, airlinesIndex);
+  return icao ? `${LOCAL_LOGO_BASE}/${icao}.png` : null;
+}
+// Second-pass URL: hit Jxck-S/airline-logos on jsdelivr CDN.
+export function airlineLogoFallbackUrl(iata, airlinesIndex) {
   const icao = airlineIcao(iata, airlinesIndex);
   return icao ? `${LOGO_BASE}/radarbox_logos/${icao}.png` : null;
 }
+// Final-pass: generated text-tile SVG, never fails to load. We prefer the
+// ICAO if known (more distinctive across history — `TRS` reads as AirTran)
+// and fall back to the IATA if we don't have one.
+export function airlineLogoPlaceholder(iata, airlinesIndex) {
+  const icao = airlineIcao(iata, airlinesIndex);
+  const label = (icao || iata || "??").toUpperCase();
+  const color = AIRLINE_BRAND_COLOR[label] || AIRLINE_BRAND_COLOR[(iata || "").toUpperCase()] || "#7c3aed";
+  return logoTextTileSvgDataUri(label, color);
+}
+
 export function airlineBannerUrl(iata, airlinesIndex) {
   const icao = airlineIcao(iata, airlinesIndex);
   return icao ? `${LOGO_BASE}/radarbox_banners/${icao}.png` : null;

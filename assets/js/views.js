@@ -1,13 +1,28 @@
 // views.js — top-level standalone views (Stats, World Map, US States).
 // These render into their own <section> elements rather than passport pages.
 
-import { formatNumber, formatDuration, formatDate, aircraftName, aircraftFamily, airlineLogoUrl, airlineBannerUrl, airlineDisplayName, airlineEntry, airlineSuccessor } from "./stats.js";
+import { formatNumber, formatDuration, formatDate, aircraftName, aircraftFamily, airlineLogoUrl, airlineLogoFallbackUrl, airlineLogoPlaceholder, airlineBannerUrl, airlineDisplayName, airlineEntry, airlineSuccessor } from "./stats.js";
 
-// Helper: small <img> for an airline. Hides itself gracefully if 404.
+// Helper: small <img> for an airline. Tries local override first; on 404
+// falls back to the Jxck-S CDN; on a second 404 falls back to a generated
+// brand-coloured text-tile so we never show a broken image icon. The two
+// fallback URLs are encoded as data-* attributes and stepped through by a
+// shared onerror handler bound on the <img>.
 function airlineLogoImg(iata, airlinesIndex, alt) {
-  const url = airlineLogoUrl(iata, airlinesIndex);
-  if (!url) return "";
-  return `<img class="airline-logo" src="${url}" alt="${escapeHtml(alt || iata || "")}" loading="lazy" onerror="this.classList.add('is-missing')" />`;
+  const primary = airlineLogoUrl(iata, airlinesIndex);
+  if (!primary) return "";
+  const fallback = airlineLogoFallbackUrl(iata, airlinesIndex) || "";
+  const placeholder = airlineLogoPlaceholder(iata, airlinesIndex);
+  // The onerror handler walks through three states. Inline so it works with
+  // strict CSP-free static hosting (GitHub Pages). The `data-step` attribute
+  // tracks where we are; the handler picks the next URL and updates it.
+  const onErr = `if(this.dataset.step==='1'){this.dataset.step='2';this.src=this.dataset.fallback||this.dataset.placeholder;}else if(this.dataset.step==='2'){this.dataset.step='3';this.src=this.dataset.placeholder;this.classList.add('is-placeholder');}else{this.classList.add('is-missing');this.onerror=null;}`;
+  return `<img class="airline-logo" src="${primary}"
+    data-step="1"
+    data-fallback="${escapeHtml(fallback)}"
+    data-placeholder="${escapeHtml(placeholder)}"
+    alt="${escapeHtml(alt || iata || "")}"
+    loading="lazy" onerror="${onErr}" />`;
 }
 function airlineBannerImg(iata, airlinesIndex, alt) {
   const url = airlineBannerUrl(iata, airlinesIndex);
