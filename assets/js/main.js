@@ -1,7 +1,10 @@
-// main.js — entry point. Loads data, builds pages, wires up navigation.
+// main.js — entry point. Loads data, builds passport pages + standalone views,
+// and wires up tab switching across the top.
+
 import { computeStats } from "./stats.js";
 import { buildPages } from "./pages.js";
 import { initPassport } from "./passport.js";
+import { renderStatsView, renderWorldView, renderUSView } from "./views.js";
 
 const DATA_PATHS = {
   flights:  "data/flights.json",
@@ -15,18 +18,50 @@ async function loadJSON(path) {
   if (!r.ok) throw new Error(`fetch ${path}: ${r.status}`);
   return r.json();
 }
-
 async function tryLoadJSON(path) {
   try { return await loadJSON(path); } catch (e) { return null; }
 }
 
 function showEmptyState(message) {
   const empty = document.getElementById("empty");
-  const book = document.getElementById("book-wrap");
+  const views = document.getElementById("views");
   empty.classList.remove("hidden");
-  book.classList.add("hidden");
-  if (message) {
-    empty.querySelector("p").textContent = message;
+  views.classList.add("hidden");
+  if (message) empty.querySelector("p").textContent = message;
+}
+
+function initTabs(ctx) {
+  const tabs = [...document.querySelectorAll(".view-tabs button[data-view]")];
+  const views = [...document.querySelectorAll(".view[data-view]")];
+  const rendered = new Set();
+
+  function activate(name) {
+    for (const t of tabs) t.classList.toggle("is-active", t.dataset.view === name);
+    for (const v of views) {
+      const isOn = v.dataset.view === name;
+      v.classList.toggle("is-active", isOn);
+      v.hidden = !isOn;
+    }
+    // Lazy-render the heavier views the first time they're shown.
+    if (!rendered.has(name)) {
+      const root = document.getElementById(`view-${name}`);
+      if (name === "stats") renderStatsView(root, ctx);
+      else if (name === "world") renderWorldView(root, ctx);
+      else if (name === "usa") renderUSView(root, ctx);
+      rendered.add(name);
+    }
+    history.replaceState(null, "", `#${name}`);
+  }
+
+  tabs.forEach(t => t.addEventListener("click", () => activate(t.dataset.view)));
+
+  // Allow deep-linking via #stats, #world, etc.
+  const hash = (location.hash || "").slice(1);
+  if (hash && tabs.some(t => t.dataset.view === hash)) {
+    activate(hash);
+  } else {
+    // Passport view is active by default; nothing to lazy-render.
+    rendered.add("passport");
   }
 }
 
@@ -38,18 +73,9 @@ async function boot() {
     tryLoadJSON(DATA_PATHS.countries),
   ]);
 
-  // No flights at all -> show getting-started state.
-  if (!flights || !flights.length) {
-    showEmptyState();
-    return;
-  }
-  if (!airports) {
-    showEmptyState("airports.json is missing. Run python tools/build_airports.py first.");
-    return;
-  }
+  if (!flights || !flights.length) { showEmptyState(); return; }
+  if (!airports) { showEmptyState("airports.json is missing. Run python tools/build_airports.py first."); return; }
 
-  // Filter out segments that lack both endpoints in the airport DB.
-  // (TripIt sometimes has odd codes; we still keep them but stats handle nulls.)
   const ctx = {
     flights,
     airports,
@@ -57,17 +83,18 @@ async function boot() {
     countries: countries || {},
   };
 
-  // Mark the bearer name on the topbar
   document.getElementById("meta-flights").textContent =
-    `${flights.length.toLocaleString()} flights · ${ctx.airports ? Object.keys(airports).length.toLocaleString() : "—"} airports loaded`;
+    `${flights.length.toLocaleString()} flights · ${Object.keys(airports).length.toLocaleString()} airports loaded`;
 
-  const stats = computeStats(ctx);
-  ctx.stats = stats;
+  ctx.stats = computeStats(ctx);
 
+  // Build the passport book
   const book = document.getElementById("book");
   const pages = buildPages(ctx);
-  // passport.js builds the sheet DOM and inserts each page as a face.
   initPassport(book, pages);
+
+  // Wire up tab switching (lazy-renders Stats/World/USA on first reveal)
+  initTabs(ctx);
 }
 
 boot().catch(err => {

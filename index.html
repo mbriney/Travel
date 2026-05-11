@@ -21,13 +21,23 @@
         </svg>
         <span>Travel Passport</span>
       </div>
-      <nav class="page-jump" aria-label="Jump to page">
-        <button data-jump="0" class="is-active">Cover</button>
-        <button data-jump="1">Stats</button>
-        <button data-jump="3">World</button>
-        <button data-jump="4">USA</button>
-        <button data-jump="5">Stamps</button>
-        <button data-jump="-1">Log</button>
+      <nav class="view-tabs" aria-label="Switch view">
+        <button data-view="passport" class="is-active">
+          <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.6" d="M5 4h11l3 3v13H5z"/><path fill="none" stroke="currentColor" stroke-width="1.6" d="M8 9h8M8 12h8M8 15h5"/></svg>
+          Passport
+        </button>
+        <button data-view="stats">
+          <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M4 18V11M10 18V6M16 18v-9M22 18H2"/></svg>
+          Stats
+        </button>
+        <button data-view="world">
+          <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.6"/><path fill="none" stroke="currentColor" stroke-width="1.4" d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>
+          World
+        </button>
+        <button data-view="usa">
+          <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.6" d="M3 8h4l1-2h6l1 2h6v10H3z"/><circle cx="12" cy="13" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
+          USA
+        </button>
       </nav>
       <div class="meta">
         <span id="meta-flights">— flights</span>
@@ -37,43 +47,47 @@
     <!-- Loading / empty state -->
     <section id="empty" class="empty hidden" aria-live="polite">
       <h1>Welcome aboard.</h1>
-      <p>
-        No flight data yet. Run the TripIt fetcher to populate this passport:
-      </p>
+      <p>No flight data yet. Run the TripIt fetcher to populate this passport:</p>
       <pre><code>cd Travel
 pip install -r tools/requirements.txt
-python tools/build_airports.py        # one-time, downloads airport DB
-python tools/fetch_tripit.py          # first run: OAuth in browser</code></pre>
+python tools/build_airports.py
+python tools/fetch_tripit.py</code></pre>
       <p class="muted">Then refresh.</p>
     </section>
 
-    <!-- Passport book -->
-    <section id="book-wrap" class="book-wrap" aria-label="Travel passport">
-      <button class="nav-arrow nav-prev" id="prev" aria-label="Previous page" disabled>
-        <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true">
-          <path fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="M15 5l-7 7 7 7"/>
-        </svg>
-      </button>
+    <!-- Views -->
+    <div class="views" id="views">
 
-      <div class="book" id="book">
-        <!-- Pages injected by JS; first page is the cover, rendered statically below -->
-      </div>
+      <!-- PASSPORT VIEW: the book -->
+      <section id="view-passport" class="view is-active" data-view="passport">
+        <div class="book-wrap" aria-label="Travel passport">
+          <button class="nav-arrow nav-prev" id="prev" aria-label="Previous page" disabled>
+            <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="M15 5l-7 7 7 7"/></svg>
+          </button>
+          <div class="book" id="book"></div>
+          <button class="nav-arrow nav-next" id="next" aria-label="Next page">
+            <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+          </button>
+          <div class="page-indicator" id="indicator" aria-live="polite"></div>
+        </div>
+      </section>
 
-      <button class="nav-arrow nav-next" id="next" aria-label="Next page">
-        <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true">
-          <path fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
-        </svg>
-      </button>
+      <!-- STATS VIEW -->
+      <section id="view-stats" class="view" data-view="stats" hidden></section>
 
-      <div class="page-indicator" id="indicator" aria-live="polite"></div>
-    </section>
+      <!-- WORLD MAP VIEW -->
+      <section id="view-world" class="view" data-view="world" hidden></section>
+
+      <!-- US STATES VIEW -->
+      <section id="view-usa" class="view" data-view="usa" hidden></section>
+
+    </div>
 
     <footer class="footer">
       <span>Data: <a href="https://www.tripit.com" rel="noopener">TripIt</a> · Built with D3, vanilla JS · <a href="https://github.com/mbriney/Travel" rel="noopener">source</a></span>
     </footer>
   </main>
 
-  <!-- App scripts (loads d3 + topojson-client via ESM as needed) -->
   <script type="module" src="assets/js/main.js"></script>
 </body>
 </html>

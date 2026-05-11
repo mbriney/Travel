@@ -1,5 +1,5 @@
 /* ===========================================================================
-   Travel Passport — US Passport visual language
+   Travel Passport — US passport aesthetic + top-level tabbed views
    --------------------------------------------------------------------------- */
 
 :root {
@@ -13,22 +13,23 @@
   --accent-2: #7c3aed;
 
   /* US passport palette */
-  --pp-cover:        #0c1c40;   /* dark navy */
+  --pp-cover:        #0c1c40;
   --pp-cover-2:      #07112a;
-  --pp-gold:         #c8a04a;   /* embossed gold */
+  --pp-gold:         #c8a04a;
   --pp-gold-2:       #e6c478;
-  --pp-paper:        #f7f0de;   /* warm cream */
-  --pp-paper-2:      #ece1c4;
-  --pp-paper-blue:   #e0e8ee;   /* blue-tinted visa paper */
+  --pp-paper:        #f5ecd5;
+  --pp-paper-2:      #ead9b5;
+  --pp-paper-blue:   #e0e8ee;
   --pp-paper-blue-2: #cad5e0;
-  --pp-ink:          #1d2235;   /* deep navy text */
+  --pp-bio-top:      #d8e3ee;     /* top half of bio page (blue tint) */
+  --pp-bio-bottom:   #efe3ce;     /* bottom half of bio page (warm tint) */
+  --pp-ink:          #1d2235;
   --pp-ink-2:        #475067;
   --pp-blue:         #2d4d9b;
   --pp-blue-deep:    #173273;
+  --pp-blue-soft:    #5d7bb8;
   --pp-red:          #b32525;
   --pp-red-deep:     #7a1a1a;
-  --pp-watermark:    rgba(45, 77, 155, 0.06);
-  --pp-watermark-2:  rgba(179, 37, 37, 0.06);
 
   /* Stamp colors */
   --stamp-red:    #cf2a2a;
@@ -38,10 +39,10 @@
   --stamp-brown:  #6a3e1b;
   --stamp-black:  #1a1d28;
 
-  --shadow-book: 0 40px 80px -28px rgba(0,0,0,0.65),
-                 0 16px 36px -16px rgba(0,0,0,0.45);
+  --shadow-book: 0 40px 80px -28px rgba(0,0,0,0.65), 0 16px 36px -16px rgba(0,0,0,0.45);
 
   --font-display: ui-serif, "Iowan Old Style", "Apple Garamond", "Times New Roman", serif;
+  --font-script:  "Snell Roundhand", "Apple Chancery", "Brush Script MT", "Lucida Handwriting", cursive;
   --font-sans:    -apple-system, BlinkMacSystemFont, "Inter", system-ui, "Helvetica Neue", Arial, sans-serif;
   --font-stamp:   "Stencil Std", "Bebas Neue", "Impact", "Arial Narrow Bold", sans-serif;
   --font-mrz:     "OCR A Std", "Andale Mono", "Courier New", ui-monospace, monospace;
@@ -66,16 +67,16 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .bg-stars {
   position: fixed; inset: 0; z-index: 0; pointer-events: none;
   background:
-    radial-gradient(ellipse at 20% 10%, rgba(124, 58, 237, 0.25), transparent 50%),
-    radial-gradient(ellipse at 80% 80%, rgba(56, 189, 248, 0.14), transparent 55%),
+    radial-gradient(ellipse at 20% 10%, rgba(124, 58, 237, 0.20), transparent 50%),
+    radial-gradient(ellipse at 80% 80%, rgba(56, 189, 248, 0.12), transparent 55%),
     linear-gradient(180deg, var(--bg-0), var(--bg-1) 60%, var(--bg-0));
 }
 .bg-stars::after {
   content: ""; position: absolute; inset: 0;
   background-image:
-    radial-gradient(1px 1px at 25px 35px, rgba(255,255,255,0.45) 99%, transparent),
-    radial-gradient(1px 1px at 145px 80px, rgba(255,255,255,0.35) 99%, transparent),
-    radial-gradient(1px 1px at 260px 200px, rgba(255,255,255,0.28) 99%, transparent),
+    radial-gradient(1px 1px at 25px 35px, rgba(255,255,255,0.42) 99%, transparent),
+    radial-gradient(1px 1px at 145px 80px, rgba(255,255,255,0.32) 99%, transparent),
+    radial-gradient(1px 1px at 260px 200px, rgba(255,255,255,0.25) 99%, transparent),
     radial-gradient(2px 2px at 420px 320px, rgba(255,255,255,0.18) 99%, transparent);
   background-size: 480px 480px;
   opacity: 0.4;
@@ -92,7 +93,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .topbar {
   display: flex; align-items: center; justify-content: space-between;
   gap: 12px;
-  padding: 14px 22px;
+  padding: 12px 22px;
   border-bottom: 1px solid rgba(255,255,255,0.06);
   background: linear-gradient(180deg, rgba(0,0,0,0.30), transparent);
   backdrop-filter: saturate(140%) blur(8px);
@@ -101,26 +102,28 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: 0.04em; }
 .brand svg { color: var(--accent); }
 
-.page-jump {
-  display: flex; gap: 6px; flex-wrap: wrap;
+.view-tabs {
+  display: flex; gap: 4px;
   background: rgba(255,255,255,0.04);
   padding: 4px;
   border-radius: 999px;
   border: 1px solid rgba(255,255,255,0.06);
 }
-.page-jump button {
-  padding: 6px 12px;
+.view-tabs button {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 14px;
   border-radius: 999px;
   font-size: 13px;
   color: var(--ink-2);
-  transition: background 200ms, color 200ms;
+  transition: background 180ms, color 180ms;
 }
-.page-jump button:hover { color: var(--ink-1); }
-.page-jump button.is-active {
-  background: var(--accent-2);
+.view-tabs button:hover { color: var(--ink-1); }
+.view-tabs button.is-active {
+  background: linear-gradient(135deg, var(--accent-2), var(--accent));
   color: white;
-  box-shadow: 0 4px 14px -4px rgba(124, 58, 237, 0.6);
+  box-shadow: 0 4px 14px -4px rgba(124, 58, 237, 0.55);
 }
+.view-tabs button svg { opacity: 0.9; }
 
 .meta { color: var(--ink-3); font-size: 13px; }
 .footer {
@@ -141,14 +144,30 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   border: 1px solid rgba(255,255,255,0.06);
 }
 
+/* --- view stage ---------------------------------------------------------- */
+.views {
+  position: relative;
+  min-height: 0;
+  display: grid;
+}
+.view {
+  grid-area: 1 / 1;        /* all views stacked, one shown at a time */
+  min-height: 0;
+  display: none;
+  overflow: auto;
+}
+.view.is-active { display: flex; }
+#view-passport.is-active { display: block; }
+
 /* ===========================================================================
-   THE BOOK
+   PASSPORT VIEW — the book
    --------------------------------------------------------------------------- */
 .book-wrap {
   position: relative;
   display: flex; align-items: center; justify-content: center;
   padding: 8px 60px;
   min-height: 0;
+  height: 100%;
 }
 .nav-arrow {
   position: absolute;
@@ -166,15 +185,12 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .nav-arrow:disabled { opacity: 0.2; cursor: not-allowed; }
 .nav-prev { left: 8px; }
 .nav-next { right: 8px; }
-
 .page-indicator {
-  position: absolute;
-  bottom: -2px; left: 50%; transform: translateX(-50%);
+  position: absolute; bottom: -2px; left: 50%; transform: translateX(-50%);
   font-size: 11px; color: var(--ink-3);
   letter-spacing: 0.18em; text-transform: uppercase;
 }
 
-/* Open passport: 2:1 aspect ratio (two 5:7 pages side-by-side). */
 .book {
   position: relative;
   width: min(1080px, 96vw);
@@ -187,8 +203,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   filter: drop-shadow(0 30px 50px rgba(0,0,0,0.55));
 }
 
-/* Each sheet is pinned to the spine (center) and rotates -180° around its
-   left edge. Two faces, front and back, with backface culling. */
+/* Sheets */
 .sheet {
   position: absolute;
   top: 0; bottom: 0;
@@ -200,9 +215,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   will-change: transform;
 }
 .sheet[data-state="flipped"] { transform: rotateY(-180deg); }
-.sheet[data-state="current"],
-.sheet[data-state="future"]  { transform: rotateY(0); }
-
+.sheet[data-state="current"], .sheet[data-state="future"] { transform: rotateY(0); }
 .book.no-anim .sheet { transition: none !important; }
 
 .sheet-face {
@@ -211,29 +224,20 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   -webkit-backface-visibility: hidden;
   overflow: hidden;
   display: flex;
-  /* Subtle paper edge */
   box-shadow:
     -2px 0 6px rgba(0,0,0,0.20),
     inset 14px 0 28px -14px rgba(0,0,0,0.30);
 }
 .sheet-back {
   transform: rotateY(180deg);
-  /* When viewed (after parent flip), the inner shadow should be on the right
-     edge instead of the left to keep the spine look consistent. */
   box-shadow:
     2px 0 6px rgba(0,0,0,0.20),
     inset -14px 0 28px -14px rgba(0,0,0,0.30);
 }
 
-/* "End of passport" filler on the last sheet if pages are odd */
 .end-paper { flex: 1; background: linear-gradient(135deg, var(--pp-paper), var(--pp-paper-2)); display: grid; place-items: center; color: var(--pp-ink-2); }
-.end-paper-eagle { font-size: 60px; color: var(--pp-gold); opacity: 0.7; }
-.end-paper-text { font-family: var(--font-display); letter-spacing: 0.18em; text-transform: uppercase; font-size: 14px; }
 
-/* ===========================================================================
-   PAGES — shared paper styling
-   --------------------------------------------------------------------------- */
-
+/* Page base */
 .page {
   flex: 1;
   position: relative;
@@ -242,63 +246,33 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   flex-direction: column;
 }
 
-/* Interior paper: warm cream with a faded eagle watermark + subtle ink lines */
+/* Cream paper (non-bio interior pages: stamps, log) — clean, no watermark */
 .paper {
   flex: 1;
   position: relative;
   background:
-    radial-gradient(circle at 22% 18%, rgba(255,255,255,0.55), transparent 55%),
+    radial-gradient(circle at 22% 18%, rgba(255,255,255,0.45), transparent 55%),
     linear-gradient(135deg, var(--pp-paper) 0%, var(--pp-paper-2) 100%);
   color: var(--pp-ink);
 }
-/* big watermark eagle */
-.paper::before {
-  content: "";
-  position: absolute; inset: 0;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'><g fill='%23173273' opacity='0.07'><path d='M100 30c-10 0-18 4-26 12 6-2 14-4 26-4s20 2 26 4c-8-8-16-12-26-12z'/><path d='M50 70c-8 4-14 12-18 22 4-2 10-4 18-4 16 0 26 8 38 18-6-22-22-36-38-36zM150 70c8 4 14 12 18 22-4-2-10-4-18-4-16 0-26 8-38 18 6-22 22-36 38-36z'/><circle cx='100' cy='100' r='22' fill='none' stroke='%23173273' stroke-width='2'/><path d='M100 122c-12 0-22 6-26 14 8-4 18-6 26-6s18 2 26 6c-4-8-14-14-26-14z'/><path d='M82 144c4 14 18 22 18 22s14-8 18-22c-6 4-12 6-18 6s-12-2-18-6z'/><path d='M100 178l-3-12 3-12 3 12z' opacity='0.5'/></g></svg>");
-  background-repeat: no-repeat;
-  background-position: 50% 55%;
-  background-size: 70%;
-  pointer-events: none;
-}
-/* subtle ink ledger lines (very faint) */
-.paper::after {
-  content: "";
-  position: absolute; inset: 0;
-  background-image:
-    repeating-linear-gradient(0deg, transparent 0 23px, rgba(45,77,155,0.05) 23px 24px);
-  pointer-events: none;
-  mix-blend-mode: multiply;
-  opacity: 0.6;
-}
-
-/* Variant: blue visa paper (for stamp pages and US states map) */
 .paper.blue {
   background:
     radial-gradient(circle at 78% 18%, rgba(255,255,255,0.45), transparent 55%),
     linear-gradient(135deg, var(--pp-paper-blue) 0%, var(--pp-paper-blue-2) 100%);
 }
-.paper.blue::before {
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'><g fill='%23b32525' opacity='0.08'><circle cx='100' cy='100' r='80' fill='none' stroke='%23b32525' stroke-width='2'/><circle cx='100' cy='100' r='66' fill='none' stroke='%23b32525' stroke-width='1'/><text x='100' y='40' text-anchor='middle' font-family='serif' font-size='10' letter-spacing='2'>UNITED STATES OF AMERICA</text><path d='M100 56c-22 0-40 18-40 40s18 40 40 40 40-18 40-40-18-40-40-40zm0 6c19 0 34 15 34 34s-15 34-34 34-34-15-34-34 15-34 34-34z'/></g></svg>");
-  background-position: 50% 50%;
-  background-size: 60%;
-  opacity: 0.6;
-}
 
-/* Page numbers in bottom corners */
 .page-num {
   position: absolute;
-  bottom: 8px;
+  bottom: 10px;
   font-family: var(--font-display);
   font-size: 11px;
   color: rgba(179, 37, 37, 0.55);
   letter-spacing: 0.10em;
   z-index: 5;
 }
-.sheet-front .page-num { right: 18px; }
-.sheet-back  .page-num { left: 18px; }
+.page-num-right { right: 18px; }
+.page-num-left  { left: 18px; }
 
-/* Page header strip (e.g. "Visas") */
 .page-header {
   padding: 12px 24px 6px;
   font-family: var(--font-display);
@@ -307,7 +281,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   font-size: 18px;
   letter-spacing: 0.04em;
   display: flex; justify-content: space-between; align-items: baseline;
-  border-bottom: 1px solid rgba(45,77,155,0.20);
+  border-bottom: 1px solid rgba(45,77,155,0.18);
   position: relative; z-index: 2;
 }
 .page-header small {
@@ -320,31 +294,27 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 }
 
 /* ===========================================================================
-   COVER PAGE — outside of US passport
+   COVER — clean US passport
    --------------------------------------------------------------------------- */
+.cover-page { display: flex; }
 .cover {
   flex: 1; position: relative;
   background:
-    radial-gradient(circle at 30% 25%, #16306a 0%, var(--pp-cover) 40%, var(--pp-cover-2) 100%);
+    radial-gradient(circle at 30% 25%, #16306a 0%, var(--pp-cover) 45%, var(--pp-cover-2) 100%);
   color: var(--pp-gold);
   display: grid; place-items: center;
-  padding: 36px 28px;
+  padding: 32px 26px;
   overflow: hidden;
 }
 .cover::before {
-  content: "";
-  position: absolute; inset: 14px;
+  content: ""; position: absolute; inset: 14px;
   border: 1.5px solid rgba(200, 160, 74, 0.45);
-  border-radius: 4px;
-  pointer-events: none;
+  border-radius: 4px; pointer-events: none;
 }
 .cover::after {
-  /* inner decorative border */
-  content: "";
-  position: absolute; inset: 24px;
+  content: ""; position: absolute; inset: 24px;
   border: 0.5px solid rgba(200, 160, 74, 0.30);
-  border-radius: 2px;
-  pointer-events: none;
+  border-radius: 2px; pointer-events: none;
 }
 .cover-shimmer {
   position: absolute; inset: 0; pointer-events: none;
@@ -356,26 +326,24 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   0%, 100% { transform: translateX(-30%); opacity: 0.4; }
   50%      { transform: translateX(30%); opacity: 0.9; }
 }
-.cover-inner { text-align: center; display: grid; gap: 16px; position: relative; z-index: 1; }
-
-.cover-eyebrow {
-  font-size: 9px; letter-spacing: 0.36em; text-transform: uppercase;
-  color: rgba(230, 196, 120, 0.65);
+.cover-inner {
+  display: grid; gap: 24px;
+  justify-items: center; align-items: center;
+  position: relative; z-index: 1; text-align: center;
 }
 .cover-emblem {
-  margin: 4px auto;
-  width: 150px; height: 150px;
-  display: grid; place-items: center;
+  width: 220px; height: 220px;
   filter:
-    drop-shadow(0 4px 16px rgba(230, 196, 120, 0.25))
-    drop-shadow(0 0 1px rgba(200, 160, 74, 0.4));
+    drop-shadow(0 4px 16px rgba(230, 196, 120, 0.30))
+    drop-shadow(0 0 1px rgba(200, 160, 74, 0.5));
+  color: var(--pp-gold);
 }
-.cover-emblem svg { width: 100%; height: 100%; color: var(--pp-gold); }
-
+.cover-emblem svg { width: 100%; height: 100%; }
+.cover-titles { display: grid; gap: 6px; }
 .cover h1 {
   font-family: var(--font-display);
-  margin: 4px 0 0;
-  font-size: clamp(28px, 5vw, 44px);
+  margin: 0;
+  font-size: clamp(32px, 5vw, 46px);
   font-weight: 400;
   letter-spacing: 0.34em;
   text-transform: uppercase;
@@ -385,16 +353,13 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .cover h2 {
   font-family: var(--font-display);
   margin: 0;
-  font-weight: 400;
-  font-style: italic;
-  font-size: clamp(16px, 2.4vw, 22px);
-  color: rgba(230, 196, 120, 0.92);
-  letter-spacing: 0.08em;
+  font-weight: 400; font-style: italic;
+  font-size: clamp(15px, 2.2vw, 18px);
+  color: rgba(230, 196, 120, 0.85);
+  letter-spacing: 0.20em;
 }
-
 .cover-chip {
-  margin: 18px auto 0;
-  width: 28px; height: 22px;
+  width: 30px; height: 24px;
   border-radius: 4px;
   background: linear-gradient(135deg, #d6b15e, #8a6d2e);
   position: relative;
@@ -410,384 +375,273 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   border: 0.5px solid rgba(0,0,0,0.4);
   border-radius: 1px;
 }
-.cover-name {
-  margin-top: 28px;
-  font-family: var(--font-display);
-  font-size: clamp(20px, 3vw, 26px);
-  color: white;
-  letter-spacing: 0.14em;
-  opacity: 0.85;
-}
-.cover-foot {
-  margin-top: 22px;
-  font-family: var(--font-mrz);
-  font-size: 10px;
-  color: rgba(230, 196, 120, 0.55);
-  letter-spacing: 0.16em;
-}
 
 /* ===========================================================================
-   BEARER / BIO PAGE — left side of first interior spread
+   BIO PAGE — true US passport layout
    --------------------------------------------------------------------------- */
-.bearer-page {
-  padding: 0;
-}
+.bio-page { padding: 0; }
 .bio {
-  position: relative;
   flex: 1;
+  position: relative;
+  display: grid;
+  grid-template-rows: 1fr 1.25fr auto;
+  background: linear-gradient(180deg, var(--pp-bio-top) 0%, var(--pp-bio-top) 42%, var(--pp-bio-bottom) 42%, var(--pp-bio-bottom) 100%);
+  color: var(--pp-ink);
+  overflow: hidden;
+}
+
+/* TOP HALF: We the People + eagle */
+.bio-top {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  padding: 16px 22px 12px;
+  overflow: hidden;
+}
+.bio-flag-stripes {
+  position: absolute;
+  top: 16px; left: 14px;
+  width: 130px; height: 56px;
+  background-image:
+    linear-gradient(180deg,
+      #b9252a 0 14.28%, #f6efe2 14.28% 28.57%,
+      #b9252a 28.57% 42.85%, #f6efe2 42.85% 57.14%,
+      #b9252a 57.14% 71.42%, #f6efe2 71.42% 85.71%,
+      #b9252a 85.71% 100%);
+  border-radius: 1px;
+  opacity: 0.55;
+  pointer-events: none;
+}
+.bio-flag-stripes::before {
+  /* canton */
+  content: "";
+  position: absolute;
+  top: 0; left: 0;
+  width: 52px; height: 30px;
+  background: #173273;
+  background-image:
+    radial-gradient(circle, white 0.5px, transparent 1.2px);
+  background-size: 6px 6px;
+  background-position: 3px 3px;
+}
+.bio-top-left { position: relative; z-index: 2; padding-top: 60px; }
+.we-the-people {
+  font-family: var(--font-script);
+  color: var(--pp-blue-deep);
+  font-size: clamp(28px, 4.2vw, 42px);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1;
+  margin-bottom: 12px;
+  text-shadow: 0 1px 0 rgba(255,255,255,0.6);
+}
+.preamble {
+  margin: 0 24px 0 0;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 10.5px;
+  line-height: 1.4;
+  color: var(--pp-blue-deep);
+  opacity: 0.85;
+}
+.signature-line {
+  margin-top: 14px;
+  margin-right: 32px;
+}
+.signature-line .signature {
+  display: block;
+  font-family: var(--font-script);
+  font-size: 24px;
+  color: #1a3262;
+  margin-bottom: -8px;
+  margin-left: 6px;
+}
+.signature-line hr {
+  border: 0; border-top: 1px solid rgba(45,77,155,0.45);
+  margin: 0;
+}
+.signature-line small {
+  font-size: 7.5px;
+  letter-spacing: 0.10em;
+  color: var(--pp-blue-deep);
+  display: block;
+  margin-top: 2px;
+}
+
+.bio-top-right {
+  position: relative;
+  display: flex; align-items: flex-end; justify-content: flex-end;
+}
+.bio-top-right svg {
+  width: 100%; height: 100%;
+  max-width: 320px;
+  margin-right: -10px;
+  margin-bottom: -10px;
+  opacity: 0.95;
+}
+
+/* BOTTOM HALF: passport ID block */
+.bio-bottom {
+  display: grid;
+  grid-template-columns: 130px 1fr;
+  gap: 14px;
+  padding: 12px 22px;
+  position: relative;
+}
+.bio-bottom-left {
   display: grid;
   grid-template-rows: auto 1fr auto;
-  padding: 14px 22px 22px;
-  color: var(--pp-ink);
+  gap: 8px;
 }
-.bio-header {
-  display: flex; align-items: center; justify-content: space-between;
-  font-family: var(--font-display);
-  color: var(--pp-blue-deep);
-  border-bottom: 1px solid rgba(45,77,155,0.25);
-  padding-bottom: 6px;
-}
-.bio-header .title {
-  font-style: italic;
-  font-size: 17px;
-  letter-spacing: 0.04em;
-}
-.bio-header .country-code {
-  font-family: var(--font-mrz);
-  font-size: 14px;
-  letter-spacing: 0.20em;
-  color: var(--pp-red);
-}
-
-.bio-body {
+.passport-label {
   display: grid;
-  grid-template-columns: 96px 1fr;
-  gap: 12px 18px;
-  padding-top: 14px;
+  grid-template-columns: 32px 1fr;
+  gap: 6px;
+  align-items: center;
+  background: var(--pp-blue-deep);
+  color: white;
+  padding: 6px 8px;
+  border-radius: 2px;
 }
+.passport-emblem { width: 28px; height: 28px; color: white; }
+.passport-emblem svg { width: 100%; height: 100%; }
+.passport-label-text { font-size: 10px; letter-spacing: 0.10em; line-height: 1.15; }
+.passport-label-text strong { font-weight: 800; font-size: 11px; letter-spacing: 0.12em; }
+.passport-label-text span { font-style: italic; opacity: 0.85; }
 
 .bio-photo {
-  width: 96px; height: 124px;
+  width: 120px; height: 150px;
   border: 1px solid var(--pp-blue-deep);
   border-radius: 2px;
   background:
-    linear-gradient(135deg, #efe6cf, #d8c89a);
+    linear-gradient(135deg, #f0e5cf, #d4c79a);
   display: grid; place-items: center;
   font-family: var(--font-display);
-  font-size: 44px; color: rgba(0,0,0,0.30);
+  font-size: 56px;
+  color: rgba(0,0,0,0.30);
   position: relative;
+  box-shadow: inset 0 0 0 2px rgba(255,255,255,0.5);
 }
 .bio-photo::after {
-  content: "";
-  position: absolute; inset: 2px;
+  content: ""; position: absolute; inset: 3px;
   border: 1px dashed rgba(0,0,0,0.10);
   border-radius: 1px;
 }
-
-.bio-fields {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px 18px;
-  font-size: 12px;
-  align-content: start;
+.bio-corner-seal {
+  width: 60px; height: 60px;
+  color: var(--pp-blue-deep);
+  opacity: 0.5;
 }
-.bio-fields .row { display: grid; gap: 1px; }
+.bio-corner-seal svg { width: 100%; height: 100%; }
+
+.bio-bottom-right {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: 6px;
+}
+.bio-country {
+  margin: 0;
+  font-family: var(--font-display);
+  color: var(--pp-blue-deep);
+  font-weight: 700;
+  font-size: clamp(16px, 2.3vw, 20px);
+  letter-spacing: 0.10em;
+  border-bottom: 1px solid rgba(45,77,155,0.30);
+  padding-bottom: 4px;
+}
+
+.bio-fields { display: grid; gap: 5px; align-content: start; }
+.bio-fields .row { display: grid; gap: 8px; grid-template-columns: 1fr 1fr; }
+.bio-fields .row.triple { grid-template-columns: 0.5fr 0.5fr 1fr; }
+.bio-fields .row > .field:only-child { grid-column: 1 / -1; }
+.bio-fields .field { display: grid; gap: 0; }
+.bio-fields .field.span-2 { grid-column: span 2; }
 .bio-fields dt {
-  font-size: 8.5px;
-  letter-spacing: 0.16em;
+  font-size: 7.5px;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--pp-blue-deep);
-  font-weight: 600;
+  font-weight: 700;
+  line-height: 1.1;
 }
 .bio-fields dd {
   margin: 0;
   font-family: var(--font-mrz);
-  font-size: 12px;
-  letter-spacing: 0.06em;
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
   color: var(--pp-ink);
+  line-height: 1.25;
 }
 
 .bio-mrz {
+  padding: 8px 24px 14px;
   font-family: var(--font-mrz);
   font-size: 11px;
-  letter-spacing: 0.12em;
-  color: var(--pp-ink-2);
+  letter-spacing: 0.10em;
+  color: var(--pp-ink);
   border-top: 1px solid rgba(45,77,155,0.20);
-  padding-top: 8px;
+  background: rgba(255,255,255,0.30);
   line-height: 1.55;
   word-break: break-all;
 }
 
 /* ===========================================================================
-   STATS DASHBOARD — Flighty-style cards on a passport page
+   STAMP PAGES
    --------------------------------------------------------------------------- */
-.inner {
-  position: relative; z-index: 2;
-  padding: 12px 24px 22px;
-  height: 100%;
-  display: flex; flex-direction: column; gap: 10px;
-  color: var(--pp-ink);
-}
-.inner-scroll {
-  flex: 1; overflow: auto;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(45,77,155,0.30) transparent;
-}
-.inner-scroll::-webkit-scrollbar { width: 6px; }
-.inner-scroll::-webkit-scrollbar-thumb { background: rgba(45,77,155,0.30); border-radius: 3px; }
-
-.hero-stats {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-.hero-stat {
-  position: relative;
-  padding: 12px 14px;
-  background: rgba(255,255,255,0.55);
-  border: 1px solid rgba(45,77,155,0.20);
-  border-radius: 10px;
-  box-shadow: 0 1px 0 rgba(255,255,255,0.6) inset;
-}
-.hero-stat .num {
-  font-family: var(--font-display);
-  font-size: clamp(26px, 3.6vw, 38px);
-  font-weight: 700;
-  line-height: 1;
-  color: var(--pp-blue-deep);
-}
-.hero-stat .label {
-  margin-top: 6px;
-  font-size: 9.5px; letter-spacing: 0.18em; text-transform: uppercase;
-  color: var(--pp-red);
-  font-weight: 700;
-}
-.hero-stat .sub { margin-top: 4px; font-size: 11px; color: var(--pp-ink-2); }
-
-.stat-grid {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
-}
-.stat-card {
-  background: rgba(255,255,255,0.55);
-  border: 1px solid rgba(45,77,155,0.20);
-  border-radius: 10px;
-  padding: 10px 12px;
-}
-.stat-card .title {
-  font-size: 9.5px; letter-spacing: 0.18em; text-transform: uppercase;
-  color: var(--pp-red); font-weight: 700;
-}
-.stat-card .big {
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: clamp(22px, 3vw, 32px);
-  color: var(--pp-blue-deep);
-  line-height: 1; margin: 4px 0 2px;
-}
-.stat-card .sub { font-size: 11px; color: var(--pp-ink-2); }
-
-.weekday-chart { display: flex; align-items: end; gap: 6px; height: 78px; margin-top: 8px; }
-.weekday-chart .bar {
-  flex: 1; background: var(--pp-blue);
-  border-radius: 3px 3px 1px 1px;
-  position: relative; min-height: 3px;
-}
-.weekday-chart .bar::after {
-  content: attr(data-label);
-  position: absolute; bottom: -15px; left: 50%; transform: translateX(-50%);
-  font-size: 9px; color: var(--pp-ink-2);
-}
-
-.rank-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 5px; }
-.rank-list li {
-  display: grid;
-  grid-template-columns: 52px 1fr auto;
-  align-items: center;
-  gap: 8px;
-  font-size: 12px;
-}
-.rank-list .rank-bar {
-  height: 12px;
-  background: linear-gradient(90deg, var(--pp-blue-deep), var(--pp-blue));
-  border-radius: 6px;
-  min-width: 2%;
-}
-.rank-list code { font-family: var(--font-mrz); font-size: 11px; color: var(--pp-ink); }
-.rank-list .v { font-variant-numeric: tabular-nums; font-weight: 700; color: var(--pp-blue-deep); }
-
-.distance-bars { display: grid; gap: 8px; margin-top: 6px; }
-.distance-bars .row {
-  display: grid; grid-template-columns: 22px 1fr auto; gap: 10px; align-items: center;
-  font-size: 12px;
-}
-.distance-bars .track { height: 14px; border-radius: 999px; background: rgba(45,77,155,0.10); overflow: hidden; }
-.distance-bars .fill { height: 100%; background: linear-gradient(90deg, var(--pp-red-deep), var(--pp-red)); border-radius: 999px; }
-.distance-bars .mul { font-family: var(--font-mrz); color: var(--pp-ink); }
-
-.flight-extremes { display: grid; gap: 6px; margin-top: 4px; }
-.flight-extreme {
-  display: grid; grid-template-columns: 1fr auto;
-  align-items: center;
-  padding: 7px 10px;
-  background: rgba(45,77,155,0.05);
-  border: 1px solid rgba(45,77,155,0.18);
-  border-radius: 8px;
-}
-.flight-extreme .leg { font-weight: 700; }
-.flight-extreme .meta { font-size: 10px; color: var(--pp-ink-2); }
-.flight-extreme .val { font-family: var(--font-mrz); font-weight: 700; color: var(--pp-red); }
-
-/* ===========================================================================
-   MAP PAGES
-   --------------------------------------------------------------------------- */
-.map-page {
-  /* override the paper textures so the SVG isn't crossed by lines */
-  background: linear-gradient(180deg, #f3eddb, #e9dec0);
-}
-.map-page::before, .map-page::after { display: none !important; }
-.map-page .wrap {
-  padding: 12px 22px 22px;
-  height: 100%;
-  display: flex; flex-direction: column; gap: 8px;
-  position: relative; z-index: 2;
-}
-.map-page .wrap > h2 {
-  font-family: var(--font-display); font-style: italic;
-  color: var(--pp-blue-deep); margin: 0;
-  font-size: 18px; letter-spacing: 0.04em;
-  display: flex; justify-content: space-between; align-items: baseline;
-}
-.map-page .wrap > h2 small {
-  font-family: var(--font-sans);
-  font-style: normal;
-  font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
-  color: var(--pp-ink-2);
-}
-.map-svg { flex: 1; width: 100%; height: 100%; }
-
-/* World map */
-.map-svg .land   { fill: #f6efd6; stroke: rgba(45,77,155,0.30); stroke-width: 0.5; }
-.map-svg .land.visited { fill: #2d4d9b; stroke: var(--pp-blue-deep); stroke-width: 0.5; }
-.map-svg .graticule { fill: none; stroke: rgba(45,77,155,0.10); stroke-width: 0.4; }
-.map-svg .arc       { fill: none; stroke: var(--pp-red); stroke-width: 0.9; opacity: 0.55; stroke-linecap: round; }
-.map-svg .airport-dot { fill: var(--pp-red-deep); stroke: white; stroke-width: 0.8; }
-.map-svg .airport-dot.big { fill: var(--pp-gold); stroke: var(--pp-red-deep); stroke-width: 1; }
-.map-legend {
-  display: flex; gap: 14px;
-  font-size: 10px; color: var(--pp-ink-2);
-  font-family: var(--font-sans); letter-spacing: 0.10em; text-transform: uppercase;
-}
-.map-legend .sw { display: inline-block; width: 10px; height: 10px; border-radius: 50%; vertical-align: middle; margin-right: 6px; }
-
-/* US states map — sit on a flat panel so the paper fibers don't bleed through */
-.us-map-page .inner { padding-top: 14px; }
-.us-map-panel {
-  flex: 1;
-  background: linear-gradient(180deg, #efe7cb, #e6d8ab);
-  border: 1px solid rgba(45,77,155,0.20);
-  border-radius: 10px;
-  padding: 10px;
-  position: relative; overflow: hidden;
-}
-.us-map .land   { fill: #faf5e2; stroke: rgba(45,77,155,0.45); stroke-width: 0.7; }
-.us-map .land.visited { fill: #2d4d9b; stroke: var(--pp-blue-deep); stroke-width: 0.7; }
-.us-map .label { font-size: 9px; fill: rgba(255,255,255,0.95); font-family: var(--font-mrz); font-weight: 700; pointer-events: none; letter-spacing: 0.06em; }
-.us-map .label.unvisited { fill: rgba(45,77,155,0.55); font-weight: 500; }
-
-.us-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 8px; }
-.us-stats .cell {
-  background: rgba(255,255,255,0.55);
-  border: 1px solid rgba(45,77,155,0.20);
-  border-radius: 10px; padding: 8px 10px;
-}
-.us-stats .cell .big {
-  font-family: var(--font-display);
-  font-size: 22px; font-weight: 700; color: var(--pp-blue-deep); line-height: 1;
-}
-.us-stats .cell .lbl {
-  font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase;
-  color: var(--pp-red); font-weight: 700;
-}
-
-/* ===========================================================================
-   STAMP PAGES — playful, varied stamps
-   --------------------------------------------------------------------------- */
-.stamps {
-  padding: 0;
-  position: relative;
-  height: 100%;
-}
+.stamps-page { padding: 0; }
+.stamps { padding: 0; position: relative; height: 100%; }
 .stamps-inner {
   position: relative; z-index: 2;
-  padding: 12px 24px 22px;
+  padding: 10px 22px 22px;
   height: 100%;
   display: flex; flex-direction: column; gap: 6px;
 }
 .stamps-grid {
-  position: relative;
   flex: 1;
   display: grid;
   grid-template-columns: 1fr 1fr;
   grid-template-rows: 1fr 1fr;
-  gap: 0;
-  align-items: stretch;
-  justify-items: stretch;
+  align-items: stretch; justify-items: stretch;
   padding: 8px;
 }
-.stamp-cell {
-  position: relative;
-  display: grid; place-items: center;
-}
+.stamp-cell { position: relative; display: grid; place-items: center; }
 
 .stamp {
-  --rot: 0deg;
-  --c: var(--stamp-red);
+  --rot: 0deg; --c: var(--stamp-red);
   position: relative;
   color: var(--c);
   font-family: var(--font-stamp);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   transform: rotate(var(--rot)) translate(var(--tx, 0), var(--ty, 0));
-  filter: drop-shadow(0 1px 0 rgba(0,0,0,0.10));
-  /* Subtle ink-on-paper effect */
+  filter: drop-shadow(0 1px 0 rgba(0,0,0,0.08));
   mix-blend-mode: multiply;
   opacity: 0.92;
 }
 .stamp::after {
-  /* fine grain / smudge */
-  content: "";
-  position: absolute; inset: -3px;
+  content: ""; position: absolute; inset: -3px;
   background-image: radial-gradient(circle, rgba(0,0,0,0.04), transparent 60%);
   pointer-events: none;
 }
 
-/* --- shape: rectangle (classic immigration stamp) --- */
 .stamp.shape-rect {
   border: 2px solid currentColor;
   padding: 6px 12px;
   border-radius: 2px;
-  min-width: 120px;
-  max-width: 180px;
+  min-width: 120px; max-width: 180px;
 }
 .stamp.shape-rect::before {
-  content: "";
-  position: absolute; inset: 3px;
+  content: ""; position: absolute; inset: 3px;
   border: 0.5px solid currentColor;
-  border-radius: 1px;
-  pointer-events: none;
+  border-radius: 1px; pointer-events: none;
 }
-
-/* --- shape: oval --- */
 .stamp.shape-oval {
   border: 2px solid currentColor;
   padding: 8px 16px;
   border-radius: 50% / 35%;
-  min-width: 130px;
-  max-width: 180px;
+  min-width: 130px; max-width: 180px;
   text-align: center;
 }
-
-/* --- shape: circle --- */
 .stamp.shape-circle {
   border: 2px solid currentColor;
   padding: 10px;
@@ -796,13 +650,9 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   display: grid; place-items: center; text-align: center;
 }
 .stamp.shape-circle::before {
-  content: "";
-  position: absolute; inset: 4px;
-  border: 0.5px solid currentColor;
-  border-radius: 50%;
+  content: ""; position: absolute; inset: 4px;
+  border: 0.5px solid currentColor; border-radius: 50%;
 }
-
-/* --- shape: square (with cutout corners) --- */
 .stamp.shape-square {
   border: 2px solid currentColor;
   padding: 10px;
@@ -812,53 +662,21 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   clip-path: polygon(8% 0, 92% 0, 100% 8%, 100% 92%, 92% 100%, 8% 100%, 0 92%, 0 8%);
 }
 
-/* Stamp inner content */
 .stamp .country {
-  font-size: 16px;
-  font-weight: 800;
+  font-size: 14px; font-weight: 800;
   letter-spacing: 0.10em;
   border-bottom: 1.5px solid currentColor;
-  padding-bottom: 2px;
-  margin-bottom: 4px;
+  padding-bottom: 2px; margin-bottom: 4px;
   display: flex; justify-content: space-between; align-items: baseline; gap: 8px;
 }
-.stamp.shape-circle .country,
-.stamp.shape-square .country {
-  border-bottom: 0;
-  padding-bottom: 0;
-  display: block;
-  font-size: 14px;
+.stamp.shape-circle .country, .stamp.shape-square .country {
+  border-bottom: 0; padding-bottom: 0; display: block; font-size: 13px;
 }
-.stamp .verb {
-  font-size: 11px;
-  letter-spacing: 0.16em;
-  font-weight: 700;
-}
-.stamp .date {
-  font-family: var(--font-mrz);
-  font-size: 12px;
-  letter-spacing: 0.08em;
-  margin-top: 3px;
-}
-.stamp .codes {
-  font-family: var(--font-mrz);
-  font-size: 10px;
-  margin-top: 3px;
-  letter-spacing: 0.16em;
-  opacity: 0.9;
-}
-.stamp .plane {
-  position: absolute;
-  top: 4px; left: 4px;
-  font-size: 12px;
-  opacity: 0.85;
-}
-.stamp.shape-circle .plane {
-  position: static;
-  display: block;
-  font-size: 16px;
-  margin-bottom: 2px;
-}
+.stamp .verb { font-size: 10px; letter-spacing: 0.16em; font-weight: 700; }
+.stamp .date { font-family: var(--font-mrz); font-size: 11px; letter-spacing: 0.08em; margin-top: 3px; }
+.stamp .codes { font-family: var(--font-mrz); font-size: 9px; margin-top: 3px; letter-spacing: 0.14em; opacity: 0.9; }
+.stamp .plane { position: absolute; top: 4px; left: 4px; font-size: 11px; opacity: 0.85; }
+.stamp.shape-circle .plane { position: static; display: block; font-size: 15px; margin-bottom: 2px; }
 
 .stamp.color-red    { --c: var(--stamp-red); }
 .stamp.color-blue   { --c: var(--stamp-blue); }
@@ -866,9 +684,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .stamp.color-purple { --c: var(--stamp-purple); }
 .stamp.color-brown  { --c: var(--stamp-brown); }
 .stamp.color-black  { --c: var(--stamp-black); }
-
-/* Smaller text variant for stamps with long country names */
-.stamp.dense .country { font-size: 13px; letter-spacing: 0.06em; }
+.stamp.dense .country { font-size: 12px; letter-spacing: 0.06em; }
 
 /* ===========================================================================
    FLIGHT LOG PAGE
@@ -876,12 +692,15 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .log-page { padding: 0; }
 .log {
   position: relative; z-index: 2;
-  padding: 12px 22px 22px;
-  height: 100%;
+  padding: 8px 22px 22px;
+  height: calc(100% - 40px);
   display: flex; flex-direction: column; gap: 8px;
   color: var(--pp-ink);
 }
-.log .inner-scroll { flex: 1; }
+.inner-scroll { flex: 1; overflow: auto; scrollbar-width: thin; scrollbar-color: rgba(45,77,155,0.30) transparent; }
+.inner-scroll::-webkit-scrollbar { width: 6px; }
+.inner-scroll::-webkit-scrollbar-thumb { background: rgba(45,77,155,0.30); border-radius: 3px; }
+
 .log table {
   width: 100%;
   border-collapse: collapse;
@@ -890,16 +709,12 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 }
 .log th {
   text-align: left;
-  font-size: 9px;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
+  font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase;
   color: var(--pp-blue-deep);
   padding: 6px 4px;
   border-bottom: 1px solid rgba(45,77,155,0.30);
-  position: sticky; top: 0;
-  background: var(--pp-paper);
-  font-family: var(--font-sans);
-  font-weight: 700;
+  position: sticky; top: 0; background: var(--pp-paper);
+  font-family: var(--font-sans); font-weight: 700;
 }
 .log td {
   padding: 4px 4px;
@@ -911,25 +726,221 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .log td.miles { text-align: right; font-variant-numeric: tabular-nums; }
 
 /* ===========================================================================
+   STATS VIEW (standalone tab)
+   --------------------------------------------------------------------------- */
+.view-inner {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 24px 48px;
+  color: var(--ink-1);
+}
+.view-header { margin-bottom: 18px; }
+.view-header h1 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(26px, 3.8vw, 38px);
+  margin: 0 0 4px;
+  letter-spacing: 0.02em;
+}
+.view-header .muted { font-size: 13px; }
+
+.hero-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.hero {
+  padding: 18px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 14px;
+}
+.hero .num {
+  font-family: var(--font-display);
+  font-size: clamp(28px, 3.8vw, 44px);
+  font-weight: 700;
+  color: var(--accent);
+  line-height: 1;
+}
+.hero .label {
+  margin-top: 6px;
+  font-size: 10px; letter-spacing: 0.20em; text-transform: uppercase;
+  color: var(--ink-2);
+}
+.hero .sub { margin-top: 4px; font-size: 12px; color: var(--ink-3); }
+
+.grid-2col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+.card {
+  padding: 16px 18px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 14px;
+}
+.card.span-2 { grid-column: 1 / -1; }
+.card h2 {
+  margin: 0 0 12px;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 16px;
+  letter-spacing: 0.04em;
+  color: var(--ink-1);
+}
+.card h2 .muted { font-size: 11px; margin-left: 4px; }
+
+.weekday-chart {
+  display: flex; align-items: end; gap: 8px;
+  height: 140px;
+}
+.weekday-chart .bar {
+  flex: 1;
+  background: linear-gradient(180deg, var(--accent), var(--accent-2));
+  border-radius: 6px 6px 2px 2px;
+  min-height: 4px;
+}
+.weekday-labels {
+  display: grid; grid-template-columns: repeat(7, 1fr); margin-top: 8px;
+  text-align: center; color: var(--ink-3); font-size: 11px; letter-spacing: 0.10em;
+}
+
+.distance-bars { display: grid; gap: 12px; }
+.distance-bars .row {
+  display: grid; grid-template-columns: 28px 1fr auto; gap: 12px; align-items: center;
+  font-size: 13px;
+}
+.distance-bars .track {
+  height: 20px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.06);
+  overflow: hidden;
+}
+.distance-bars .fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-2), var(--accent));
+  border-radius: 999px;
+}
+.distance-bars .mul { font-family: var(--font-mrz); color: var(--ink-1); }
+
+.rank-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; }
+.rank-list li {
+  display: grid;
+  grid-template-columns: 60px 1fr auto;
+  align-items: center; gap: 10px;
+  font-size: 13px;
+}
+.rank-list code { font-family: var(--font-mrz); font-size: 12px; color: var(--ink-1); }
+.rank-list .rank-bar {
+  height: 14px;
+  background: linear-gradient(90deg, var(--accent-2), var(--accent));
+  border-radius: 7px; min-width: 2%;
+}
+.rank-list .v { font-variant-numeric: tabular-nums; font-weight: 600; color: var(--accent); }
+.rank-list.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 18px;
+}
+
+.extremes-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+}
+.extreme-label { font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 6px; }
+.flight-extreme {
+  display: grid; grid-template-columns: 1fr auto;
+  align-items: center;
+  padding: 10px 12px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+.flight-extreme .leg { font-weight: 700; }
+.flight-extreme .meta { font-size: 11px; color: var(--ink-3); }
+.flight-extreme .val { font-family: var(--font-mrz); font-weight: 700; color: var(--accent); }
+
+/* ===========================================================================
+   WORLD & USA VIEWS
+   --------------------------------------------------------------------------- */
+.map-stage {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  padding: 12px;
+}
+.map-svg { width: 100%; height: 100%; }
+.world-svg { aspect-ratio: 2 / 1; height: auto; }
+.us-svg    { aspect-ratio: 8 / 5; height: auto; }
+
+/* World map fills */
+.world-svg .land   { fill: rgba(255,255,255,0.10); stroke: rgba(255,255,255,0.18); stroke-width: 0.5; }
+.world-svg .land.visited { fill: var(--accent); stroke: var(--accent-2); stroke-width: 0.6; }
+.world-svg .graticule { fill: none; stroke: rgba(255,255,255,0.06); stroke-width: 0.4; }
+.world-svg .arc       { fill: none; stroke: var(--accent-2); stroke-width: 1; opacity: 0.55; stroke-linecap: round; }
+.world-svg .airport-dot { fill: #b32525; stroke: white; stroke-width: 1; }
+.world-svg .airport-dot.big { fill: #c8a04a; stroke: #7a1a1a; stroke-width: 1.2; }
+
+/* US map fills */
+.us-svg .land { fill: rgba(255,255,255,0.10); stroke: rgba(255,255,255,0.20); stroke-width: 0.7; }
+.us-svg .land.visited { fill: var(--accent); stroke: var(--accent-2); stroke-width: 0.7; }
+.us-svg .label { font-size: 11px; fill: rgba(255,255,255,0.95); font-family: var(--font-mrz); font-weight: 700; pointer-events: none; letter-spacing: 0.04em; }
+.us-svg .label.unvisited { fill: rgba(255,255,255,0.30); font-weight: 500; }
+
+.map-legend {
+  margin-top: 10px;
+  display: flex; flex-wrap: wrap; gap: 14px;
+  font-size: 11px; color: var(--ink-2);
+  letter-spacing: 0.10em; text-transform: uppercase;
+}
+.map-legend .sw { display: inline-block; width: 10px; height: 10px; border-radius: 50%; vertical-align: middle; margin-right: 6px; }
+
+.us-grid {
+  display: grid; grid-template-columns: 2fr 1fr; gap: 14px;
+}
+.us-side { display: grid; gap: 14px; align-content: start; }
+.us-tally {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+}
+.us-tally .cell {
+  padding: 12px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+.us-tally .cell .big {
+  font-family: var(--font-display);
+  font-size: 28px; font-weight: 700; color: var(--accent); line-height: 1;
+}
+.us-tally .cell .lbl {
+  font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-2);
+}
+
+.us-airports li code { color: var(--accent); }
+
+/* ===========================================================================
    Responsive
    --------------------------------------------------------------------------- */
-@media (max-width: 880px) {
-  /* Keep the two-page spread but shrink it; book aspect goes wider. */
-  .book {
-    width: min(820px, 96vw);
-    aspect-ratio: 10 / 7;
-  }
-}
-@media (max-width: 720px) {
+@media (max-width: 900px) {
   .topbar { flex-wrap: wrap; padding: 10px 14px; }
-  .page-jump { order: 3; flex-basis: 100%; justify-content: center; }
+  .view-tabs { order: 3; flex-basis: 100%; justify-content: center; }
   .book-wrap { padding: 4px 12px; }
   .nav-arrow { width: 40px; height: 40px; }
   .nav-prev { left: 0; }
   .nav-next { right: 0; }
-  .hero-stats, .stat-grid, .stamps-grid { grid-template-columns: 1fr; }
+  .hero-row { grid-template-columns: repeat(2, 1fr); }
+  .grid-2col { grid-template-columns: 1fr; }
+  .extremes-grid { grid-template-columns: 1fr; }
+  .us-grid { grid-template-columns: 1fr; }
+  .rank-list.two-col { grid-template-columns: 1fr; }
 }
-
+@media (max-width: 720px) {
+  .stamps-grid { grid-template-columns: 1fr; }
+  .hero-row { grid-template-columns: 1fr 1fr; }
+  .book { aspect-ratio: 10 / 8; }
+}
 @media (prefers-reduced-motion: reduce) {
   .bg-stars::after, .cover-shimmer { animation: none; }
   .sheet { transition: none; }
