@@ -4,7 +4,7 @@
 import { computeStats } from "./stats.js";
 import { buildPages } from "./pages.js";
 import { initPassport } from "./passport.js";
-import { renderStatsView, renderWorldView, renderUSView } from "./views.js";
+import { renderStatsView, renderWorldView, renderUSView, renderLogView } from "./views.js";
 import { renderAchievementsView } from "./achievements.js";
 
 const DATA_PATHS = {
@@ -50,6 +50,7 @@ function initTabs(ctx) {
       else if (name === "world") renderWorldView(root, ctx);
       else if (name === "usa") renderUSView(root, ctx);
       else if (name === "achievements") renderAchievementsView(root, ctx);
+      else if (name === "log") renderLogView(root, ctx);
       rendered.add(name);
     }
     history.replaceState(null, "", `#${name}`);
@@ -85,8 +86,17 @@ async function boot() {
     countries: countries || {},
   };
 
-  document.getElementById("meta-flights").textContent =
-    `${flights.length.toLocaleString()} flights · ${Object.keys(airports).length.toLocaleString()} airports loaded`;
+  // Last-Updated indicator — pull Last-Modified header from flights.json
+  fetch(DATA_PATHS.flights, { method: "HEAD" })
+    .then(r => {
+      const lm = r.headers.get("Last-Modified");
+      if (!lm) return;
+      const d = new Date(lm);
+      if (isNaN(d)) return;
+      document.getElementById("meta-updated").textContent = "Updated " + relativeTime(d);
+      document.getElementById("meta-updated").title = "Last updated " + d.toLocaleString();
+    })
+    .catch(() => {});
 
   ctx.stats = computeStats(ctx);
 
@@ -95,8 +105,22 @@ async function boot() {
   const pages = buildPages(ctx);
   initPassport(book, pages);
 
-  // Wire up tab switching (lazy-renders Stats/World/USA on first reveal)
+  // Wire up tab switching (lazy-renders Stats/World/USA/Achievements/Log)
   initTabs(ctx);
+
+  // "Travel Passport" brand returns to the Passport tab.
+  document.getElementById("brand-home").addEventListener("click", () => {
+    document.querySelector('.view-tabs button[data-view="passport"]').click();
+  });
+}
+
+function relativeTime(date) {
+  const sec = Math.max(0, (Date.now() - date.getTime()) / 1000);
+  if (sec < 60)         return "just now";
+  if (sec < 3600)       return `${Math.round(sec / 60)} min ago`;
+  if (sec < 86400)      return `${Math.round(sec / 3600)} hr ago`;
+  if (sec < 86400 * 7)  return `${Math.round(sec / 86400)} d ago`;
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
 boot().catch(err => {

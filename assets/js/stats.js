@@ -167,6 +167,27 @@ export function computeStats(ctx) {
   out.avgMiles   = out.total ? out.miles   / out.total : 0;
   out.avgMinutes = out.total ? out.minutes / out.total : 0;
 
+  // ── Carbon footprint ────────────────────────────────────────────────────
+  // ICAO-style economy-class emissions factors per passenger-km:
+  //   short-haul   (<800 km)   : 158 g CO₂ / pkm
+  //   medium-haul  (800–3700)  : 133 g CO₂ / pkm
+  //   long-haul    (>3700 km)  : 115 g CO₂ / pkm
+  // Add a fixed ~30 kg per leg to account for taxi/take-off/landing burn.
+  const KM_PER_MI = 1.60934;
+  let co2Kg = 0;
+  for (const f of flights) {
+    const km = (f._miles || 0) * KM_PER_MI;
+    if (km <= 0) continue;
+    const factor = km < 800 ? 0.158 : km < 3700 ? 0.133 : 0.115;
+    co2Kg += km * factor + 30;
+  }
+  out.co2Kg     = co2Kg;
+  out.co2Tonnes = co2Kg / 1000;
+  // Equivalent activities (rough): one tree absorbs ~21 kg CO₂/yr.
+  out.treesNeededPerYear = co2Kg / 21;
+  // Average gasoline car emits ~404 g CO₂ / mile.
+  out.carEquivalentMiles = co2Kg * 1000 / 404;
+
   out.topAirports = topN(out.airports, 10);
   out.topAirlines = topN(new Map([...out.airlines.entries()].map(([k,v]) => [k, v.count])), 10)
     .map(r => ({ ...r, info: out.airlines.get(r.key) }));
