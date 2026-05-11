@@ -57,6 +57,16 @@ export function initPassport(bookEl, pages) {
   }
 
   function applyStates() {
+    // Only two sheets are actually visible at any time:
+    //   - sheet[flipped - 1]: its .sheet-back is showing on the LEFT page
+    //   - sheet[flipped]:     its .sheet-front is showing on the RIGHT page
+    // Every other sheet is buried in one of the two piles. We make those
+    // buried sheets pointer-events:none so they can never intercept a click
+    // that should reach a stamp on the visible top sheet — especially the
+    // left page, where multiple flipped sheets are stacked at the same
+    // visual position and the browser's 3D hit-test can otherwise route the
+    // click into the wrong sheet.
+    const topFlipped = flipped - 1;       // index of the topmost flipped sheet (or -1)
     sheets.forEach((s, i) => {
       if (i < flipped) {
         s.dataset.state = "flipped";
@@ -65,6 +75,7 @@ export function initPassport(bookEl, pages) {
         s.dataset.state = i === flipped ? "current" : "future";
         s.style.zIndex = String(500 - i);   // current sheet on top
       }
+      s.style.pointerEvents = (i === topFlipped || i === flipped) ? "" : "none";
     });
     prevBtn.disabled = flipped === 0;
     nextBtn.disabled = flipped >= maxFlipped;

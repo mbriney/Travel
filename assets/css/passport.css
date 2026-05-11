@@ -267,6 +267,15 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
     inset -14px 0 28px -14px rgba(0,0,0,0.30);
 }
 
+/* Hit-test only the visible face of each sheet. Without this, the browser
+   sometimes mis-routes clicks through a back-face element (especially when
+   multiple flipped sheets are stacked), which is why stamps on the
+   left-hand (back-face) page wouldn't fire their click handler. */
+.sheet[data-state="flipped"] .sheet-front { pointer-events: none; }
+.sheet[data-state="current"] .sheet-back,
+.sheet[data-state="future"]  .sheet-back,
+.sheet[data-state="future"]  .sheet-front { pointer-events: none; }
+
 /* Belt + suspenders: any transformed or animated descendant inside a sheet
    inherits backface-visibility:hidden too. Without this, things like the
    cover shimmer, the mirrored PASSPORT watermark, or the chip's pseudo-
