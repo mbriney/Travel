@@ -173,12 +173,55 @@ export async function drawWorldGlobe(svg, ctx) {
   // teardown got interrupted) and should be evicted.
   const ownedDotNodes = new Set(dotEntries.map(e => e.node));
 
+  // Active eviction: a MutationObserver fires synchronously on any DOM change.
+  // If something adds a circle to this SVG that isn't one of ours — whether
+  // from a stale globe instance, an old cached script, or anything else — we
+  // remove it before it can paint. This is the nuclear option for ghost dots.
+  let ghostsEvicted = 0;
+  const observer = new MutationObserver((mutations) => {
+    for (const m of mutations) {
+      for (const node of m.addedNodes) {
+        if (node.nodeType !== 1) continue;
+        if (node.nodeName === "circle" && !ownedDotNodes.has(node)) {
+          node.remove();
+          ghostsEvicted++;
+          continue;
+        }
+        // Also scan within added subtrees for nested ghost circles.
+        if (typeof node.querySelectorAll === "function") {
+          for (const c of node.querySelectorAll("circle")) {
+            if (!ownedDotNodes.has(c)) {
+              c.remove();
+              ghostsEvicted++;
+            }
+          }
+        }
+      }
+    }
+  });
+  observer.observe(svg, { childList: true, subtree: true });
+
+  // One-time diagnostic: log if we found ANY circles in the SVG that we
+  // didn't put there. This is visible in DevTools → Console.
+  function reportGhosts() {
+    const all = svg.querySelectorAll("circle");
+    let stale = 0;
+    for (const c of all) if (!ownedDotNodes.has(c)) stale++;
+    if (stale > 0 || ghostsEvicted > 0) {
+      console.warn(
+        `[globe] circles in SVG: ${all.length} total, ${ownedDotNodes.size} owned, ${stale} stale (purging). ` +
+        `Evicted by observer so far: ${ghostsEvicted}.`
+      );
+    }
+  }
+  setTimeout(reportGhosts, 100);
+  setTimeout(reportGhosts, 2000);
+
   function updateDots() {
     // Defensive: every redraw, purge any <circle> in the SVG that isn't one
     // of ours. Without this, a circle left behind by a previous (interrupted)
     // build sits frozen at its original projection — exactly the "ghost dots
-    // that don't move with the globe" symptom. Cheap: typically a no-op,
-    // since we only add ~few hundred circles total.
+    // that don't move with the globe" symptom.
     for (const c of svg.querySelectorAll("circle")) {
       if (!ownedDotNodes.has(c)) c.remove();
     }
@@ -275,6 +318,7 @@ export async function drawWorldGlobe(svg, ctx) {
   const handle = {
     stop() {
       stopped = true;
+      observer.disconnect();
       svg.removeEventListener("mousedown", onDragStart);
       window.removeEventListener("mousemove", onDragMove);
       window.removeEventListener("mouseup",   onDragEnd);
