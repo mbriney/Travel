@@ -202,12 +202,6 @@ def fetch_past_air_objects(auth: OAuth1) -> list[dict]:
                 continue
             raise
         airs = _aslist(data.get("AirObject"))
-        # Some responses also carry a Trip array (for display_name lookups);
-        # keep them in a side-index if present.
-        trips_in_resp = _aslist(data.get("Trip"))
-        trip_names = {str(t.get("id")): t.get("display_name") for t in trips_in_resp}
-        for a in airs:
-            a["_trip_name"] = trip_names.get(str(a.get("trip_id")))
         all_airs.extend(airs)
         max_page = int(data.get("max_page", page))
         print(f"got {len(airs)} air objs (page {page}/{max_page}, total {len(all_airs)})")
@@ -215,6 +209,55 @@ def fetch_past_air_objects(auth: OAuth1) -> list[dict]:
             break
         page += 1
     return all_airs
+
+
+def fetch_past_trip_metadata(auth: OAuth1) -> dict[str, dict]:
+    """Pull /v1/list/trip?past=true to populate trip_name / primary_location
+    that the air-objects endpoint doesn't include.
+
+    Returns a dict keyed by str(trip_id) -> { display_name, primary_location,
+    start_date, end_date, location_country, location_state }.
+    """
+    out: dict[str, dict] = {}
+    page = 1
+    page_size = 50
+    while True:
+        print(f"   page {page} (size {page_size})...", end=" ", flush=True)
+        params = {
+            "format": "json",
+            "past": "true",
+            "page_size": page_size,
+            "page_num": page,
+        }
+        try:
+            data = get_json(LIST_TRIP_URL, params, auth, timeout=120)
+        except requests.Timeout:
+            if page_size > 5:
+                page_size = max(5, page_size // 2)
+                print(f"timeout — shrinking page_size to {page_size}")
+                continue
+            raise
+        trips = _aslist(data.get("Trip"))
+        for t in trips:
+            tid = str(t.get("id"))
+            addr = t.get("PrimaryLocationAddress") or {}
+            out[tid] = {
+                "display_name":      t.get("display_name"),
+                "primary_location":  t.get("primary_location"),
+                "start_date":        t.get("start_date"),
+                "end_date":          t.get("end_date"),
+                "location_city":     addr.get("city"),
+                "location_state":    addr.get("state"),
+                "location_country":  addr.get("country"),
+                "location_lat":      addr.get("latitude"),
+                "location_lon":      addr.get("longitude"),
+            }
+        max_page = int(data.get("max_page", page))
+        print(f"got {len(trips)} trips (page {page}/{max_page}, total {len(out)})")
+        if page >= max_page or not trips:
+            break
+        page += 1
+    return out
 
 
 def _aslist(x):
@@ -275,11 +318,16 @@ def airport_distance_haversine(a: dict, b: dict) -> float | None:
     return 2 * R * math.asin(math.sqrt(h))
 
 
-def extract_flights(airs: list[dict], airports: dict[str, dict]) -> list[dict]:
-    """Flatten a list of AirObjects into one row per segment."""
+def extract_flights(airs: list[dict], airports: dict[str, dict],
+                    trip_meta: dict[str, dict] | None = None) -> list[dict]:
+    """Flatten a list of AirObjects into one row per segment.
+    If trip_meta is provided, decorate each flight with its trip's name + primary location.
+    """
+    trip_meta = trip_meta or {}
     flights: list[dict] = []
     for air in airs:
         segments = _aslist(air.get("Segment"))
+        meta = trip_meta.get(str(air.get("trip_id"))) or {}
         for seg in segments:
             from_code = (seg.get("start_airport_code") or "").upper()
             to_code = (seg.get("end_airport_code") or "").upper()
@@ -290,7 +338,10 @@ def extract_flights(airs: list[dict], airports: dict[str, dict]) -> list[dict]:
                 miles = airport_distance_haversine(from_ap, to_ap)
             flights.append({
                 "trip_id": air.get("trip_id"),
-                "trip_name": air.get("_trip_name"),
+                "trip_name":        meta.get("display_name"),
+                "trip_location":    meta.get("primary_location"),
+                "trip_start":       meta.get("start_date"),
+                "trip_end":         meta.get("end_date"),
                 "air_id": air.get("id"),
                 "from": from_code,
                 "from_city": seg.get("start_city_name"),
@@ -362,9 +413,24 @@ def main() -> None:
         (RAW / "air_objects.json").write_text(json.dumps(airs, indent=2))
         print(f"  raw saved: {RAW / 'air_objects.json'}")
 
+    print("\nFetching past trip metadata from TripIt...")
+    try:
+        trip_meta = fetch_past_trip_metadata(auth)
+    except requests.HTTPError as e:
+        # Trip metadata is best-effort — without it, flights still work,
+        # they just lack trip_name / primary_location decoration.
+        print(f"  WARN: trip metadata fetch failed ({e}); continuing without it.")
+        trip_meta = {}
+    print(f"\nFetched metadata for {len(trip_meta)} trips.")
+    if args.save_raw and trip_meta:
+        (RAW / "trip_meta.json").write_text(json.dumps(trip_meta, indent=2))
+        print(f"  raw saved: {RAW / 'trip_meta.json'}")
+
     airports = load_airports()
-    flights = extract_flights(airs, airports)
+    flights = extract_flights(airs, airports, trip_meta)
     print(f"Extracted {len(flights)} flight segments.")
+    enriched = sum(1 for f in flights if f.get("trip_name"))
+    print(f"  trip_name populated on {enriched}/{len(flights)} ({100*enriched/max(len(flights),1):.0f}%)")
 
     FLIGHTS_FILE.write_text(json.dumps(flights, indent=2, default=str))
     print(f"  wrote: {FLIGHTS_FILE}")

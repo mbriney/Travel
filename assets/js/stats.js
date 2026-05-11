@@ -48,6 +48,74 @@ function topN(map, n) {
 const LONG_HAUL_MI = 2400;       // Flighty's rough cutoff: ~6h+ international
 const INTL_COUNTRY_HOME = "US";  // Matt is US-based
 
+// Curated "Top 50 Major Hubs" — used for the Airport Explorer percentage stat.
+// Mix of the world's busiest airports by international + total passenger traffic.
+const TOP_HUBS = [
+  "ATL","DFW","DEN","ORD","LAX","JFK","LAS","MIA","CLT","MCO","SEA","PHX","EWR","SFO","IAH","BOS",
+  "MSP","FLL","LGA","DTW","BWI","PHL","SAN","TPA","DCA","HNL","AUS","SLC","MDW","SJC","DAL","IAD",
+  "LHR","CDG","AMS","FRA","IST","MAD","BCN","FCO","MUC","ZRH","CPH","ARN","VIE","ATH","LIS","DUB",
+  "HND","NRT","ICN","PEK","PVG","HKG","TPE","SIN","BKK","KUL","DEL","BOM","DXB","DOH","AUH","TLV",
+  "SYD","MEL","AKL","BNE",
+  "YYZ","YVR","YUL","MEX","CUN","GRU","GIG","EZE","SCL",
+  "JNB","CAI","ADD","NBO","CPT",
+];
+
+// Common IATA aircraft codes → readable names
+const AIRCRAFT_NAMES = {
+  "734":"Boeing 737-400","735":"Boeing 737-500","736":"Boeing 737-600","737":"Boeing 737",
+  "738":"Boeing 737-800","739":"Boeing 737-900",
+  "73G":"Boeing 737-700","73H":"Boeing 737-800","73W":"Boeing 737-700 (winglets)",
+  "7M7":"Boeing 737 MAX 7","7M8":"Boeing 737 MAX 8","7M9":"Boeing 737 MAX 9","7M0":"Boeing 737 MAX 10",
+  "319":"Airbus A319","320":"Airbus A320","321":"Airbus A321",
+  "31J":"Airbus A319neo","32N":"Airbus A320neo","32Q":"Airbus A321neo","32A":"Airbus A320",
+  "318":"Airbus A318",
+  "330":"Airbus A330","332":"Airbus A330-200","333":"Airbus A330-300",
+  "339":"Airbus A330-900neo","338":"Airbus A330-800neo",
+  "340":"Airbus A340","342":"Airbus A340-200","343":"Airbus A340-300","345":"Airbus A340-500","346":"Airbus A340-600",
+  "350":"Airbus A350","351":"Airbus A350-1000","359":"Airbus A350-900",
+  "380":"Airbus A380",
+  "747":"Boeing 747","744":"Boeing 747-400","748":"Boeing 747-8",
+  "757":"Boeing 757","752":"Boeing 757-200","753":"Boeing 757-300",
+  "767":"Boeing 767","762":"Boeing 767-200","763":"Boeing 767-300","764":"Boeing 767-400",
+  "777":"Boeing 777","772":"Boeing 777-200","77L":"Boeing 777-200LR","773":"Boeing 777-300","77W":"Boeing 777-300ER",
+  "787":"Boeing 787","788":"Boeing 787-8","789":"Boeing 787-9","78J":"Boeing 787-10",
+  "E70":"Embraer E170","E75":"Embraer E175","E90":"Embraer E190","E95":"Embraer E195",
+  "E7W":"Embraer E175","E55":"Embraer ERJ-145",
+  "CR2":"Bombardier CRJ-200","CR7":"Bombardier CRJ-700","CR9":"Bombardier CRJ-900","CRA":"Bombardier CRJ-1000",
+  "DH4":"Bombardier Dash 8 Q400","DH3":"Bombardier Dash 8 Q300","DH1":"Bombardier Dash 8",
+  "AT4":"ATR 42","AT5":"ATR 42-500","AT7":"ATR 72","AT8":"ATR 72-600",
+  "SF3":"Saab 340","S20":"Saab 2000",
+  "AT4":"ATR 42","M88":"McDonnell Douglas MD-88","M90":"McDonnell Douglas MD-90","M80":"McDonnell Douglas MD-80",
+  "BCS1":"Airbus A220-100","BCS3":"Airbus A220-300","223":"Airbus A220-100","221":"Airbus A220-100","220":"Airbus A220","221":"Airbus A220-100","223":"Airbus A220-300",
+};
+export function aircraftName(code) {
+  if (!code) return "Unknown";
+  return AIRCRAFT_NAMES[code] || code;
+}
+// Aircraft family grouping for a high-level chart
+export function aircraftFamily(code) {
+  if (!code) return "Unknown";
+  if (/^73|^7M/.test(code)) return "Boeing 737";
+  if (/^74/.test(code))     return "Boeing 747";
+  if (/^75/.test(code))     return "Boeing 757";
+  if (/^76/.test(code))     return "Boeing 767";
+  if (/^77/.test(code))     return "Boeing 777";
+  if (/^78/.test(code))     return "Boeing 787";
+  if (/^31|^32/.test(code)) return "Airbus A320 family";
+  if (/^33/.test(code))     return "Airbus A330";
+  if (/^34/.test(code))     return "Airbus A340";
+  if (/^35/.test(code))     return "Airbus A350";
+  if (/^38/.test(code))     return "Airbus A380";
+  if (/^22|^BCS/.test(code))return "Airbus A220";
+  if (/^E/.test(code))      return "Embraer E-Jet";
+  if (/^CR/.test(code))     return "Bombardier CRJ";
+  if (/^DH/.test(code))     return "Dash 8";
+  if (/^AT/.test(code))     return "ATR";
+  if (/^SF|^S20/.test(code))return "Saab";
+  if (/^M8|^M9/.test(code)) return "MD-80 family";
+  return code;
+}
+
 export function computeStats(ctx) {
   const { flights, airports } = ctx;
 
@@ -166,6 +234,109 @@ export function computeStats(ctx) {
 
   out.avgMiles   = out.total ? out.miles   / out.total : 0;
   out.avgMinutes = out.total ? out.minutes / out.total : 0;
+
+  // ── Velocity (avg ground speed across all flights) ────────────────────
+  out.avgSpeedMph = out.minutes ? (out.miles / (out.minutes / 60)) : 0;
+
+  // ── Aircraft types ────────────────────────────────────────────────────
+  const aircraftCount = new Map();
+  for (const f of flights) {
+    const code = f.aircraft;
+    if (!code) continue;
+    inc(aircraftCount, code);
+  }
+  out.aircraft = aircraftCount;
+  out.topAircraft = topN(aircraftCount, 12);
+
+  // ── Service class breakdown ───────────────────────────────────────────
+  const classBuckets = { economy: 0, premium: 0, business: 0, first: 0, unknown: 0 };
+  for (const f of flights) {
+    const c = (f.service_class || "").toLowerCase();
+    if (!c) classBuckets.unknown++;
+    else if (/(first)/.test(c)) classBuckets.first++;
+    else if (/(business)/.test(c)) classBuckets.business++;
+    else if (/(premium|prem econ)/.test(c)) classBuckets.premium++;
+    else classBuckets.economy++;  // also catches "coach", "wanna get away", "economy (X)" etc.
+  }
+  out.classBuckets = classBuckets;
+
+  // ── Yearly + monthly-of-year (Jan-Dec aggregated) distributions ───────
+  const monthOfYear = new Array(12).fill(0);
+  const yearTotals = new Map();
+  for (const f of flights) {
+    if (!f.depart) continue;
+    const d = new Date(f.depart);
+    if (isNaN(d)) continue;
+    monthOfYear[d.getMonth()]++;
+    inc(yearTotals, d.getFullYear());
+  }
+  out.monthOfYear = monthOfYear;
+  out.yearTotals  = yearTotals;
+  out.busiestMonth = monthOfYear.indexOf(Math.max(...monthOfYear));
+
+  // ── Calendar heatmap data: { year: { "YYYY-MM-DD": count } } ──────────
+  const heatmap = new Map();
+  for (const f of flights) {
+    if (!f.depart) continue;
+    const d = new Date(f.depart);
+    if (isNaN(d)) continue;
+    const ymd = d.toISOString().slice(0, 10);
+    const y = d.getFullYear();
+    if (!heatmap.has(y)) heatmap.set(y, new Map());
+    const day = heatmap.get(y);
+    day.set(ymd, (day.get(ymd) || 0) + 1);
+  }
+  out.heatmap = heatmap;
+
+  // ── Geographic extremes & centroid ────────────────────────────────────
+  let n = null, s = null, e = null, w = null;
+  let latSum = 0, lonSum = 0, count = 0;
+  for (const code of out.airports.keys()) {
+    const ap = airports[code];
+    if (!ap || ap.lat == null || ap.lon == null) continue;
+    if (!n || ap.lat > n.lat) n = ap;
+    if (!s || ap.lat < s.lat) s = ap;
+    if (!e || ap.lon > e.lon) e = ap;
+    if (!w || ap.lon < w.lon) w = ap;
+    latSum += ap.lat; lonSum += ap.lon; count++;
+  }
+  out.extremes = { north: n, south: s, east: e, west: w };
+  out.centroid = count ? { lat: latSum / count, lon: lonSum / count } : null;
+
+  // ── Average great-circle distance from "home" (most-visited airport) ──
+  // topAirports is computed below, but we just need the top by count here:
+  let homeCode = null, homeMax = -1;
+  for (const [code, n] of out.airports.entries()) {
+    if (n > homeMax) { homeMax = n; homeCode = code; }
+  }
+  const homeAp = homeCode && airports[homeCode];
+  if (homeAp) {
+    let totalDist = 0, hits = 0;
+    for (const code of out.airports.keys()) {
+      if (code === homeCode) continue;
+      const ap = airports[code];
+      if (!ap || ap.lat == null) continue;
+      totalDist += haversineMiles(homeAp, ap);
+      hits++;
+    }
+    out.homeAirport = homeAp;
+    out.avgDistanceFromHome = hits ? totalDist / hits : 0;
+    let furthest = null, furthestDist = 0;
+    for (const code of out.airports.keys()) {
+      if (code === homeCode) continue;
+      const ap = airports[code];
+      if (!ap || ap.lat == null) continue;
+      const d = haversineMiles(homeAp, ap);
+      if (d > furthestDist) { furthestDist = d; furthest = ap; }
+    }
+    out.furthestAirport = furthest;
+    out.furthestDistance = furthestDist;
+  }
+
+  // ── Major Hubs visited (overlap with a curated Top-50 list) ───────────
+  out.topHubsVisited = TOP_HUBS.filter(c => out.airports.has(c));
+  out.topHubsCount = out.topHubsVisited.length;
+  out.topHubsTotal = TOP_HUBS.length;
 
   // ── Carbon footprint ────────────────────────────────────────────────────
   // ICAO-style economy-class emissions factors per passenger-km:

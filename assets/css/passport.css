@@ -1103,6 +1103,210 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .ach-card.is-unlocked .ach-progress { color: #4ade80; }
 
 /* ===========================================================================
+   Stats — new sections (cadence, aviation, geography)
+   --------------------------------------------------------------------------- */
+
+.section-head {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin: 18px 0 -6px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.bar-chart {
+  display: grid;
+  grid-template-columns: repeat(var(--cols, 12), 1fr);
+  gap: 4px;
+  align-items: end;
+  height: 140px;
+  margin-top: 6px;
+}
+.bar-chart .bar-col {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 2px;
+  height: 100%;
+  justify-content: end;
+}
+.bar-chart .bar {
+  width: 100%;
+  background: linear-gradient(180deg, var(--accent), var(--accent-2));
+  border-radius: 4px 4px 1px 1px;
+  min-height: 2px;
+  transition: opacity 200ms;
+}
+.bar-chart .bar:hover { opacity: 0.85; }
+.bar-chart .bar-val {
+  font-size: 9px;
+  font-family: var(--font-mrz);
+  color: var(--ink-3);
+}
+.bar-chart .bar-lbl {
+  font-size: 9px;
+  color: var(--ink-3);
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.kpi {
+  display: flex; align-items: baseline; gap: 8px;
+  margin-top: 4px;
+}
+.kpi .big {
+  font-family: var(--font-display);
+  font-size: 40px; font-weight: 700;
+  color: var(--accent); line-height: 1;
+}
+.kpi .den { font-size: 14px; color: var(--ink-3); }
+.kpi-row {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+}
+.kpi-row .lbl { font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-3); }
+.kpi-row .val { font-family: var(--font-mrz); font-size: 13px; color: var(--ink-1); margin-top: 2px; }
+.mt-8 { margin-top: 8px; }
+.mt-12 { margin-top: 12px; }
+.small { font-size: 11px; }
+
+/* Calendar heatmap */
+.heatmap {
+  display: grid; gap: 6px;
+  margin-top: 6px;
+}
+.hm-row {
+  display: grid;
+  grid-template-columns: 38px 1fr;
+  gap: 6px;
+  align-items: center;
+}
+.hm-year {
+  font-family: var(--font-mrz);
+  font-size: 11px;
+  color: var(--ink-3);
+  letter-spacing: 0.04em;
+}
+.hm-grid {
+  display: grid;
+  grid-auto-flow: column;
+  grid-template-rows: repeat(7, 1fr);
+  gap: 2px;
+  overflow-x: auto;
+}
+.hm-cell {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 2px;
+  background: rgba(255,255,255,0.04);
+  min-width: 9px;
+  max-width: 14px;
+}
+.hm-cell[data-c="0"] { background: rgba(255,255,255,0.04); }
+.hm-cell[data-c="1"] { background: rgba(167, 139, 250, 0.22); }
+.hm-cell[data-c="2"] { background: rgba(167, 139, 250, 0.45); }
+.hm-cell[data-c="3"] { background: rgba(167, 139, 250, 0.70); }
+.hm-cell[data-c="4"] { background: rgba(167, 139, 250, 1.0); }
+.hm-empty { background: transparent; }
+.hm-legend {
+  display: flex; align-items: center; gap: 4px;
+  font-size: 10px; color: var(--ink-3);
+  letter-spacing: 0.10em; text-transform: uppercase;
+  justify-content: flex-end;
+  margin-top: 6px;
+}
+.hm-legend .hm-cell { width: 12px; min-width: 12px; aspect-ratio: 1; }
+
+/* Aircraft list - subtitle below each bar */
+.rank-list .rank-sub {
+  grid-column: 1 / -1;
+  padding-left: 64px;
+  margin-top: -2px; margin-bottom: 4px;
+  font-size: 10px;
+}
+
+/* Cabin class chart */
+.class-bar {
+  display: flex;
+  width: 100%; height: 28px;
+  background: rgba(255,255,255,0.04);
+  border-radius: 6px;
+  overflow: hidden;
+  margin-top: 6px;
+}
+.class-seg { height: 100%; }
+.class-legend {
+  list-style: none; padding: 0; margin: 10px 0 0;
+  display: grid; gap: 4px;
+  font-size: 12px;
+}
+.class-legend li {
+  display: flex; align-items: center; gap: 8px;
+}
+.class-legend .sw {
+  width: 10px; height: 10px; border-radius: 2px;
+}
+.class-legend strong { color: var(--ink-1); margin-left: auto; font-variant-numeric: tabular-nums; }
+
+/* Geography grid */
+.geo-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-top: 6px;
+}
+.geo-cell {
+  padding: 10px 12px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px;
+}
+.geo-cell .lbl { font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-3); }
+.geo-cell .big-line {
+  font-family: var(--font-display);
+  font-size: 22px; font-weight: 700;
+  color: var(--accent);
+  line-height: 1;
+  margin-top: 6px;
+}
+
+/* Major hubs */
+.hub-bar {
+  height: 12px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-top: 6px;
+}
+.hub-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-2), var(--accent));
+  border-radius: 999px;
+  transition: width 600ms ease;
+}
+.hub-stats { font-size: 13px; color: var(--ink-1); margin-top: 8px; }
+.hub-chip-grid {
+  display: flex; flex-wrap: wrap; gap: 4px;
+  margin-top: 12px;
+}
+.hub-chip {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-family: var(--font-mrz);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  color: var(--ink-3);
+}
+.hub-chip.is-visited {
+  background: rgba(167, 139, 250, 0.20);
+  border-color: rgba(167, 139, 250, 0.40);
+  color: var(--ink-1);
+}
+
+/* ===========================================================================
    Country flag strip (World view)
    --------------------------------------------------------------------------- */
 .flags-card { margin-top: 14px; }

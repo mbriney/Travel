@@ -1,9 +1,162 @@
 // views.js — top-level standalone views (Stats, World Map, US States).
 // These render into their own <section> elements rather than passport pages.
 
-import { formatNumber, formatDuration, formatDate } from "./stats.js";
+import { formatNumber, formatDuration, formatDate, aircraftName, aircraftFamily } from "./stats.js";
 import { drawWorldMap } from "./worldmap.js";
 import { drawUSMap }    from "./usmap.js";
+
+const MONTH_LABELS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const MONTH_FULL   = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+
+// ---------------------------------------------------------------------------
+// Stat-card sub-renderers
+// ---------------------------------------------------------------------------
+
+function renderYearlyChart(s) {
+  const entries = [...s.yearTotals.entries()].sort((a,b) => a[0] - b[0]);
+  if (!entries.length) return `<div class="muted">No dated flights.</div>`;
+  const max = Math.max(...entries.map(([, n]) => n));
+  return `
+    <div class="bar-chart" style="--cols:${entries.length}">
+      ${entries.map(([y, n]) => `
+        <div class="bar-col">
+          <div class="bar" style="height:${(n/max)*100}%" title="${y}: ${n} flights"></div>
+          <div class="bar-val">${n}</div>
+          <div class="bar-lbl">${String(y).slice(2)}</div>
+        </div>`).join("")}
+    </div>`;
+}
+
+function renderMonthOfYearChart(s) {
+  const max = Math.max(...s.monthOfYear);
+  return `
+    <div class="bar-chart" style="--cols:12">
+      ${s.monthOfYear.map((n, i) => `
+        <div class="bar-col">
+          <div class="bar" style="height:${max ? (n/max)*100 : 0}%" title="${MONTH_FULL[i]}: ${n}"></div>
+          <div class="bar-lbl">${MONTH_LABELS[i][0]}</div>
+        </div>`).join("")}
+    </div>`;
+}
+
+function renderHeatmap(s) {
+  // GitHub-style grid: each year is one row of 53 weeks × 7 days
+  const years = [...s.heatmap.keys()].sort();
+  if (!years.length) return `<div class="muted">No data.</div>`;
+  // Determine global max for scaling
+  let max = 0;
+  for (const dayMap of s.heatmap.values()) {
+    for (const n of dayMap.values()) if (n > max) max = n;
+  }
+  function shade(n) {
+    if (!n) return "0";
+    const pct = Math.min(1, n / Math.max(max, 4));
+    if (pct < 0.25) return "1";
+    if (pct < 0.5)  return "2";
+    if (pct < 0.75) return "3";
+    return "4";
+  }
+  function pad(n) { return String(n).padStart(2, "0"); }
+  function isoOf(d) { return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; }
+
+  return `
+    <div class="heatmap">
+      ${years.map(y => {
+        const dayMap = s.heatmap.get(y);
+        const start = new Date(y, 0, 1);
+        const end   = new Date(y, 11, 31);
+        // Pad to start on Sunday
+        const startDow = start.getDay();
+        const cells = [];
+        // empty cells before Jan 1
+        for (let i = 0; i < startDow; i++) cells.push(`<div class="hm-cell hm-empty"></div>`);
+        for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+          const iso = isoOf(d);
+          const n = dayMap.get(iso) || 0;
+          cells.push(`<div class="hm-cell" data-c="${shade(n)}" title="${iso}${n ? ` · ${n} flight${n>1?"s":""}` : ""}"></div>`);
+        }
+        return `
+          <div class="hm-row">
+            <div class="hm-year">${y}</div>
+            <div class="hm-grid">${cells.join("")}</div>
+          </div>`;
+      }).join("")}
+      <div class="hm-legend">
+        Less
+        <span class="hm-cell" data-c="0"></span>
+        <span class="hm-cell" data-c="1"></span>
+        <span class="hm-cell" data-c="2"></span>
+        <span class="hm-cell" data-c="3"></span>
+        <span class="hm-cell" data-c="4"></span>
+        More
+      </div>
+    </div>`;
+}
+
+function renderAircraftList(s) {
+  if (!s.topAircraft.length) return `<div class="muted">No aircraft data.</div>`;
+  const max = s.topAircraft[0].value;
+  return `
+    <ul class="rank-list">
+      ${s.topAircraft.slice(0, 10).map(a => `
+        <li>
+          <code>${a.key}</code>
+          <div class="rank-bar" style="width:${(a.value/max)*100}%" title="${escapeHtml(aircraftName(a.key))}"></div>
+          <span class="v">${a.value}</span>
+        </li>
+        <li class="rank-sub muted small">${escapeHtml(aircraftName(a.key))} · ${escapeHtml(aircraftFamily(a.key))}</li>
+      `).join("")}
+    </ul>`;
+}
+
+function renderClassChart(s) {
+  const buckets = s.classBuckets;
+  const total = Object.values(buckets).reduce((a, b) => a + b, 0) || 1;
+  const order = [
+    ["economy",  "Economy",         "#7c3aed"],
+    ["premium",  "Premium Economy", "#38bdf8"],
+    ["business", "Business",        "#f59e0b"],
+    ["first",    "First",           "#f43f5e"],
+    ["unknown",  "Unknown",         "#64748b"],
+  ];
+  return `
+    <div class="class-bar">
+      ${order.map(([k, lbl, col]) => {
+        const v = buckets[k] || 0;
+        if (!v) return "";
+        const pct = (v / total) * 100;
+        return `<div class="class-seg" style="flex:${v};background:${col}" title="${lbl}: ${v} (${Math.round(pct)}%)"></div>`;
+      }).join("")}
+    </div>
+    <ul class="class-legend">
+      ${order.map(([k, lbl, col]) => {
+        const v = buckets[k] || 0;
+        if (!v) return "";
+        return `<li><span class="sw" style="background:${col}"></span>${lbl} <strong>${v}</strong> <span class="muted">${Math.round((v/total)*100)}%</span></li>`;
+      }).join("")}
+    </ul>`;
+}
+
+function geoExtreme(ap, axis, suffix) {
+  if (!ap) return `<div class="muted">—</div>`;
+  const coord = axis === "lat" ? ap.lat : ap.lon;
+  return `
+    <div class="big-line">${ap.code} ${ap.flag || ""}</div>
+    <div class="muted small">${escapeHtml(ap.city || ap.name || "")} · ${coord.toFixed(2)}${suffix}</div>`;
+}
+
+function renderHubChips(s) {
+  const visited = new Set(s.topHubsVisited);
+  // Show all 50 hubs, visited ones highlighted
+  const order = [
+    "ATL","DFW","DEN","ORD","LAX","JFK","LAS","MIA","CLT","MCO","SEA","PHX","EWR","SFO","IAH","BOS",
+    "MSP","FLL","LGA","DTW","BWI","PHL","SAN","TPA","DCA","HNL","AUS","SLC","MDW","SJC","DAL","IAD",
+    "LHR","CDG","AMS","FRA","IST","MAD","BCN","FCO","MUC","ZRH","CPH","ARN","VIE","ATH","LIS","DUB",
+    "HND","NRT","ICN","PEK","PVG","HKG","TPE","SIN","BKK","KUL","DEL","BOM","DXB","DOH","AUH","TLV",
+    "SYD","MEL","AKL","BNE","YYZ","YVR","YUL","MEX","CUN","GRU","GIG","EZE","SCL","JNB","CAI","ADD","NBO","CPT",
+  ];
+  return order.map(code => `<span class="hub-chip${visited.has(code) ? " is-visited" : ""}">${code}</span>`).join("");
+}
 
 function escapeHtml(s) {
   return String(s ?? "")
@@ -146,6 +299,106 @@ export function renderStatsView(root, ctx) {
               <div class="extreme-label">Longest in the air</div>
               ${fe(s.longestTime, f => formatDuration(f._minutes))}
             </div>
+          </div>
+        </section>
+
+        <!-- ── CADENCE ─────────────────────────────────────────────── -->
+        <h2 class="section-head span-2">Cadence</h2>
+
+        <section class="card span-2">
+          <h2>Flights by year</h2>
+          ${renderYearlyChart(s)}
+        </section>
+
+        <section class="card">
+          <h2>Busiest months <span class="muted">all-time</span></h2>
+          ${renderMonthOfYearChart(s)}
+          <div class="muted small mt-8">Most-flown: <strong>${MONTH_FULL[s.busiestMonth]}</strong></div>
+        </section>
+
+        <section class="card">
+          <h2>Velocity</h2>
+          <div class="kpi"><span class="big">${Math.round(s.avgSpeedMph)}</span> <span class="den">mph avg</span></div>
+          <div class="muted small">Total miles ÷ total time aloft across all flights</div>
+          <div class="kpi-row mt-12">
+            <div><div class="lbl">Total time</div><div class="val">${formatDuration(s.minutes)}</div></div>
+            <div><div class="lbl">Avg per leg</div><div class="val">${formatDuration(s.avgMinutes)}</div></div>
+          </div>
+        </section>
+
+        <section class="card span-2">
+          <h2>Travel intensity <span class="muted">heatmap · darker = more flights</span></h2>
+          ${renderHeatmap(s)}
+        </section>
+
+        <!-- ── AVIATION ────────────────────────────────────────────── -->
+        <h2 class="section-head span-2">Aviation</h2>
+
+        <section class="card">
+          <h2>Top aircraft <span class="muted">${s.aircraft.size} types</span></h2>
+          ${renderAircraftList(s)}
+        </section>
+
+        <section class="card">
+          <h2>Cabin class</h2>
+          ${renderClassChart(s)}
+        </section>
+
+        <!-- ── GEOGRAPHY ───────────────────────────────────────────── -->
+        <h2 class="section-head span-2">Geography</h2>
+
+        <section class="card span-2">
+          <h2>Range &amp; reach</h2>
+          <div class="geo-grid">
+            <div class="geo-cell">
+              <div class="lbl">Northernmost</div>
+              ${geoExtreme(s.extremes?.north, "lat", "°N")}
+            </div>
+            <div class="geo-cell">
+              <div class="lbl">Southernmost</div>
+              ${geoExtreme(s.extremes?.south, "lat", "°")}
+            </div>
+            <div class="geo-cell">
+              <div class="lbl">Westernmost</div>
+              ${geoExtreme(s.extremes?.west, "lon", "°")}
+            </div>
+            <div class="geo-cell">
+              <div class="lbl">Easternmost</div>
+              ${geoExtreme(s.extremes?.east, "lon", "°")}
+            </div>
+            <div class="geo-cell">
+              <div class="lbl">Centroid of travel</div>
+              <div class="big-line">${s.centroid ? `${s.centroid.lat.toFixed(2)}, ${s.centroid.lon.toFixed(2)}` : "—"}</div>
+              <div class="muted small">Geographic center of every airport you've touched</div>
+            </div>
+            <div class="geo-cell">
+              <div class="lbl">Home base</div>
+              <div class="big-line">${s.homeAirport ? s.homeAirport.code : "—"}</div>
+              <div class="muted small">${s.homeAirport ? escapeHtml(s.homeAirport.name || "") : ""}</div>
+            </div>
+            <div class="geo-cell">
+              <div class="lbl">Avg distance from home</div>
+              <div class="big-line">${s.avgDistanceFromHome ? Math.round(s.avgDistanceFromHome).toLocaleString() + " mi" : "—"}</div>
+            </div>
+            <div class="geo-cell">
+              <div class="lbl">Furthest point</div>
+              <div class="big-line">${s.furthestAirport ? s.furthestAirport.code : "—"}</div>
+              <div class="muted small">${s.furthestAirport ? escapeHtml(s.furthestAirport.name || "") + " · " + Math.round(s.furthestDistance).toLocaleString() + " mi" : ""}</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="card span-2">
+          <h2>Airport Explorer <span class="muted">global top 50 hubs</span></h2>
+          <div class="hub-bar">
+            <div class="hub-fill" style="width:${(s.topHubsCount/s.topHubsTotal)*100}%"></div>
+          </div>
+          <div class="hub-stats">
+            <div><strong>${s.topHubsCount}</strong> of ${s.topHubsTotal} major hubs · <strong>${Math.round((s.topHubsCount/s.topHubsTotal)*100)}%</strong></div>
+            <div class="muted small">Top 50 by international passenger traffic — visit them all for full credit.</div>
+          </div>
+          <div class="hub-chip-grid">
+            ${renderHubChips(s)}
           </div>
         </section>
 
