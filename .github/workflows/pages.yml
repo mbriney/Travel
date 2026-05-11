@@ -34,13 +34,22 @@ jobs:
 
       - name: Inject build version into JS imports + script tags
         # Stamps every same-repo `import "./*.js"` and the main.js <script src=>
-        # with `?v=<run-id>-<sha>` so browsers always fetch the latest module
-        # graph on each deploy. Source files in git stay untouched — this only
-        # rewrites the artifact that's uploaded to Pages.
+        # with `?v=<run-id>-<short-sha>` so browsers always fetch the latest
+        # module graph on each deploy. Source files in git stay untouched —
+        # this only rewrites the artifact that's uploaded to Pages.
+        shell: bash
         run: |
-          BUILD_VERSION="${{ github.run_id }}-${GITHUB_SHA::7}"
+          set -euo pipefail
+          SHORT_SHA="$(echo "${{ github.sha }}" | cut -c1-7)"
+          BUILD_VERSION="${{ github.run_id }}-${SHORT_SHA}"
           echo "Build version: $BUILD_VERSION"
-          python tools/cache_bust.py "$BUILD_VERSION"
+          python3 tools/cache_bust.py "$BUILD_VERSION"
+          # Smoke-check: confirm the rewrite actually landed before we upload.
+          if ! grep -q "main\.js?v=${BUILD_VERSION}" index.html; then
+            echo "::error::cache_bust.py did not update index.html"
+            exit 1
+          fi
+          echo "Verified: index.html has main.js?v=${BUILD_VERSION}"
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

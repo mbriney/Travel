@@ -20,11 +20,16 @@ const _activeGlobes = new WeakMap();
 
 export async function drawWorldGlobe(svg, ctx) {
   // Tear down any previously-running globe on this SVG, AND clear out its
-  // DOM completely — using innerHTML so we don't leave any element behind
-  // that an old animation loop might still be querying via selector.
+  // DOM completely. We do this in TWO ways for belt + suspenders: first the
+  // documented `innerHTML = ""`, then a manual childNode removal loop. Some
+  // browsers (and some edge cases involving `<title>` children, SMIL nodes,
+  // or detached subtrees) have been observed to leave the occasional stray
+  // descendant after `innerHTML = ""` — and that's exactly the kind of
+  // straggler that shows up as a static "ghost" dot on the globe.
   const prior = _activeGlobes.get(svg);
   if (prior) prior.stop();
   svg.innerHTML = "";
+  while (svg.firstChild) svg.removeChild(svg.firstChild);
 
   // Install a "shutting down" stub immediately. If another call sneaks in
   // before our async loadWorld() resolves, it'll see this stub and call
@@ -163,7 +168,20 @@ export async function drawWorldGlobe(svg, ctx) {
     dotEntries.push({ node: c, ap });
   }
 
+  // Owned-circle membership set — every circle we know about. Anything else
+  // showing up in the SVG is a ghost (from a stale globe instance whose
+  // teardown got interrupted) and should be evicted.
+  const ownedDotNodes = new Set(dotEntries.map(e => e.node));
+
   function updateDots() {
+    // Defensive: every redraw, purge any <circle> in the SVG that isn't one
+    // of ours. Without this, a circle left behind by a previous (interrupted)
+    // build sits frozen at its original projection — exactly the "ghost dots
+    // that don't move with the globe" symptom. Cheap: typically a no-op,
+    // since we only add ~few hundred circles total.
+    for (const c of svg.querySelectorAll("circle")) {
+      if (!ownedDotNodes.has(c)) c.remove();
+    }
     for (const { node, ap } of dotEntries) {
       const pt = projection([ap.lon, ap.lat]);
       if (!pt) {

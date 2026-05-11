@@ -163,13 +163,55 @@ async function boot() {
   });
 
   // Stamp click → open detail modal with all flights to that country/state.
-  // Delegated on the book so it covers every stamp page.
+  // ────────────────────────────────────────────────────────────────────
+  // We attach in the CAPTURE phase so we fire BEFORE passport.js's bubble-
+  // phase page-flip handler. That lets us claim the click for a stamp and
+  // call stopImmediatePropagation() so passport.js never tries to navigate.
+  //
+  // For stamps on the LEFT page (the .sheet-back of a flipped sheet), the
+  // browser's native 3D hit-testing fails — clicks land on a parent element
+  // like .paper, not on the .stamp. We work around that by doing our own
+  // hit-test against every visible stamp's getBoundingClientRect, which
+  // correctly accounts for all CSS transforms.
+  function findStampAtPoint(clientX, clientY) {
+    const candidates = [];
+    // Topmost-flipped sheet's back face → left page. Last in DOM order among
+    // flipped sheets = highest index = the one actually showing on the left.
+    const flippedSheets = book.querySelectorAll('.sheet[data-state="flipped"]');
+    const topFlipped = flippedSheets[flippedSheets.length - 1];
+    if (topFlipped) {
+      candidates.push(...topFlipped.querySelectorAll('.sheet-back .stamp[data-stamp-kind]'));
+    }
+    // Current sheet's front face → right page.
+    const currentSheet = book.querySelector('.sheet[data-state="current"]');
+    if (currentSheet) {
+      candidates.push(...currentSheet.querySelectorAll('.sheet-front .stamp[data-stamp-kind]'));
+    }
+    for (const stamp of candidates) {
+      const r = stamp.getBoundingClientRect();
+      if (r.width === 0 || r.height === 0) continue;
+      if (clientX >= r.left && clientX <= r.right &&
+          clientY >= r.top  && clientY <= r.bottom) {
+        return stamp;
+      }
+    }
+    return null;
+  }
+
   book.addEventListener("click", (e) => {
-    const stamp = e.target.closest(".stamp[data-stamp-kind]");
+    // Fast path: browser hit-test landed inside the stamp.
+    let stamp = e.target.closest(".stamp[data-stamp-kind]");
+    // Fallback: JS hit-test (covers the left-page case where browser 3D
+    // hit-testing routes the click into a parent like .paper instead).
+    if (!stamp) stamp = findStampAtPoint(e.clientX, e.clientY);
     if (!stamp) return;
+    // Both stopPropagation and stopImmediatePropagation — the latter prevents
+    // passport.js's bubble-phase handler from running and flipping the page.
     e.stopPropagation();
+    e.stopImmediatePropagation();
     openStampModal(stamp.dataset.stampKind, stamp.dataset.stampCode, ctx);
-  });
+  }, /* useCapture */ true);
+
   book.addEventListener("keydown", (e) => {
     if (e.key !== "Enter" && e.key !== " ") return;
     const stamp = e.target.closest(".stamp[data-stamp-kind]");
