@@ -392,28 +392,34 @@ export async function renderTimelineView(root, ctx) {
   let lastMilestoneIdx = -1;
 
   function applyAt(idx) {
+    // During playback, idx can be fractional (e.g. 1.5). Keep the fractional
+    // value for smooth animation/cursor placement, but use a floored integer
+    // for any array/Map lookup — otherwise cum[1.5] === undefined and the
+    // whole frame throws inside requestAnimationFrame, silently killing the
+    // animation loop after one tick. (That was the "play does nothing" bug.)
     idx = Math.max(0, Math.min(lastIdx, idx));
     currentIdx = idx;
-    slider.value = String(idx);
-    dateEl.textContent = monthLabel(months[idx]);
+    const i = Math.floor(idx);
+    slider.value = String(i);
+    dateEl.textContent = monthLabel(months[i]);
 
-    // Visibility: anything whose data-since > idx gets `.future` class
+    // Visibility: anything whose data-since > i is in the future and hidden.
     sel.selectAll(".airport-dot").each(function () {
       const since = +this.getAttribute("data-since");
-      this.style.display = since <= idx ? "" : "none";
+      this.style.display = since <= i ? "" : "none";
     });
     sel.selectAll(".arc").each(function () {
       const since = +this.getAttribute("data-since");
-      this.style.display = since <= idx ? "" : "none";
+      this.style.display = since <= i ? "" : "none";
     });
     sel.selectAll(".land").each(function () {
       const raw = this.getAttribute("data-since");
       const since = raw === "" ? Infinity : +raw;
-      this.classList.toggle("visited", since <= idx);
+      this.classList.toggle("visited", since <= i);
     });
 
     // Stats
-    const c = cum[idx];
+    const c = cum[i];
     elFlights.textContent = formatNumber(c.flights);
     elMiles.textContent   = formatNumber(Math.round(c.miles));
     elHours.textContent   = formatNumber(Math.round(c.minutes / 60));
@@ -422,7 +428,7 @@ export async function renderTimelineView(root, ctx) {
 
     // Milestone: show the most recent non-null milestone up to this idx.
     let lastNote = null, lastNoteIdx = -1;
-    for (let j = idx; j >= 0; j--) {
+    for (let j = i; j >= 0; j--) {
       if (cum[j].milestone) { lastNote = cum[j].milestone; lastNoteIdx = j; break; }
     }
     if (lastNote) {

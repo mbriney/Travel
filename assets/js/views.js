@@ -531,23 +531,28 @@ export function renderStatsView(root, ctx) {
         <!-- ── AVIATION ────────────────────────────────────────────── -->
         <h2 class="section-head span-2">Aviation</h2>
 
+        <!-- Cabin class spans full width — it's a short summary that pairs
+             naturally with the section header. Top aircraft (types flown)
+             and Specific aircraft (individual tails) live side-by-side
+             below it, since they're related families of the same question
+             ("what did you fly on?"). -->
+        <section class="card span-2">
+          <h2>Cabin class</h2>
+          ${renderClassChart(s)}
+        </section>
+
         <section class="card">
           <h2>Top aircraft <span class="muted">${s.aircraft.size} types</span></h2>
           ${renderAircraftList(s)}
         </section>
 
-        <section class="card">
-          <h2>Cabin class</h2>
-          ${renderClassChart(s)}
-        </section>
-
         ${s.enrichedFlights > 0 ? `
-        <section class="card span-2">
-          <h2>Specific aircraft <span class="muted">${s.uniqueTails} unique tails · ${s.enrichedFlights} flights enriched</span></h2>
+        <section class="card">
+          <h2>Specific aircraft <span class="muted">${s.uniqueTails} tails · ${s.enrichedFlights} enriched</span></h2>
           ${renderTailList(s, ctx)}
           <div class="muted small mt-8">Tail numbers, models, and callsigns pulled via AeroDataBox. Coverage is limited to flights within ~365 days of when the enrichment was run.</div>
         </section>` : `
-        <section class="card span-2 enrich-hint">
+        <section class="card enrich-hint">
           <h2>Tail-number tracking <span class="muted">optional</span></h2>
           <p>Want to see <em>which specific aircraft</em> you've been on? Run <code>python tools/enrich_aerodatabox.py</code> with an AeroDataBox API key (free tier 600 req/mo) to fill in tail numbers, aircraft models, and ATC callsigns for flights within the last 365 days. See the README for setup.</p>
         </section>`}
