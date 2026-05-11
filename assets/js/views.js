@@ -634,18 +634,46 @@ export function renderStatsView(root, ctx) {
           ${renderHeatmap(s)}
         </section>
 
-        <!-- ── AVIATION ────────────────────────────────────────────── -->
+        <!-- ── AVIATION (merged with the former Operations section) ─────
+             Reading top-to-bottom answers progressively more specific
+             questions about "what was the flying experience like?":
+               row 1  — Cabin class           |  On-time performance
+               row 2  — Delay causes                       (BTS-only)
+               row 3  — Aircraft age                       (span-2 hero)
+               row 4  — Top aircraft (types)  |  Specific aircraft (tails)
+             Cards drop out cleanly when their underlying data is absent
+             (e.g. no AeroDataBox enrichment → no Specific Aircraft card).
+        -->
         <h2 class="section-head span-2">Aviation</h2>
 
-        <!-- Cabin class spans full width — it's a short summary that pairs
-             naturally with the section header. Top aircraft (types flown)
-             and Specific aircraft (individual tails) live side-by-side
-             below it, since they're related families of the same question
-             ("what did you fly on?"). -->
-        <section class="card span-2">
+        <!-- Row 1: Cabin class + On-time performance side-by-side. When
+             we don't have any timed flights yet, Cabin class expands to
+             full width so it doesn't look like a single orphan column. -->
+        <section class="card${s.delayStats?.arrCount > 0 ? "" : " span-2"}">
           <h2>Cabin class</h2>
           ${renderClassChart(s)}
         </section>
+
+        ${s.delayStats?.arrCount > 0 ? `
+        <section class="card">
+          <h2>On-time performance <span class="muted">${s.delayStats.arrCount} flights with timing data</span></h2>
+          ${renderOnTimeCard(s)}
+          <div class="muted small mt-8">Industry definition: arrived within 15 minutes of scheduled time.</div>
+        </section>` : ""}
+
+        ${Object.values(s.delayStats?.causes || {}).some(v => v > 0) ? `
+        <section class="card span-2">
+          <h2>Delay causes <span class="muted">attribution from BTS</span></h2>
+          ${renderDelayCausesCard(s)}
+          <div class="muted small mt-8">BTS attributes delay minutes to the five categories above whenever a flight is ≥15 minutes late. Available only for U.S. reporting carriers (AA, DL, UA, WN, AS, B6, …).</div>
+        </section>` : ""}
+
+        ${s.aircraftAgeStats ? `
+        <section class="card span-2">
+          <h2>Aircraft age <span class="muted">${s.aircraftAgeStats.count} flights with manufacture year</span></h2>
+          ${renderAircraftAgeCard(s, ctx)}
+          <div class="muted small mt-8">Manufacture year sourced from the FAA Aircraft Registry (US carriers) and AeroDataBox's <code>/aircrafts/reg/{tail}</code> endpoint.</div>
+        </section>` : ""}
 
         <section class="card">
           <h2>Top aircraft <span class="muted">${s.aircraft.size} types</span></h2>
@@ -662,32 +690,6 @@ export function renderStatsView(root, ctx) {
           <h2>Tail-number tracking <span class="muted">optional</span></h2>
           <p>Want to see <em>which specific aircraft</em> you've been on? Run <code>python tools/enrich_aerodatabox.py</code> with an AeroDataBox API key (free tier 600 req/mo) to fill in tail numbers, aircraft models, and ATC callsigns for flights within the last 365 days. See the README for setup.</p>
         </section>`}
-
-        ${(s.delayStats?.arrCount > 0 || s.aircraftAgeStats) ? `
-        <!-- ── OPERATIONS (BTS + FAA + AeroDataBox derived) ─────────── -->
-        <h2 class="section-head span-2">Operations</h2>
-
-        ${s.delayStats?.arrCount > 0 ? `
-        <section class="card">
-          <h2>On-time performance <span class="muted">${s.delayStats.arrCount} flights with timing data</span></h2>
-          ${renderOnTimeCard(s)}
-          <div class="muted small mt-8">Industry definition: arrived within 15 minutes of scheduled time.</div>
-        </section>` : ""}
-
-        ${Object.values(s.delayStats?.causes || {}).some(v => v > 0) ? `
-        <section class="card">
-          <h2>Delay causes <span class="muted">attribution from BTS</span></h2>
-          ${renderDelayCausesCard(s)}
-          <div class="muted small mt-8">BTS attributes delay minutes to the five categories above whenever a flight is ≥15 minutes late. Available only for U.S. reporting carriers (AA, DL, UA, WN, AS, B6, …).</div>
-        </section>` : ""}
-
-        ${s.aircraftAgeStats ? `
-        <section class="card span-2">
-          <h2>Aircraft age <span class="muted">${s.aircraftAgeStats.count} flights with manufacture year</span></h2>
-          ${renderAircraftAgeCard(s, ctx)}
-          <div class="muted small mt-8">Manufacture year sourced from the FAA Aircraft Registry (US carriers) and AeroDataBox's <code>/aircrafts/reg/{tail}</code> endpoint.</div>
-        </section>` : ""}
-        ` : ""}
 
       </div>
     </div>`;
