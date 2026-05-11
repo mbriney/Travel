@@ -27,6 +27,7 @@ import re
 import sys
 import time
 import webbrowser
+from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import parse_qsl
 
@@ -44,6 +45,21 @@ RAW = DATA / "raw"
 CREDS_FILE = TOOLS / "credentials.json"
 AIRPORTS_FILE = DATA / "airports.json"
 FLIGHTS_FILE = DATA / "flights.json"
+META_FILE = DATA / "meta.json"
+
+
+def update_meta(updates: dict) -> None:
+    """Merge updates into data/meta.json and write it back. The meta file is
+    a single dict of build/fetch timestamps the front-end can show to the
+    user (e.g. "Updated 3 hr ago" on the topbar)."""
+    meta: dict = {}
+    if META_FILE.exists():
+        try:
+            meta = json.loads(META_FILE.read_text())
+        except Exception:
+            meta = {}
+    meta.update(updates)
+    META_FILE.write_text(json.dumps(meta, indent=2, sort_keys=True))
 
 API_BASE = "https://api.tripit.com"
 REQUEST_TOKEN_URL = f"{API_BASE}/oauth/request_token"
@@ -444,6 +460,15 @@ def main() -> None:
 
     FLIGHTS_FILE.write_text(json.dumps(flights, indent=2, default=str))
     print(f"  wrote: {FLIGHTS_FILE}")
+
+    # Stamp the fetch time so the UI can show "Updated X ago"
+    fetched_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    update_meta({
+        "tripit_fetched_at": fetched_at,
+        "tripit_flight_count": len(flights),
+        "tripit_air_objects": len(airs),
+    })
+    print(f"  meta:  tripit_fetched_at = {fetched_at}")
     print("\nDone.")
 
 

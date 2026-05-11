@@ -14,12 +14,26 @@ import csv
 import io
 import json
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 
 import requests
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "data"
+META_FILE = DATA / "meta.json"
+
+
+def update_meta(updates: dict) -> None:
+    """Same shape as fetch_tripit.update_meta — merge timestamps into data/meta.json."""
+    meta: dict = {}
+    if META_FILE.exists():
+        try:
+            meta = json.loads(META_FILE.read_text())
+        except Exception:
+            meta = {}
+    meta.update(updates)
+    META_FILE.write_text(json.dumps(meta, indent=2, sort_keys=True))
 
 OURAIRPORTS_URL = "https://davidmegginson.github.io/ourairports-data/airports.csv"
 COUNTRIES_URL = "https://davidmegginson.github.io/ourairports-data/countries.csv"
@@ -236,6 +250,15 @@ def main() -> None:
 
     (DATA / "countries.json").write_text(json.dumps(countries, indent=2))
     print(f"  wrote data/countries.json")
+
+    now = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    update_meta({
+        "airports_built_at": now,
+        "airlines_built_at": now,
+        "airports_count":  len(airports),
+        "airlines_count":  len(airlines),
+    })
+    print(f"  meta:  build timestamps stamped to data/meta.json")
 
 
 if __name__ == "__main__":

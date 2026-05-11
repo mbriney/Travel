@@ -12,6 +12,7 @@ const DATA_PATHS = {
   airports: "data/airports.json",
   airlines: "data/airlines.json",
   countries:"data/countries.json",
+  meta:     "data/meta.json",
 };
 
 // Cache-bust data files using the page-load timestamp so a freshly-rebuilt
@@ -117,17 +118,34 @@ async function boot() {
     countries: countries || {},
   };
 
-  // Last-Updated indicator — pull Last-Modified header from flights.json
-  fetch(DATA_PATHS.flights, { method: "HEAD" })
-    .then(r => {
+  // Last-Updated indicator — prefer the explicit timestamp written by
+  // tools/fetch_tripit.py to data/meta.json (it's the most accurate "when
+  // did we last pull from TripIt"). Fall back to the flights.json file mtime
+  // via Last-Modified header for older data files.
+  (async () => {
+    const meta = await tryLoadJSON(DATA_PATHS.meta);
+    const iso = meta?.tripit_fetched_at;
+    if (iso) {
+      const d = new Date(iso);
+      if (!isNaN(d)) {
+        const el = document.getElementById("meta-updated");
+        el.textContent = "Updated " + relativeTime(d);
+        el.title = "TripIt last fetched " + d.toLocaleString();
+        return;
+      }
+    }
+    // Fallback: HTTP Last-Modified of flights.json
+    try {
+      const r = await fetch(DATA_PATHS.flights, { method: "HEAD", cache: "no-cache" });
       const lm = r.headers.get("Last-Modified");
       if (!lm) return;
       const d = new Date(lm);
       if (isNaN(d)) return;
-      document.getElementById("meta-updated").textContent = "Updated " + relativeTime(d);
-      document.getElementById("meta-updated").title = "Last updated " + d.toLocaleString();
-    })
-    .catch(() => {});
+      const el = document.getElementById("meta-updated");
+      el.textContent = "Updated " + relativeTime(d);
+      el.title = "flights.json last modified " + d.toLocaleString();
+    } catch {}
+  })();
 
   ctx.stats = computeStats(ctx);
 
