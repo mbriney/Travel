@@ -381,152 +381,64 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 }
 
 /* ===========================================================================
-   BIO PAGE — true US passport layout
+   BIO PAGE — photo + fields only (the We the People / eagle / signature top
+   half has been removed). A faded seal + large reversed "PASSPORT" word sit
+   behind the details as background watermarks.
    --------------------------------------------------------------------------- */
 .bio-page { padding: 0; }
 .bio {
   flex: 1;
   position: relative;
   display: grid;
-  grid-template-rows: 1fr 1.25fr auto;
-  background: linear-gradient(180deg, var(--pp-bio-top) 0%, var(--pp-bio-top) 42%, var(--pp-bio-bottom) 42%, var(--pp-bio-bottom) 100%);
+  grid-template-rows: 1fr auto;
+  background: linear-gradient(180deg, var(--pp-bio-top) 0%, var(--pp-bio-bottom) 70%, var(--pp-bio-bottom) 100%);
   color: var(--pp-ink);
   overflow: hidden;
 }
 
-/* Faint watermark seal centered in the page */
+/* Faint seal watermark */
 .bio-watermark {
-  position: absolute;
-  inset: 0;
+  position: absolute; inset: 0;
   background: url("../img/seal.png") center/55% no-repeat;
   opacity: 0.06;
   pointer-events: none;
   z-index: 0;
 }
-.watermark-light {
-  opacity: 0.04;
-  background-size: 60%;
-}
-.bio > *:not(.bio-watermark) { position: relative; z-index: 1; }
+.watermark-light { opacity: 0.04; background-size: 60%; }
 
-/* TOP HALF: We the People + eagle */
-.bio-top {
-  position: relative;
-  display: grid;
-  grid-template-columns: 1.1fr 1fr;
-  padding: 16px 22px 12px;
-  overflow: hidden;
-}
-.bio-flag-stripes {
+/* Large reversed "PASSPORT" word behind the details: blue, 10% opacity */
+.bio-passport-watermark {
   position: absolute;
-  top: 16px; left: 14px;
-  width: 130px; height: 56px;
-  background-image:
-    linear-gradient(180deg,
-      #b9252a 0 14.28%, #f6efe2 14.28% 28.57%,
-      #b9252a 28.57% 42.85%, #f6efe2 42.85% 57.14%,
-      #b9252a 57.14% 71.42%, #f6efe2 71.42% 85.71%,
-      #b9252a 85.71% 100%);
-  border-radius: 1px;
-  opacity: 0.55;
-  pointer-events: none;
-}
-.bio-flag-stripes::before {
-  /* canton */
-  content: "";
-  position: absolute;
-  top: 0; left: 0;
-  width: 52px; height: 30px;
-  background: #173273;
-  background-image:
-    radial-gradient(circle, white 0.5px, transparent 1.2px);
-  background-size: 6px 6px;
-  background-position: 3px 3px;
-}
-.bio-top-left { position: relative; z-index: 2; padding-top: 60px; }
-.we-the-people {
-  font-family: var(--font-script);
-  color: var(--pp-blue-deep);
-  font-size: clamp(28px, 4.2vw, 42px);
-  font-weight: 600;
-  letter-spacing: 0.01em;
-  line-height: 1;
-  margin-bottom: 12px;
-  text-shadow: 0 1px 0 rgba(255,255,255,0.6);
-}
-.preamble {
-  margin: 0 24px 0 0;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%) scaleX(-1);  /* mirrored / "in reverse" */
   font-family: var(--font-display);
-  font-style: italic;
-  font-size: 10.5px;
-  line-height: 1.4;
-  color: var(--pp-blue-deep);
-  opacity: 0.85;
-}
-.signature-line {
-  margin-top: 14px;
-  margin-right: 32px;
-}
-.signature-line .signature {
-  display: block;
-  font-family: var(--font-script);
-  font-size: 24px;
-  color: #1a3262;
-  margin-bottom: -8px;
-  margin-left: 6px;
-}
-.signature-line hr {
-  border: 0; border-top: 1px solid rgba(45,77,155,0.45);
-  margin: 0;
-}
-.signature-line small {
-  font-size: 7.5px;
+  font-weight: 700;
+  font-size: clamp(110px, 18vw, 180px);
   letter-spacing: 0.10em;
   color: var(--pp-blue-deep);
-  display: block;
-  margin-top: 2px;
+  opacity: 0.10;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 0;
+  text-transform: uppercase;
+  user-select: none;
 }
 
-.bio-top-right {
+.bio > *:not(.bio-watermark):not(.bio-passport-watermark) {
   position: relative;
-  display: flex; align-items: flex-end; justify-content: flex-end;
-}
-.bio-top-right svg {
-  width: 100%; height: 100%;
-  max-width: 320px;
-  margin-right: -10px;
-  margin-bottom: -10px;
-  opacity: 0.95;
+  z-index: 1;
 }
 
-/* BOTTOM HALF: passport ID block */
-.bio-bottom {
+/* Main body: photo on the left, fields on the right */
+.bio-body {
   display: grid;
-  grid-template-columns: 130px 1fr;
-  gap: 14px;
-  padding: 12px 22px;
-  position: relative;
+  grid-template-columns: 140px 1fr;
+  gap: 18px;
+  padding: 22px 24px 16px;
+  align-items: start;
 }
-.bio-bottom-left {
-  display: grid;
-  grid-template-rows: auto 1fr auto;
-  gap: 8px;
-}
-.passport-label {
-  display: grid;
-  grid-template-columns: 32px 1fr;
-  gap: 6px;
-  align-items: center;
-  background: var(--pp-blue-deep);
-  color: white;
-  padding: 6px 8px;
-  border-radius: 2px;
-}
-.passport-emblem { width: 28px; height: 28px; color: white; }
-.passport-emblem svg { width: 100%; height: 100%; }
-.passport-label-text { font-size: 10px; letter-spacing: 0.10em; line-height: 1.15; }
-.passport-label-text strong { font-weight: 800; font-size: 11px; letter-spacing: 0.12em; }
-.passport-label-text span { font-style: italic; opacity: 0.85; }
+.bio-left { display: flex; justify-content: flex-start; }
+.bio-right { display: grid; gap: 10px; }
 
 .bio-photo {
   width: 120px; height: 150px;
@@ -545,18 +457,6 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   content: ""; position: absolute; inset: 3px;
   border: 1px dashed rgba(0,0,0,0.10);
   border-radius: 1px;
-}
-.bio-corner-seal {
-  width: 60px; height: 60px;
-  color: var(--pp-blue-deep);
-  opacity: 0.5;
-}
-.bio-corner-seal svg { width: 100%; height: 100%; }
-
-.bio-bottom-right {
-  display: grid;
-  grid-template-rows: auto 1fr;
-  gap: 6px;
 }
 .bio-country {
   margin: 0;

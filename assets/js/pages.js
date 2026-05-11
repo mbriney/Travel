@@ -266,30 +266,17 @@ function buildBio(ctx) {
 
   p.innerHTML = `
     <div class="bio">
-      <!-- Faint watermark seal centered in the page (CSS uses the PNG) -->
+      <!-- Background watermarks: seal + reversed "PASSPORT" word at 10% opacity -->
       <div class="bio-watermark" aria-hidden="true"></div>
+      <div class="bio-passport-watermark" aria-hidden="true">PASSPORT</div>
 
-      <!-- TOP HALF -->
-      <div class="bio-top">
-        <div class="bio-flag-stripes" aria-hidden="true"></div>
-        <div class="bio-top-left">
-          <div class="we-the-people" aria-label="We the People">We the People</div>
-          <p class="preamble">Of the United States, in Order to form a more perfect Union, establish Justice, insure domestic Tranquility, provide for the common defence, promote the general Welfare, and secure the Blessings of Liberty to ourselves and our Posterity, do ordain and establish this Constitution for the United States of America.</p>
-          <div class="signature-line">
-            <span class="signature">${BEARER.given} ${BEARER.surname}</span>
-            <hr/>
-            <small>SIGNATURE OF BEARER · SIGNATURE DU TITULAIRE · FIRMA DEL TITULAR</small>
-          </div>
-        </div>
-        <div class="bio-top-right" aria-hidden="true">${bioEagleSVG()}</div>
-      </div>
+      <div class="bio-body">
 
-      <!-- BOTTOM HALF -->
-      <div class="bio-bottom">
-        <div class="bio-bottom-left">
+        <div class="bio-left">
           <div class="bio-photo"><span aria-hidden="true">MB</span></div>
         </div>
-        <div class="bio-bottom-right">
+
+        <div class="bio-right">
           <h3 class="bio-country">UNITED STATES OF AMERICA</h3>
           <div class="bio-fields">
             <div class="row triple">
@@ -312,6 +299,7 @@ function buildBio(ctx) {
             <div class="row"><div class="field"><dt>Endorsements / Anotaciones</dt><dd>SEE VISA STAMPS</dd></div></div>
           </div>
         </div>
+
       </div>
 
       <div class="bio-mrz">${mrz1}<br/>${mrz2}</div>
@@ -454,12 +442,11 @@ function buildStateStampData(code, info, ctx) {
   };
 }
 
-// Pack stamps into pages — countries first, then US states. 6 stamps per page,
-// each placed in a randomized "anchor" position so they sit nearby with slight
-// overlap rather than aligned to a strict grid.
+// Pack stamps into pages. 4 stamps per page on a roomy 2x2 grid with tiny
+// jitter — stamps sit cleanly in their own quadrants, never on top of each other.
 function buildStampPages(ctx) {
   const all = [...collectCountryStamps(ctx), ...collectStateStamps(ctx)];
-  const PER_PAGE = 6;
+  const PER_PAGE = 4;
   const pages = [];
   for (let i = 0; i < all.length; i += PER_PAGE) {
     const slice = all.slice(i, i + PER_PAGE);
@@ -481,16 +468,15 @@ function buildStampPages(ctx) {
   return pages;
 }
 
-// Place stamps in randomized anchor points within the page — 3x2 grid of
-// "neighborhoods" with small jitter so adjacent stamps slightly overlap.
+// 2x2 anchor grid covering roughly 25/75% x 25/75% of the page, with at most
+// ±4% jitter so each stamp stays comfortably inside its own quadrant.
 function renderScatteredStamp(d, idx) {
-  // 3 cols x 2 rows anchor grid
-  const col = idx % 3;
-  const row = Math.floor(idx / 3);
-  const baseX = 18 + col * 28;   // %
-  const baseY = 22 + row * 38;   // %
-  const jx = (d.rng() * 14 - 7);
-  const jy = (d.rng() * 14 - 7);
+  const col = idx % 2;
+  const row = Math.floor(idx / 2);
+  const baseX = 27 + col * 46;
+  const baseY = 28 + row * 42;
+  const jx = (d.rng() * 8 - 4);
+  const jy = (d.rng() * 8 - 4);
   const x = (baseX + jx).toFixed(1);
   const y = (baseY + jy).toFixed(1);
   return `
