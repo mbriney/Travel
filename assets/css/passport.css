@@ -903,6 +903,180 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .us-airports li code { color: var(--accent); }
 
 /* ===========================================================================
+   ACHIEVEMENTS VIEW
+   --------------------------------------------------------------------------- */
+.ach-view {
+  max-width: 1280px;
+}
+
+.ach-summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.ach-summary-cell {
+  padding: 18px 22px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 14px;
+}
+.ach-summary-cell .lbl {
+  font-size: 10px; letter-spacing: 0.20em; text-transform: uppercase;
+  color: var(--ink-3);
+}
+.ach-summary-cell .num {
+  font-family: var(--font-display);
+  font-size: 32px; font-weight: 700; color: var(--ink-1);
+  line-height: 1; margin-top: 6px;
+}
+.ach-summary-cell .num .den {
+  font-size: 18px; color: var(--ink-3); font-weight: 500;
+}
+.ach-progress-bar {
+  margin-top: 10px;
+  height: 8px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 999px; overflow: hidden;
+}
+.ach-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-2), var(--accent));
+  border-radius: 999px;
+  transition: width 600ms ease;
+}
+
+.ach-filters {
+  display: flex; gap: 14px; align-items: center;
+  margin-bottom: 18px; padding: 10px 14px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  flex-wrap: wrap;
+}
+.ach-filters label {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 12px; color: var(--ink-2);
+}
+.ach-filters label span:first-child {
+  letter-spacing: 0.10em; text-transform: uppercase; font-size: 10px;
+  color: var(--ink-3);
+}
+.ach-filters select {
+  background: rgba(0,0,0,0.30);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: var(--ink-1);
+  border-radius: 8px;
+  padding: 5px 8px;
+  font: inherit;
+  font-size: 12px;
+}
+.ach-filters label.toggle { margin-left: auto; }
+.ach-filters input[type="checkbox"] { accent-color: var(--accent); }
+
+.ach-section { margin-bottom: 28px; }
+.ach-section-title {
+  font-family: var(--font-display);
+  font-size: 18px; font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--ink-1);
+  margin: 0 0 12px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.ach-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+}
+
+.ach-card {
+  position: relative;
+  padding: 14px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  display: grid;
+  gap: 8px;
+  transition: transform 200ms, background 200ms, border-color 200ms;
+}
+.ach-card.is-locked { opacity: 0.65; }
+.ach-card.is-unlocked { background: rgba(167, 139, 250, 0.06); }
+.ach-card.is-unlocked:hover { transform: translateY(-2px); }
+
+.ach-card-head {
+  display: grid;
+  grid-template-columns: 40px 1fr auto;
+  align-items: center;
+  gap: 10px;
+}
+.ach-icon {
+  font-size: 26px;
+  filter: grayscale(0.0);
+}
+.ach-card.is-locked .ach-icon { filter: grayscale(0.85); opacity: 0.6; }
+.ach-meta { display: grid; gap: 2px; }
+.ach-name {
+  font-weight: 700; font-size: 14px; color: var(--ink-1);
+  line-height: 1.2;
+}
+.ach-tier {
+  font-size: 9px; letter-spacing: 0.18em; font-weight: 700;
+}
+.ach-card.tier-bronze   .ach-tier { color: #cd7f32; }
+.ach-card.tier-silver   .ach-tier { color: #b8c0cc; }
+.ach-card.tier-gold     .ach-tier { color: #d4af37; }
+.ach-card.tier-platinum .ach-tier { color: #e6e6ea; }
+.ach-card.tier-diamond  .ach-tier { color: #7bd9ea; }
+
+.ach-card.is-unlocked.tier-bronze   { border-left: 3px solid #cd7f32; }
+.ach-card.is-unlocked.tier-silver   { border-left: 3px solid #b8c0cc; }
+.ach-card.is-unlocked.tier-gold     { border-left: 3px solid #d4af37; }
+.ach-card.is-unlocked.tier-platinum { border-left: 3px solid #e6e6ea; }
+.ach-card.is-unlocked.tier-diamond  { border-left: 3px solid #7bd9ea; box-shadow: 0 0 18px -8px rgba(123, 217, 234, 0.45); }
+
+.ach-points {
+  font-family: var(--font-mrz);
+  font-size: 11px;
+  color: var(--accent);
+  font-weight: 700;
+  background: rgba(124, 58, 237, 0.15);
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(124, 58, 237, 0.30);
+}
+.ach-card.is-locked .ach-points { color: var(--ink-3); background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.08); }
+
+.ach-desc {
+  font-size: 12px;
+  color: var(--ink-2);
+  line-height: 1.4;
+}
+
+.ach-bar {
+  height: 6px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.ach-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-2), var(--accent));
+  border-radius: 999px;
+  transition: width 600ms ease;
+}
+.ach-card.is-unlocked .ach-bar-fill {
+  background: linear-gradient(90deg, var(--accent), #50e3c2);
+}
+.ach-progress {
+  font-size: 11px;
+  color: var(--ink-3);
+  font-family: var(--font-mrz);
+  letter-spacing: 0.06em;
+}
+.ach-card.is-unlocked .ach-progress { color: #4ade80; }
+
+/* ===========================================================================
    Responsive
    --------------------------------------------------------------------------- */
 @media (max-width: 900px) {
