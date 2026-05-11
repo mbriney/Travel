@@ -1378,6 +1378,45 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   border-bottom: 1px solid rgba(0,0,0,0.08);
 }
 
+/* Status banner — Cancelled or Diverted callout above the details grid. */
+.flight-status-banner {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px;
+  margin: 0 0 14px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 0.04em;
+}
+.flight-status-banner.cancelled {
+  background: rgba(220, 38, 38, 0.15);
+  color: #fca5a5;
+  border: 1px solid rgba(220, 38, 38, 0.40);
+}
+.flight-status-banner.diverted {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fcd34d;
+  border: 1px solid rgba(245, 158, 11, 0.40);
+}
+
+/* Aircraft photo from AeroDataBox — appears between the banner and the
+   details grid when we have one. */
+.flight-aircraft-photo {
+  margin: 0 0 14px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: rgba(0,0,0,0.20);
+}
+.flight-aircraft-photo img {
+  display: block; width: 100%; height: auto;
+  max-height: 220px; object-fit: cover;
+}
+
+/* Inline delay tone colours — used by fmtDelay() inside <dd> cells. */
+.detail-row .ok   { color: #6ee7b7; }   /* on time / early */
+.detail-row .warn { color: #fcd34d; }   /* 1–15 min late */
+.detail-row .bad  { color: #fca5a5; }   /* > 15 min late */
+
 /* Rank list: logo + code packed into the first column so the bar still uses
    its own 1fr column. Keeps the grid consistent across logo/no-logo rows. */
 .rank-list .logo-code {

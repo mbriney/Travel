@@ -211,6 +211,18 @@ export const ACHIEVEMENTS = [
   { code: "REMOTE_LANDING",     name: "Remote Landing",         desc: "Land at an airport over 8,000 ft elevation in a sparsely-populated area",     category: "elite",   icon: "🏔️", tier: "gold",     req: 1,   type: "remote_landing",         points: 120 },
   { code: "NEW_PLANE_SMELL",    name: "New Plane Smell",        desc: "Fly an aircraft within 12 months of its manufacture date (requires BTS+FAA enrichment)", category: "elite", icon: "✨", tier: "gold", req: 1, type: "new_aircraft",          points: 100 },
 
+  // ── EXPANSION v4: enrichment-driven (delay, taxi, cancellation, age) ──
+  // All of these are powered by BTS On-Time Performance + FAA Aircraft
+  // Registry + AeroDataBox. They unlock progressively as the enrichment
+  // scripts populate the new fields on flights.json.
+  { code: "ON_TIME_KING",       name: "On-Time King",           desc: "Average across all timed flights is ≤5 min late",                              category: "elite",   icon: "⏱️", tier: "gold",   req: 5,    type: "avg_arrival_delay_max",  points: 200 },
+  { code: "LONG_SUFFERING",     name: "Long-Suffering Traveler", desc: "Accumulate 100+ total hours of arrival delay",                                category: "special", icon: "😩", tier: "silver", req: 100,  type: "total_delay_hours",      points: 100 },
+  { code: "THE_REROUTE",        name: "The Reroute",            desc: "Be on a diverted flight",                                                       category: "special", icon: "↺",  tier: "gold",   req: 1,    type: "diverted_flights",       points: 100 },
+  { code: "BRUSHED_CANCEL",     name: "Brushed With Cancellation", desc: "Have a cancelled flight in your itinerary (you rebooked)",                  category: "special", icon: "⨯",  tier: "silver", req: 1,    type: "cancelled_flights",      points: 60 },
+  { code: "VINTAGE_IRON",       name: "Vintage Iron",           desc: "Fly an aircraft 30+ years old at flight time",                                  category: "elite",   icon: "🛩️", tier: "gold",   req: 30,   type: "oldest_aircraft_age",    points: 150 },
+  { code: "QUAD_JET_CLUB",      name: "Quad Jet Club",          desc: "Fly on a 4-engined aircraft (747, 380, A340, MD-11, …)",                        category: "elite",   icon: "🛬", tier: "gold",   req: 4,    type: "max_engine_count",       points: 150 },
+  { code: "SAME_DAY_SAME_PLANE",name: "Same Day, Same Plane",   desc: "Fly the same physical aircraft (tail) twice in one day",                        category: "special", icon: "🔁", tier: "silver", req: 1,    type: "same_day_same_plane",    points: 60 },
+
   // ── META ──────────────────────────────────────────────────────────────
   { code: "WRIGHT_STUFF",       name: "The Wright Stuff",      desc: "Unlock at least one achievement in every category",     category: "special",  icon: "✈️", tier: "diamond",  req: 1,    type: "wright_stuff",      points: 500 },
 ];
@@ -836,6 +848,36 @@ export function evaluateAchievements(ctx) {
   metrics.remote_landing        = remoteLanding;
   metrics.new_aircraft          = newAircraftFlights;
 
+  // ── Expansion v4 (enrichment-driven) ──────────────────────────────────
+  // Source these from stats.delayStats / stats.aircraftAgeStats which the
+  // computeStats() pass produced. Several of these are "inverted" — the
+  // achievement is unlocked when the metric is ≤ req, not ≥. We surface
+  // both the metric and a synthetic version so the standard `current >= req`
+  // unlock check just works.
+  const ds = stats.delayStats || {};
+  const ages = stats.aircraftAgeStats;
+  // On-Time King: want avg arr delay ≤ 5. Convert to "score" where higher
+  // is better — req is 5, current = max(0, 5 - avgArrDelay + 5) ... too
+  // clever. Simpler: store avg_arrival_delay_max as a "headroom" value.
+  // Headroom = req - current. We "unlock" when headroom ≥ 0 by mapping:
+  //   metric_value = req if avgArrDelay ≤ req, else 0
+  // We also need ≥10 timed flights so this isn't won by a 1-flight sample.
+  const avgArrDelay = ds.avgArrDelay ?? Infinity;
+  metrics.avg_arrival_delay_max = (ds.arrCount >= 10 && avgArrDelay <= 5) ? 5 : 0;
+  metrics.total_delay_hours     = (ds.totalDelayMin || 0) / 60;
+  metrics.diverted_flights      = ds.divertedCount || 0;
+  metrics.cancelled_flights     = ds.cancelledCount || 0;
+  metrics.oldest_aircraft_age   = ages ? ages.oldest.age : 0;
+  metrics.max_engine_count      = (() => {
+    let max = 0;
+    for (const [k, n] of (stats.engineCountDist || new Map())) {
+      const c = parseInt(k, 10);
+      if (Number.isFinite(c) && c > max && n > 0) max = c;
+    }
+    return max;
+  })();
+  metrics.same_day_same_plane   = stats.sameDaySamePlane || 0;
+
   // Decorate each definition with its progress.
   // Two-pass: skip the "wright_stuff" meta on the first pass so we can derive
   // it from how many categories have at least one unlocked achievement.
@@ -1309,6 +1351,14 @@ function describeRequirement(ach) {
     case "rtw_trip":               return `One trip that sweeps ≥270° of longitude and returns to its starting airport`;
     case "remote_landing":         return `Land at a small airport above 8,000 ft elevation`;
     case "new_aircraft":           return `Fly an aircraft within 12 months of its manufacture year (needs BTS+FAA enrichment)`;
+    // Expansion v4 (enrichment-driven)
+    case "avg_arrival_delay_max":  return `Maintain an average arrival delay of 5 min or less across 10+ timed flights`;
+    case "total_delay_hours":      return `Accumulate ${ach.req}+ hours of total arrival delay across all flights`;
+    case "diverted_flights":       return `Be on at least one diverted flight (requires BTS or AeroDataBox enrichment)`;
+    case "cancelled_flights":      return `Have at least one cancelled flight on your itinerary`;
+    case "oldest_aircraft_age":    return `Fly an aircraft ${ach.req}+ years old at flight time`;
+    case "max_engine_count":       return `Fly an aircraft with ${ach.req} engines`;
+    case "same_day_same_plane":    return `Fly the same physical aircraft (tail) twice in a single calendar day`;
     default:                       return ach.desc;
   }
 }
@@ -1326,9 +1376,9 @@ function describeRequirement(ach) {
 //   - "span"   : time-span between first & last flight.
 //   - "meta"   : derived from other achievements.
 function metricKind(type) {
-  if (["flights_count","distance_km","distance_mi","flight_hours","earth_laps","moon_trips","boeing_segments","airbus_segments"].includes(type)) return "count";
+  if (["flights_count","distance_km","distance_mi","flight_hours","earth_laps","moon_trips","boeing_segments","airbus_segments","total_delay_hours"].includes(type)) return "count";
   if (["countries","airlines","airports","us_states","continents","domestic_airports","aircraft_families","airport_alphabet","top_10_hubs","eu_countries","as_countries","middle_east_set","southerner_set","alliances","island_airports"].includes(type)) return "set";
-  if (["single_flight_distance","max_flight_minutes","min_flight_minutes","airline_loyalty","same_route","flights_per_month","flights_per_year","best_year_miles","countries_per_year","max_layover_minutes","max_trip_legs","max_repeat_flightno","max_tail_repeats","consecutive_months","max_lat_n","max_lat_s","max_airport_elevation","max_continents_per_trip"].includes(type)) return "maxof";
+  if (["single_flight_distance","max_flight_minutes","min_flight_minutes","airline_loyalty","same_route","flights_per_month","flights_per_year","best_year_miles","countries_per_year","max_layover_minutes","max_trip_legs","max_repeat_flightno","max_tail_repeats","consecutive_months","max_lat_n","max_lat_s","max_airport_elevation","max_continents_per_trip","oldest_aircraft_age","max_engine_count","avg_arrival_delay_max"].includes(type)) return "maxof";
   if (type === "years_span") return "span";
   if (type === "wright_stuff") return "meta";
   return "event";
@@ -1977,6 +2027,20 @@ function qualifyingFlights(ach, ctx) {
       const fy = parseInt((x.depart || "").slice(0, 4), 10);
       return Number.isFinite(ay) && Number.isFinite(fy) && (fy - ay) <= 1 && fy >= ay;
     });
+    // Expansion v4 (enrichment-driven) qualifying-flight filters
+    case "diverted_flights":      return f.filter(x => x.flight_diverted);
+    case "cancelled_flights":     return f.filter(x => x.flight_cancelled);
+    case "oldest_aircraft_age":   return f.filter(x => {
+      if (!x.aircraft_year || !x.depart) return false;
+      const ay = parseInt(x.aircraft_year, 10);
+      const fy = parseInt((x.depart || "").slice(0, 4), 10);
+      return Number.isFinite(ay) && Number.isFinite(fy) && (fy - ay) >= 30;
+    });
+    case "max_engine_count":      return f.filter(x => parseInt(x.aircraft_engines, 10) === 4);
+    case "same_day_same_plane":   return _sameDaySamePlaneFlights(f);
+    case "total_delay_hours":     return f.filter(x => (x.arr_delay_min || 0) > 30)
+                                      .sort((a, b) => (b.arr_delay_min || 0) - (a.arr_delay_min || 0))
+                                      .slice(0, 30);
     case "micro_flight":          return f.filter(x => flightKm(x) > 0 && flightKm(x) < 250);
     case "ocean_crossing":        return f.filter(x => {
       const [a,b] = airportPair(x);
@@ -2052,6 +2116,30 @@ function _tightConnectionFlights(flights) {
   return out;
 }
 
+// Same physical aircraft (by tail) flown twice on the same calendar day.
+// Returns the LATER flight of each same-day pair (i.e. the "second leg on
+// the same metal") so the modal can call out "you returned on the very
+// same plane you arrived on."
+function _sameDaySamePlaneFlights(flights) {
+  const byTail = new Map();
+  for (const f of flights) {
+    const t = (f.tail_number || "").toUpperCase();
+    if (!t || !f.depart) continue;
+    if (!byTail.has(t)) byTail.set(t, []);
+    byTail.get(t).push(f);
+  }
+  const out = [];
+  for (const list of byTail.values()) {
+    list.sort((a, b) => (a.depart || "").localeCompare(b.depart || ""));
+    for (let i = 1; i < list.length; i++) {
+      const d1 = String(list[i - 1].depart || "").slice(0, 10);
+      const d2 = String(list[i].depart   || "").slice(0, 10);
+      if (d1 && d1 === d2) out.push(list[i]);
+    }
+  }
+  return out;
+}
+
 const TRANS_PAIRS_FOR_QUAL = new Set([
   ["NA","EU"].sort().join("|"), ["NA","AS"].sort().join("|"), ["NA","OC"].sort().join("|"), ["NA","AF"].sort().join("|"), ["NA","AN"].sort().join("|"),
   ["SA","EU"].sort().join("|"), ["SA","AS"].sort().join("|"), ["SA","OC"].sort().join("|"), ["SA","AF"].sort().join("|"), ["SA","AN"].sort().join("|"),
@@ -2103,6 +2191,26 @@ function eventExtra(ach, f, ctx) {
     const ay = parseInt(f.aircraft_year, 10);
     const fy = parseInt((f.depart || "").slice(0, 4), 10);
     return `aircraft built ${ay}, flown ${fy} (${fy - ay} yr old)`;
+  }
+  // Expansion v4
+  if (ach.type === "oldest_aircraft_age" && f.aircraft_year && f.depart) {
+    const ay = parseInt(f.aircraft_year, 10);
+    const fy = parseInt(String(f.depart).slice(0, 4), 10);
+    return Number.isFinite(ay) && Number.isFinite(fy) ? `${fy - ay} yr old (built ${ay})` : "";
+  }
+  if (ach.type === "max_engine_count" && f.aircraft_engines) {
+    return `${f.aircraft_engines}× ${f.aircraft_engine_type || "engines"}`;
+  }
+  if (ach.type === "diverted_flights")  return "diverted";
+  if (ach.type === "cancelled_flights") {
+    const codes = { A: "carrier", B: "weather", C: "NAS/ATC", D: "security" };
+    return codes[f.flight_cancel_reason] ? `cancelled (${codes[f.flight_cancel_reason]})` : "cancelled";
+  }
+  if (ach.type === "same_day_same_plane" && f.tail_number) {
+    return `tail ${f.tail_number}`;
+  }
+  if (ach.type === "total_delay_hours" && f.arr_delay_min != null) {
+    return `arrived ${Math.round(f.arr_delay_min)} min late`;
   }
   if (ach.type === "micro_flight" && f._miles) return `${Math.round(f._miles)} mi`;
   if (ach.type === "has_a380" || ach.type === "has_747" || ach.type === "has_787" || ach.type === "has_md80") return f.aircraft ? `aircraft ${f.aircraft}` : "";

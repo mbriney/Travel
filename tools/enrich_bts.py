@@ -182,49 +182,93 @@ def _process_faa_zip(buf: io.BytesIO) -> None:
         if not master_name or not ac_name:
             sys.exit(f"FAA zip is missing MASTER or ACFTREF: {names}")
 
-        # ACFTREF: aircraft type reference (CODE -> manufacturer/model)
+        # ACFTREF: aircraft type reference (CODE -> manufacturer/model + engine info)
+        # FAA files are UTF-8 with a leading BOM. `utf-8-sig` auto-strips the
+        # BOM; `errors="replace"` keeps us safe if any row has stray non-UTF-8
+        # bytes (rare; mostly affects accented city names, never a join key).
         with zf.open(ac_name) as fp:
-            text = io.TextIOWrapper(fp, encoding="latin-1", newline="")
+            text = io.TextIOWrapper(fp, encoding="utf-8-sig", errors="replace", newline="")
             ac_rdr = csv.DictReader(text)
+            # FAA CSV headers ship with trailing whitespace ("MFR MDL CODE ",
+            # "CODE ", etc.). Strip them on the DictReader.fieldnames so
+            # `row.get("CODE")` actually finds the column instead of None.
+            if ac_rdr.fieldnames:
+                ac_rdr.fieldnames = [(f or "").strip() for f in ac_rdr.fieldnames]
             type_codes = {}
             for row in ac_rdr:
                 code = (row.get("CODE") or "").strip()
                 if not code:
                     continue
+                # TYPE-ENG: 0=None, 1=Reciprocating, 2=Turbo-prop, 3=Turbo-shaft,
+                #           4=Turbo-jet, 5=Turbo-fan, 6=Ramjet, 7=2 cycle,
+                #           8=4 cycle, 9=Unknown, 10=Electric, 11=Rotary
+                ENG_TYPE_NAMES = {
+                    "1": "Piston", "2": "Turboprop", "3": "Turboshaft",
+                    "4": "Turbojet", "5": "Turbofan", "10": "Electric",
+                    "11": "Rotary",
+                }
+                eng_type_raw = (row.get("TYPE-ENG") or row.get("TYPE_ENG") or "").strip()
+                no_eng_raw = (row.get("NO-ENG") or row.get("NO_ENG") or "").strip()
                 type_codes[code] = {
                     "mfr":   (row.get("MFR") or "").strip(),
                     "model": (row.get("MODEL") or "").strip(),
-                    "category": (row.get("AC-CAT") or "").strip(),
+                    "category": (row.get("AC-CAT") or row.get("AC_CAT") or "").strip(),
+                    "no_eng": no_eng_raw if no_eng_raw.isdigit() else "",
+                    "eng_type": ENG_TYPE_NAMES.get(eng_type_raw, ""),
                 }
 
-        # MASTER: N-number registrations. We also grab YEAR_MFR (year of
-        # manufacture) which powers the New Plane Smell achievement —
-        # flying an aircraft soon after delivery.
+        # MASTER: N-number registrations. We grab YEAR_MFR (powers New Plane
+        # Smell), MODE_S_CODE (plane-spotter detail in the flight modal),
+        # SERIAL_NUMBER (MSN — manufacturer's serial — uniquely identifies
+        # the airframe across re-registrations), and NAME (current
+        # registered owner, useful for showing "now operated by …").
         with zf.open(master_name) as fp:
-            text = io.TextIOWrapper(fp, encoding="latin-1", newline="")
+            text = io.TextIOWrapper(fp, encoding="utf-8-sig", errors="replace", newline="")
             m_rdr = csv.DictReader(text)
-            n_number_info = {}   # n -> (mfr_mdl_code, year_mfr)
+            # Same FAA-CSV header-whitespace fix as ACFTREF above.
+            if m_rdr.fieldnames:
+                m_rdr.fieldnames = [(f or "").strip() for f in m_rdr.fieldnames]
+            n_number_info = {}   # n -> dict of fields
             for row in m_rdr:
                 n = (row.get("N-NUMBER") or "").strip()
                 code = (row.get("MFR MDL CODE") or "").strip()
-                year_raw = (row.get("YEAR MFR") or "").strip()
                 if not n or not code:
                     continue
+                year_raw = (row.get("YEAR MFR") or "").strip()
                 year_mfr = year_raw if year_raw.isdigit() and len(year_raw) == 4 else ""
-                n_number_info[n] = (code, year_mfr)
+                n_number_info[n] = {
+                    "mfr_mdl_code": code,
+                    "year_mfr":     year_mfr,
+                    "mode_s":       (row.get("MODE S CODE HEX") or row.get("MODE_S_CODE_HEX") or "").strip().upper(),
+                    "serial":       (row.get("SERIAL NUMBER") or row.get("SERIAL_NUMBER") or "").strip(),
+                    "owner":        (row.get("NAME") or "").strip(),
+                    "status":       (row.get("STATUS CODE") or row.get("STATUS_CODE") or "").strip(),
+                }
 
-    # Flatten: tail -> manufacturer + model + year_mfr
+    # Flatten everything we have on each tail
     out_rows = []
-    for n, (code, year_mfr) in n_number_info.items():
-        info = type_codes.get(code)
+    for n, m in n_number_info.items():
+        info = type_codes.get(m["mfr_mdl_code"])
         if not info:
             continue
-        out_rows.append((f"N{n}", info["mfr"], info["model"], year_mfr))
+        out_rows.append((
+            f"N{n}",
+            info["mfr"],
+            info["model"],
+            m["year_mfr"],
+            info["no_eng"],
+            info["eng_type"],
+            m["mode_s"],
+            m["serial"],
+            m["owner"],
+            m["status"],
+        ))
 
+    log(f"FAA: parsed {len(type_codes):,} aircraft type codes (ACFTREF) and {len(n_number_info):,} N-number registrations (MASTER)")
     FAA_PATH.parent.mkdir(parents=True, exist_ok=True)
     with gzip.open(FAA_PATH, "wt", encoding="utf-8", newline="") as fp:
         w = csv.writer(fp)
-        w.writerow(["tail", "mfr", "model", "year_mfr"])
+        w.writerow(["tail", "mfr", "model", "year_mfr", "no_eng", "eng_type", "mode_s", "serial", "owner", "status"])
         w.writerows(sorted(out_rows))
     log(f"FAA registry: wrote {len(out_rows):,} tail→model rows to {FAA_PATH.relative_to(REPO_ROOT)}")
     stamp_meta("faa_registry_built_at")
@@ -238,12 +282,19 @@ def load_faa_lookup() -> dict[str, dict]:
         rdr = csv.DictReader(fp)
         for row in rdr:
             tail = row["tail"].strip().upper()
-            if tail:
-                out[tail] = {
-                    "mfr": row["mfr"],
-                    "model": row["model"],
-                    "year_mfr": (row.get("year_mfr") or "").strip(),
-                }
+            if not tail:
+                continue
+            out[tail] = {
+                "mfr":      row.get("mfr", ""),
+                "model":    row.get("model", ""),
+                "year_mfr": (row.get("year_mfr") or "").strip(),
+                "no_eng":   (row.get("no_eng") or "").strip(),
+                "eng_type": (row.get("eng_type") or "").strip(),
+                "mode_s":   (row.get("mode_s") or "").strip().upper(),
+                "serial":   (row.get("serial") or "").strip(),
+                "owner":    (row.get("owner") or "").strip(),
+                "status":   (row.get("status") or "").strip(),
+            }
     return out
 
 
@@ -345,14 +396,44 @@ def parse_bts_csv(zpath: Path, wanted_keys: set[tuple]) -> list[dict] | None:
                 origin = (row.get("Origin") or row.get("ORIGIN") or "").strip()
                 key = (carrier, fnum, fdate, origin)
                 if key in wanted_keys:
+                    # Pull every field that powers a downstream stat or
+                    # achievement. BTS field names changed casing over the
+                    # years; we accept either snake or BARE_CAPS form.
+                    def g(*names):
+                        for n in names:
+                            v = row.get(n)
+                            if v is not None and v != "":
+                                return v
+                        return ""
+                    def gfloat(*names):
+                        v = g(*names)
+                        try:    return float(v) if v != "" else None
+                        except: return None
+
                     matched.append({
                         "carrier": carrier,
                         "flight":  fnum,
                         "date":    fdate,
                         "from":    origin,
-                        "to":      (row.get("Dest") or row.get("DEST") or "").strip(),
-                        "tail":    (row.get("Tail_Number") or row.get("TailNum") or "").strip(),
-                        "cancelled": (row.get("Cancelled") or row.get("CANCELLED") or "").strip() in ("1", "1.00"),
+                        "to":      g("Dest", "DEST"),
+                        "tail":    g("Tail_Number", "TailNum"),
+                        "cancelled": g("Cancelled", "CANCELLED") in ("1", "1.00"),
+                        # New fields:
+                        "dep_delay":   gfloat("DepDelay", "DEP_DELAY"),
+                        "dep_delay_pos": gfloat("DepDelayMinutes", "DEP_DELAY_MINUTES"),  # 0 if early
+                        "arr_delay":   gfloat("ArrDelay", "ARR_DELAY"),
+                        "arr_delay_pos": gfloat("ArrDelayMinutes", "ARR_DELAY_MINUTES"),
+                        "taxi_out":    gfloat("TaxiOut", "TAXI_OUT"),
+                        "taxi_in":     gfloat("TaxiIn", "TAXI_IN"),
+                        "air_time":    gfloat("AirTime", "AIR_TIME"),
+                        "diverted":    g("Diverted", "DIVERTED") in ("1", "1.00"),
+                        "cancel_code": g("CancellationCode", "CANCELLATION_CODE"),
+                        # Delay causes (only populated when total delay >=15 min)
+                        "delay_carrier":       gfloat("CarrierDelay",        "CARRIER_DELAY"),
+                        "delay_weather":       gfloat("WeatherDelay",        "WEATHER_DELAY"),
+                        "delay_nas":           gfloat("NASDelay",            "NAS_DELAY"),
+                        "delay_security":      gfloat("SecurityDelay",       "SECURITY_DELAY"),
+                        "delay_late_aircraft": gfloat("LateAircraftDelay",   "LATE_AIRCRAFT_DELAY"),
                     })
     return matched
 
@@ -389,32 +470,71 @@ def build_wanted_keys(flights: list[dict]) -> dict[tuple, list[int]]:
 
 
 def merge_match_into_flight(flight: dict, match: dict, faa: dict) -> bool:
-    """Returns True if the flight record was actually updated."""
-    if match["cancelled"]:
-        return False
-    tail = match["tail"].strip().upper()
-    if not tail or tail == "UNKNOWN":
-        return False
+    """Returns True if the flight record was actually updated. Captures
+    delay / taxi / status fields from the BTS row and tail-keyed details
+    (year, MSN, Mode-S, engine count/type, registered owner) from FAA."""
     changed = False
-    if not flight.get("tail_number") or flight.get("enriched_source") != "aerodatabox":
-        # BTS wins over un-enriched and over earlier BTS data (idempotent).
-        # We DO NOT clobber AeroDataBox-enriched flights because ADB usually
-        # has a richer model/ICAO string. (You can change this rule.)
-        flight["tail_number"] = tail
-        flight["enriched_source"] = "bts"
+
+    # Cancellation / divert flags first — these are status fields, not just
+    # additional metadata, and they're useful even when there's no tail.
+    if match.get("cancelled") and not flight.get("flight_cancelled"):
+        flight["flight_cancelled"] = True
+        if match.get("cancel_code"):
+            flight["flight_cancel_reason"] = match["cancel_code"]
         changed = True
-    info = faa.get(tail)
-    if info:
-        if not flight.get("aircraft") or flight.get("enriched_source") == "bts":
-            model_str = (f"{info['mfr']} {info['model']}").strip()
-            if model_str and model_str != flight.get("aircraft"):
-                flight["aircraft"] = model_str
+    if match.get("diverted") and not flight.get("flight_diverted"):
+        flight["flight_diverted"] = True
+        changed = True
+
+    # Delay / taxi / airtime — all numeric, signed where appropriate.
+    # Skip cancelled rows; their timing fields are zero/garbage.
+    if not match.get("cancelled"):
+        for src, dst in (
+            ("dep_delay",          "dep_delay_min"),
+            ("arr_delay",          "arr_delay_min"),
+            ("taxi_out",           "taxi_out_min"),
+            ("taxi_in",            "taxi_in_min"),
+            ("air_time",           "air_time_min"),
+            ("delay_carrier",      "delay_carrier_min"),
+            ("delay_weather",      "delay_weather_min"),
+            ("delay_nas",          "delay_nas_min"),
+            ("delay_security",     "delay_security_min"),
+            ("delay_late_aircraft","delay_late_aircraft_min"),
+        ):
+            v = match.get(src)
+            if v is not None and flight.get(dst) != v:
+                flight[dst] = v
                 changed = True
-        # Stash year of manufacture — powers the "New Plane Smell" achievement
-        # (flew an aircraft delivered recently relative to the flight date).
-        if info.get("year_mfr") and flight.get("aircraft_year") != info["year_mfr"]:
-            flight["aircraft_year"] = info["year_mfr"]
+
+    # Tail-keyed enrichment from FAA
+    tail = (match.get("tail") or "").strip().upper()
+    if tail and tail != "UNKNOWN":
+        if not flight.get("tail_number") or flight.get("enriched_source") != "aerodatabox":
+            # BTS wins over un-enriched and over earlier BTS data. Don't
+            # clobber AeroDataBox-enriched flights because ADB has richer
+            # model strings + photos.
+            flight["tail_number"] = tail
+            flight["enriched_source"] = "bts"
             changed = True
+        info = faa.get(tail)
+        if info:
+            if not flight.get("aircraft") or flight.get("enriched_source") == "bts":
+                model_str = (f"{info['mfr']} {info['model']}").strip()
+                if model_str and model_str != flight.get("aircraft"):
+                    flight["aircraft"] = model_str
+                    changed = True
+            for src, dst in (
+                ("year_mfr", "aircraft_year"),
+                ("no_eng",   "aircraft_engines"),
+                ("eng_type", "aircraft_engine_type"),
+                ("mode_s",   "aircraft_mode_s"),
+                ("serial",   "aircraft_msn"),
+                ("owner",    "aircraft_owner"),
+            ):
+                v = info.get(src)
+                if v and flight.get(dst) != v:
+                    flight[dst] = v
+                    changed = True
     return changed
 
 

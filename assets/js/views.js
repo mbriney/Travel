@@ -158,6 +158,97 @@ function renderTailList(s, ctx) {
     </ul>`;
 }
 
+// ── Operations cards (BTS + FAA + AeroDataBox derived) ────────────────────
+
+function renderOnTimeCard(s) {
+  const d = s.delayStats;
+  const onTimePct = (d.onTimeRate * 100).toFixed(0);
+  const avgArr = d.avgArrDelay >= 0 ? `+${d.avgArrDelay.toFixed(1)}` : d.avgArrDelay.toFixed(1);
+  const avgDep = d.avgDepDelay >= 0 ? `+${d.avgDepDelay.toFixed(1)}` : d.avgDepDelay.toFixed(1);
+  const totalH = Math.round(d.totalDelayMin / 60);
+  return `
+    <div class="hero-row">
+      <div class="hero-stat">
+        <div class="big">${onTimePct}%</div>
+        <div class="muted small">on-time arrivals</div>
+      </div>
+      <div class="hero-stat">
+        <div class="big">${avgDep}<span class="unit"> min</span></div>
+        <div class="muted small">avg dep delay</div>
+      </div>
+      <div class="hero-stat">
+        <div class="big">${avgArr}<span class="unit"> min</span></div>
+        <div class="muted small">avg arr delay</div>
+      </div>
+      <div class="hero-stat">
+        <div class="big">${formatNumber(totalH)}<span class="unit"> hr</span></div>
+        <div class="muted small">total delay accumulated</div>
+      </div>
+    </div>
+    ${d.cancelledCount + d.divertedCount > 0 ? `
+    <div class="muted small mt-8">
+      ${d.cancelledCount > 0 ? `${d.cancelledCount} cancelled` : ""}${d.cancelledCount > 0 && d.divertedCount > 0 ? " · " : ""}${d.divertedCount > 0 ? `${d.divertedCount} diverted` : ""}
+    </div>` : ""}`;
+}
+
+function renderDelayCausesCard(s) {
+  const c = s.delayStats.causes;
+  const total = Object.values(c).reduce((a, b) => a + b, 0) || 1;
+  const order = [
+    ["late_aircraft", "Late aircraft (a previous leg of the plane was delayed)", "#a78bfa"],
+    ["nas",           "NAS — air traffic control / airport congestion",          "#38bdf8"],
+    ["carrier",       "Carrier — maintenance, crew, fueling, baggage",            "#f59e0b"],
+    ["weather",       "Weather",                                                  "#22d3ee"],
+    ["security",      "Security",                                                 "#f43f5e"],
+  ];
+  return `
+    <div class="class-chart">
+      <div class="class-bar">
+        ${order.map(([k, , color]) => {
+          const pct = (c[k] || 0) / total * 100;
+          if (pct < 0.5) return "";
+          return `<div class="class-seg" style="width:${pct.toFixed(2)}%;background:${color}" title="${k}: ${Math.round(c[k] || 0)} min"></div>`;
+        }).join("")}
+      </div>
+      <ul class="class-legend">
+        ${order.map(([k, label, color]) => {
+          const m = c[k] || 0;
+          const pct = (m / total * 100).toFixed(0);
+          return `<li><span class="sw" style="background:${color}"></span>${label} <span class="muted">${Math.round(m)} min · ${pct}%</span></li>`;
+        }).join("")}
+      </ul>
+    </div>`;
+}
+
+function renderAircraftAgeCard(s, ctx) {
+  const a = s.aircraftAgeStats;
+  const avg = a.avg.toFixed(1);
+  function fly(f) {
+    if (!f) return "—";
+    const route = `${f.from || "?"} → ${f.to || "?"}`;
+    return `<span class="muted small">${formatDate(f.depart)}, ${route}</span>`;
+  }
+  return `
+    <div class="hero-row">
+      <div class="hero-stat">
+        <div class="big">${avg}<span class="unit"> yr</span></div>
+        <div class="muted small">avg aircraft age</div>
+      </div>
+      <div class="hero-stat">
+        <div class="big">${a.oldest.age}<span class="unit"> yr</span></div>
+        <div class="muted small">oldest you've flown</div>
+        <div>${escapeHtml(a.oldest.flight?.aircraft || a.oldest.flight?.aircraft_model || "")}</div>
+        ${fly(a.oldest.flight)}
+      </div>
+      <div class="hero-stat">
+        <div class="big">${a.newest.age === 0 ? "<1" : a.newest.age}<span class="unit"> yr</span></div>
+        <div class="muted small">newest you've flown</div>
+        <div>${escapeHtml(a.newest.flight?.aircraft || a.newest.flight?.aircraft_model || "")}</div>
+        ${fly(a.newest.flight)}
+      </div>
+    </div>`;
+}
+
 function renderClassChart(s) {
   const buckets = s.classBuckets;
   const total = Object.values(buckets).reduce((a, b) => a + b, 0) || 1;
@@ -572,6 +663,32 @@ export function renderStatsView(root, ctx) {
           <p>Want to see <em>which specific aircraft</em> you've been on? Run <code>python tools/enrich_aerodatabox.py</code> with an AeroDataBox API key (free tier 600 req/mo) to fill in tail numbers, aircraft models, and ATC callsigns for flights within the last 365 days. See the README for setup.</p>
         </section>`}
 
+        ${(s.delayStats?.arrCount > 0 || s.aircraftAgeStats) ? `
+        <!-- ── OPERATIONS (BTS + FAA + AeroDataBox derived) ─────────── -->
+        <h2 class="section-head span-2">Operations</h2>
+
+        ${s.delayStats?.arrCount > 0 ? `
+        <section class="card">
+          <h2>On-time performance <span class="muted">${s.delayStats.arrCount} flights with timing data</span></h2>
+          ${renderOnTimeCard(s)}
+          <div class="muted small mt-8">Industry definition: arrived within 15 minutes of scheduled time.</div>
+        </section>` : ""}
+
+        ${Object.values(s.delayStats?.causes || {}).some(v => v > 0) ? `
+        <section class="card">
+          <h2>Delay causes <span class="muted">attribution from BTS</span></h2>
+          ${renderDelayCausesCard(s)}
+          <div class="muted small mt-8">BTS attributes delay minutes to the five categories above whenever a flight is ≥15 minutes late. Available only for U.S. reporting carriers (AA, DL, UA, WN, AS, B6, …).</div>
+        </section>` : ""}
+
+        ${s.aircraftAgeStats ? `
+        <section class="card span-2">
+          <h2>Aircraft age <span class="muted">${s.aircraftAgeStats.count} flights with manufacture year</span></h2>
+          ${renderAircraftAgeCard(s, ctx)}
+          <div class="muted small mt-8">Manufacture year sourced from the FAA Aircraft Registry (US carriers) and AeroDataBox's <code>/aircrafts/reg/{tail}</code> endpoint.</div>
+        </section>` : ""}
+        ` : ""}
+
       </div>
     </div>`;
 }
@@ -858,6 +975,74 @@ export function renderFlightDetailHtml(f, ctx) {
     return `<div class="detail-row"><dt>${label}</dt><dd>${val}</dd></div>`;
   }
 
+  // Pretty-print a signed delay: ">>" early, "<<" late, "on time" within 5
+  function fmtDelay(min) {
+    if (min == null || isNaN(min)) return "";
+    const m = Math.round(min);
+    if (m === 0)         return `<span class="ok">on time</span>`;
+    if (m < 0)           return `<span class="ok">${Math.abs(m)} min early</span>`;
+    if (m <= 15)         return `<span class="warn">${m} min late</span>`;
+    return `<span class="bad">${m} min late</span>`;
+  }
+
+  // Aircraft age at flight time (years), if we have both the manufacture
+  // year and the flight date.
+  let aircraftAge = "";
+  if (f.aircraft_year && f.depart) {
+    const ay = parseInt(f.aircraft_year, 10);
+    const fy = parseInt(String(f.depart).slice(0, 4), 10);
+    if (Number.isFinite(ay) && Number.isFinite(fy) && fy >= ay) {
+      const age = fy - ay;
+      aircraftAge = age === 0
+        ? `<strong>brand new</strong> (built ${ay})`
+        : `${age} yr old at flight time (built ${ay})`;
+    }
+  }
+
+  // Delay-cause attribution (BTS-only). Build a one-liner only if there's
+  // at least one non-zero cause minute.
+  const causes = [
+    ["Late aircraft", f.delay_late_aircraft_min],
+    ["NAS (ATC)",     f.delay_nas_min],
+    ["Carrier",       f.delay_carrier_min],
+    ["Weather",       f.delay_weather_min],
+    ["Security",      f.delay_security_min],
+  ].filter(([, m]) => m && m > 0).sort((a, b) => b[1] - a[1]);
+  const delayCauseLine = causes.length
+    ? causes.map(([lbl, m]) => `${lbl}: ${Math.round(m)}m`).join(" · ")
+    : "";
+
+  // Taxi pair line — "12 min out · 6 min in"
+  const taxiLine = (f.taxi_out_min != null || f.taxi_in_min != null)
+    ? [
+        f.taxi_out_min != null ? `${Math.round(f.taxi_out_min)} min out` : "",
+        f.taxi_in_min  != null ? `${Math.round(f.taxi_in_min)} min in`   : "",
+      ].filter(Boolean).join(" · ")
+    : "";
+
+  // Terminal / gate (ADB-only)
+  const terminals = [];
+  if (f.terminal_dep || f.gate_dep) terminals.push(`${f.from} T${f.terminal_dep || "?"}${f.gate_dep ? " · gate " + f.gate_dep : ""}`);
+  if (f.terminal_arr || f.gate_arr) terminals.push(`${f.to} T${f.terminal_arr || "?"}${f.gate_arr ? " · gate " + f.gate_arr : ""}`);
+  const terminalsLine = terminals.join(" → ");
+
+  // Cancellation / divert callout — render above the details grid so it
+  // can't get buried in the long list. Cancellation reason codes per BTS:
+  //   A = carrier, B = weather, C = NAS (ATC), D = security
+  const CANCEL_REASONS = { A: "carrier", B: "weather", C: "NAS / ATC", D: "security" };
+  let statusBanner = "";
+  if (f.flight_cancelled) {
+    const reason = CANCEL_REASONS[f.flight_cancel_reason] || "";
+    statusBanner = `<div class="flight-status-banner cancelled">⨯ Cancelled${reason ? ` <span class="muted">(${reason})</span>` : ""}</div>`;
+  } else if (f.flight_diverted) {
+    statusBanner = `<div class="flight-status-banner diverted">↺ Diverted</div>`;
+  }
+
+  // Engine summary: "2× Turbofan" / "4× Turbojet"
+  const engineSummary = (f.aircraft_engines && f.aircraft_engine_type)
+    ? `${f.aircraft_engines}× ${f.aircraft_engine_type}`
+    : (f.aircraft_engines ? `${f.aircraft_engines} engines` : (f.aircraft_engine_type || ""));
+
   const bannerHtml = airlineBannerImg(f.airline_code, ctx.airlines, (airline?.name) || f.airline);
   return `
     <header class="flight-detail-head">
@@ -882,15 +1067,27 @@ export function renderFlightDetailHtml(f, ctx) {
         ${escapeHtml((airline?.name) || f.airline || f.airline_code || "Flight")}${f.flight_number ? " · " + escapeHtml([f.airline_code, f.flight_number].filter(Boolean).join(" ")) : ""}
       </h2>
     </header>
+    ${statusBanner}
+    ${f.aircraft_image ? `<div class="flight-aircraft-photo"><img src="${escapeHtml(f.aircraft_image)}" alt="aircraft photo" loading="lazy" onerror="this.parentElement.style.display='none'"/></div>` : ""}
 
     <dl class="flight-details">
       ${row("Departure",   formatDate(f.depart) + (f.depart ? " · " + new Date(f.depart).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : ""))}
       ${row("Arrival",     formatDate(f.arrive) + (f.arrive ? " · " + new Date(f.arrive).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : ""))}
       ${row("Duration",    f.duration)}
       ${row("Distance",    f._miles ? `${Math.round(f._miles).toLocaleString()} mi · ${Math.round(km).toLocaleString()} km` : "")}
+      ${row("Departure delay", fmtDelay(f.dep_delay_min))}
+      ${row("Arrival delay",   fmtDelay(f.arr_delay_min))}
+      ${row("Delay causes",    delayCauseLine)}
+      ${row("Taxi time",       taxiLine)}
+      ${row("Air time",        f.air_time_min != null ? `${Math.round(f.air_time_min)} min` : "")}
+      ${row("Terminals",       terminalsLine)}
       ${row("Aircraft",        [f.aircraft_model, f.aircraft && f.aircraft_model ? `(${f.aircraft})` : f.aircraft].filter(Boolean).join(" "))}
+      ${row("Aircraft age",    aircraftAge)}
+      ${row("Engines",         engineSummary)}
       ${row("Tail number",     f.tail_number)}
-      ${row("Mode-S hex",      f.aircraft_mode_s)}
+      ${row("MSN",             f.aircraft_msn)}
+      ${row("Mode-S hex",      f.aircraft_mode_s ? `<code>${escapeHtml(f.aircraft_mode_s)}</code>` : "")}
+      ${row("Owner of record", f.aircraft_owner)}
       ${row("Callsign",        f.callsign)}
       ${row("Seat",            f.seat)}
       ${row("Class",           f.service_class)}

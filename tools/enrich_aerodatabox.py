@@ -128,7 +128,9 @@ def fetch_aerodatabox(flight_num: str, date: str, api_key: str, timeout: int = 1
         "x-rapidapi-host": HOST,
         "x-rapidapi-key": api_key,
     }
-    params = {"withAircraftImage": "false", "withLocation": "false"}
+    # withAircraftImage="true" returns an `aircraft.image.url` field we can
+    # show in the flight detail modal. Cheap (no extra request) so always on.
+    params = {"withAircraftImage": "true", "withLocation": "false"}
     r = requests.get(url, headers=headers, params=params, timeout=timeout)
 
     # Persist rate-limit info for the user
@@ -161,20 +163,95 @@ def fetch_aerodatabox(flight_num: str, date: str, api_key: str, timeout: int = 1
     return operator
 
 
-def extract_enrichment(entry: dict, requested_number: str) -> dict:
-    """Pull the fields we want out of an AeroDataBox flight entry."""
+def fetch_aircraft_details(reg: str, api_key: str, timeout: int = 12) -> dict | None:
+    """Look up per-tail aircraft details (year of manufacture, MSN, engines)
+    via /aircrafts/reg/{registration}. Cached separately under
+    data/_aerodatabox_cache/_aircraft/ so the same tail across many flights
+    only costs one extra API call. Returns None on miss; never raises."""
+    if not reg:
+        return None
+    sub = CACHE / "_aircraft"
+    sub.mkdir(parents=True, exist_ok=True)
+    cp = sub / f"{reg.upper()}.json"
+    if cp.exists():
+        cached = json.loads(cp.read_text())
+        return cached if cached else None
+
+    url = f"{BASE_URL}/aircrafts/reg/{reg}"
+    headers = {"x-rapidapi-host": HOST, "x-rapidapi-key": api_key}
+    try:
+        r = requests.get(url, headers=headers, timeout=timeout)
+    except requests.RequestException:
+        return None
+    if r.status_code == 404:
+        cp.write_text(json.dumps(None))
+        return None
+    if r.status_code == 429:
+        # Don't blow up the whole enrichment for an aircraft-details miss
+        return None
+    if r.status_code != 200:
+        return None
+    data = r.json()
+    if not isinstance(data, dict):
+        cp.write_text(json.dumps(None))
+        return None
+    cp.write_text(json.dumps(data, indent=2))
+    return data
+
+
+def _delay_min(movement: dict, key: str) -> float | None:
+    """Compute (actual - scheduled) in minutes for a movement block's
+    scheduledTime vs revisedTime/actualTime. Returns None if either is
+    missing. Negative = earlier than scheduled."""
+    if not movement:
+        return None
+    sched = (movement.get("scheduledTime") or {}).get("utc")
+    actual = (movement.get("revisedTime") or {}).get("utc") \
+          or (movement.get("actualTime")  or {}).get("utc")
+    if not sched or not actual:
+        return None
+    try:
+        s = datetime.fromisoformat(sched.replace("Z", "+00:00"))
+        a = datetime.fromisoformat(actual.replace("Z", "+00:00"))
+    except Exception:
+        return None
+    return round((a - s).total_seconds() / 60.0, 1)
+
+
+def extract_enrichment(entry: dict, requested_number: str, aircraft_details: dict | None = None) -> dict:
+    """Pull the fields we want out of an AeroDataBox flight entry + the
+    optional per-tail details lookup. Mirrors the schema enrich_bts.py
+    writes so flight records have a consistent shape regardless of source."""
     aircraft = entry.get("aircraft") or {}
     airline  = entry.get("airline") or {}
+    dep      = entry.get("departure") or {}
+    arr      = entry.get("arrival")   or {}
+    status   = (entry.get("status") or "").strip()
+
     out = {
         "tail_number":         aircraft.get("reg"),
         "aircraft_model":      aircraft.get("model"),
         "aircraft_mode_s":     aircraft.get("modeS"),
+        # aircraft.image.url is present when we requested withAircraftImage=true
+        "aircraft_image":      ((aircraft.get("image") or {}).get("url")) or None,
         "callsign":            entry.get("callSign"),
         "operating_airline":   airline.get("name"),
         "operating_airline_iata": airline.get("iata"),
         "operating_airline_icao": airline.get("icao"),
         "is_codeshare":        entry.get("codeshareStatus") == "isCodeshare",
         "is_cargo":            entry.get("isCargo"),
+        # Status flags — keep the schema BTS-aligned so downstream code
+        # doesn't need to special-case the source.
+        "flight_cancelled":    status.lower() in ("canceled", "cancelled"),
+        "flight_diverted":     status.lower() == "diverted",
+        # Delay (signed minutes). ADB doesn't break out cause attribution.
+        "dep_delay_min":       _delay_min(dep, "scheduledTime"),
+        "arr_delay_min":       _delay_min(arr, "scheduledTime"),
+        # Terminals + gates (not in BTS)
+        "terminal_dep":        dep.get("terminal"),
+        "gate_dep":            dep.get("gate"),
+        "terminal_arr":        arr.get("terminal"),
+        "gate_arr":            arr.get("gate"),
         "_enrichment": {
             "source": "aerodatabox",
             "fetched_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
@@ -182,8 +259,26 @@ def extract_enrichment(entry: dict, requested_number: str) -> dict:
             "requested": requested_number,
         },
     }
-    # Strip None values for cleanliness, except _enrichment
-    return {k: v for k, v in out.items() if v not in (None, "") or k == "_enrichment"}
+
+    # Per-tail aircraft details (extra API call, batched per unique reg)
+    if aircraft_details:
+        yr = aircraft_details.get("yearOfManufacture") or aircraft_details.get("year")
+        if yr is not None:
+            out["aircraft_year"] = str(yr)
+        msn = aircraft_details.get("serialNumber") or aircraft_details.get("msn")
+        if msn:
+            out["aircraft_msn"] = str(msn)
+        engines = aircraft_details.get("engines") or {}
+        if isinstance(engines, dict):
+            cnt = engines.get("count")
+            if cnt:
+                out["aircraft_engines"] = str(cnt)
+            kind = engines.get("type") or engines.get("name")
+            if kind:
+                out["aircraft_engine_type"] = str(kind).title()
+
+    # Strip None/empty values for cleanliness, except _enrichment
+    return {k: v for k, v in out.items() if (v not in (None, "") or k == "_enrichment")}
 
 
 def main() -> None:
@@ -191,6 +286,11 @@ def main() -> None:
     parser.add_argument("--limit", type=int, default=0, help="Max API calls this run (0 = no cap)")
     parser.add_argument("--dry-run", action="store_true", help="Don't call the API; show what would be done")
     parser.add_argument("--rate", type=float, default=RATE_LIMIT_SECONDS, help="Seconds between calls")
+    parser.add_argument("--force", action="store_true",
+                        help="Re-enrich flights that already have an _enrichment block — useful "
+                             "after the script adds new fields (delay/terminal/photo/aircraft details). "
+                             "Per-flight responses come from the local cache when present, so this is "
+                             "free against your monthly API quota unless cached files are missing.")
     args = parser.parse_args()
 
     CACHE.mkdir(parents=True, exist_ok=True)
@@ -215,7 +315,11 @@ def main() -> None:
 
     eligible: list[tuple[int, str, str]] = []
     for i, f in enumerate(flights):
-        if f.get("_enrichment"):  # already done
+        # --force re-enriches flights that already have an _enrichment block.
+        # The fetch_aerodatabox() cache check means cached flights are free
+        # against the API quota; we just re-parse the cached response with
+        # the current (richer) extract_enrichment() schema.
+        if f.get("_enrichment") and not args.force:
             continue
         fn = normalize_flight_number(f.get("airline_code"), f.get("flight_number"))
         date = parse_depart_date(f.get("depart"))
@@ -266,12 +370,22 @@ def main() -> None:
             print("no data")
             skipped += 1
         else:
-            enrichment = extract_enrichment(entry, fn)
+            # If we have a tail number, also look up the aircraft details
+            # (year, MSN, engines). One extra API call per unique tail; the
+            # cache makes reruns free, and a few extra calls per month is
+            # well within the free-tier 600/mo budget.
+            reg = (entry.get("aircraft") or {}).get("reg")
+            details = fetch_aircraft_details(reg, api_key) if reg else None
+            enrichment = extract_enrichment(entry, fn, details)
             flights[idx].update(enrichment)
             enriched += 1
             tail = enrichment.get("tail_number") or "—"
             model = enrichment.get("aircraft_model") or ""
-            print(f"OK  tail={tail}  {model}")
+            extras = []
+            if enrichment.get("aircraft_year"): extras.append(f"yr={enrichment['aircraft_year']}")
+            if enrichment.get("dep_delay_min") is not None: extras.append(f"depΔ={enrichment['dep_delay_min']:+.0f}m")
+            extras_s = "  " + " ".join(extras) if extras else ""
+            print(f"OK  tail={tail}  {model}{extras_s}")
 
         # Persist progress every 10 calls — protects against losing work on Ctrl-C
         if n % 10 == 0:

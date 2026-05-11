@@ -489,6 +489,102 @@ export function computeStats(ctx) {
     .map(r => ({ ...r, info: out.airlines.get(r.key) }));
   out.topRoutes   = topN(out.routes, 12);
 
+  // ── ENRICHMENT-DERIVED METRICS (BTS + FAA + AeroDataBox) ────────────────
+  // On-time performance: counts flights with delay data populated. Skip
+  // cancelled/diverted, which BTS reports as 0-min delay (misleading).
+  let depDelaySum = 0, depDelayCount = 0, depDelayMax = 0;
+  let arrDelaySum = 0, arrDelayCount = 0;
+  let onTimeArrivals = 0;             // arrived ≤15 min late (industry standard)
+  let cancelledCount = 0, divertedCount = 0;
+  const delayCauseTotals = { carrier: 0, weather: 0, nas: 0, security: 0, late_aircraft: 0 };
+  let totalDelayMin = 0;              // arrival delay minutes accumulated when > 0
+  let totalTaxiMin = 0;
+  // Aircraft age: track per-flight age, plus oldest/newest single instance
+  let ageSum = 0, ageCount = 0;
+  let oldestAge = -Infinity, oldestFlight = null;
+  let newestAge = Infinity,  newestFlight = null;
+  // Quad-jet / piston / etc — engine count distribution
+  const engineCountDist = new Map();   // "2" -> n, "4" -> m
+  // Same-day same-plane: tail -> sorted dates flown
+  const tailDates = new Map();
+  let sameDaySamePlane = 0;
+
+  for (const f of flights) {
+    if (f.flight_cancelled) cancelledCount++;
+    if (f.flight_diverted)  divertedCount++;
+    if (typeof f.dep_delay_min === "number") {
+      depDelaySum += f.dep_delay_min; depDelayCount++;
+      if (f.dep_delay_min > depDelayMax) depDelayMax = f.dep_delay_min;
+    }
+    if (typeof f.arr_delay_min === "number") {
+      arrDelaySum += f.arr_delay_min; arrDelayCount++;
+      if (f.arr_delay_min <= 15) onTimeArrivals++;
+      if (f.arr_delay_min > 0)   totalDelayMin += f.arr_delay_min;
+    }
+    for (const [key, field] of [
+      ["carrier",        "delay_carrier_min"],
+      ["weather",        "delay_weather_min"],
+      ["nas",            "delay_nas_min"],
+      ["security",       "delay_security_min"],
+      ["late_aircraft",  "delay_late_aircraft_min"],
+    ]) {
+      if (typeof f[field] === "number" && f[field] > 0) delayCauseTotals[key] += f[field];
+    }
+    if (typeof f.taxi_out_min === "number") totalTaxiMin += f.taxi_out_min;
+    if (typeof f.taxi_in_min  === "number") totalTaxiMin += f.taxi_in_min;
+
+    if (f.aircraft_year && f.depart) {
+      const ay = parseInt(f.aircraft_year, 10);
+      const fy = parseInt(String(f.depart).slice(0, 4), 10);
+      if (Number.isFinite(ay) && Number.isFinite(fy) && fy >= ay) {
+        const age = fy - ay;
+        ageSum += age; ageCount++;
+        if (age > oldestAge) { oldestAge = age; oldestFlight = f; }
+        if (age < newestAge) { newestAge = age; newestFlight = f; }
+      }
+    }
+    if (f.aircraft_engines) {
+      const k = String(f.aircraft_engines);
+      engineCountDist.set(k, (engineCountDist.get(k) || 0) + 1);
+    }
+    if (f.tail_number && f.depart) {
+      const key = f.tail_number.toUpperCase();
+      if (!tailDates.has(key)) tailDates.set(key, []);
+      tailDates.get(key).push(String(f.depart).slice(0, 10));
+    }
+  }
+  // Same-day same-plane scan
+  for (const dates of tailDates.values()) {
+    if (dates.length < 2) continue;
+    const sorted = [...dates].sort();
+    for (let i = 1; i < sorted.length; i++) {
+      if (sorted[i] === sorted[i-1]) { sameDaySamePlane++; break; }
+    }
+  }
+
+  out.delayStats = {
+    depCount:   depDelayCount,
+    arrCount:   arrDelayCount,
+    avgDepDelay: depDelayCount ? depDelaySum / depDelayCount : 0,
+    avgArrDelay: arrDelayCount ? arrDelaySum / arrDelayCount : 0,
+    maxDepDelay: depDelayMax,
+    onTimeArrivals,
+    onTimeRate:  arrDelayCount ? onTimeArrivals / arrDelayCount : 0,
+    totalDelayMin,
+    totalTaxiMin,
+    cancelledCount,
+    divertedCount,
+    causes:     delayCauseTotals,   // minutes contributed by each cause
+  };
+  out.aircraftAgeStats = ageCount ? {
+    avg:     ageSum / ageCount,
+    oldest:  { age: oldestAge, flight: oldestFlight },
+    newest:  { age: newestAge, flight: newestFlight },
+    count:   ageCount,
+  } : null;
+  out.engineCountDist = engineCountDist;       // for Quad Jet etc.
+  out.sameDaySamePlane = sameDaySamePlane;
+
   out.countriesCount = out.countries.size;
   out.statesCount    = out.states.size;
   out.airportsCount  = out.airports.size;
