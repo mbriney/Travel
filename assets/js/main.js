@@ -212,6 +212,27 @@ async function boot() {
     openStampModal(stamp.dataset.stampKind, stamp.dataset.stampCode, ctx);
   }, /* useCapture */ true);
 
+  // Mirror the same hit-test for hover. The browser also fails to route
+  // mouseenter/:hover to the back-face stamps, so the gold drop-shadow +
+  // pointer cursor never appear on the left page. We drive both manually:
+  // a single mousemove handler finds the stamp under the cursor (with the
+  // same JS hit-test the click path uses), toggles an `.is-hovered` class
+  // when it changes, and updates the book's cursor.
+  let hoveredStamp = null;
+  function setHovered(next) {
+    if (next === hoveredStamp) return;
+    if (hoveredStamp) hoveredStamp.classList.remove("is-hovered");
+    hoveredStamp = next;
+    if (hoveredStamp) hoveredStamp.classList.add("is-hovered");
+    book.style.cursor = hoveredStamp ? "pointer" : "";
+  }
+  book.addEventListener("mousemove", (e) => {
+    let stamp = e.target.closest(".stamp[data-stamp-kind]");
+    if (!stamp) stamp = findStampAtPoint(e.clientX, e.clientY);
+    setHovered(stamp);
+  });
+  book.addEventListener("mouseleave", () => setHovered(null));
+
   book.addEventListener("keydown", (e) => {
     if (e.key !== "Enter" && e.key !== " ") return;
     const stamp = e.target.closest(".stamp[data-stamp-kind]");

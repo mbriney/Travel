@@ -602,7 +602,10 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   pointer-events: none;
 }
 .stamp[data-stamp-kind] { cursor: pointer; }
-.stamp[data-stamp-kind]:hover {
+/* `.is-hovered` is applied by main.js's JS-driven hover for left-page stamps,
+   where the browser's 3D hit-test fails to route :hover to the back face. */
+.stamp[data-stamp-kind]:hover,
+.stamp[data-stamp-kind].is-hovered {
   opacity: 1;
   filter: drop-shadow(0 2px 4px rgba(0,0,0,0.20));
 }
@@ -903,6 +906,12 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
    rules only handle sizing for each map type. */
 .world-svg.world-flat  { aspect-ratio: 2 / 1; height: auto; width: 100%; }
 .world-svg.world-globe { aspect-ratio: 1 / 1; height: auto; max-width: 640px; margin: 0 auto; }
+/* Belt-and-suspenders: also hide the inactive SVG by data-mode, in case the
+   inline display:none from setMode() ever fails to apply or gets overridden.
+   Without this, flat-map airport dots can show through behind the globe and
+   look like "static pins that move opposite the rotation". */
+.map-stage[data-mode="globe"] .world-flat,
+.map-stage[data-mode="flat"]  .world-globe { display: none !important; }
 .us-svg                { display: block; aspect-ratio: 8 / 5; height: auto; width: 100%; }
 
 /* Map / Globe toggle (in the World view) */
