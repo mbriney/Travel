@@ -442,11 +442,12 @@ function buildStateStampData(code, info, ctx) {
   };
 }
 
-// Pack stamps into pages. 4 stamps per page on a roomy 2x2 grid with tiny
-// jitter — stamps sit cleanly in their own quadrants, never on top of each other.
+// Pack stamps into pages. 8 stamps per page on a 4-col × 2-row anchor grid
+// with small jitter, plus a staggered offset on alternating rows so they
+// don't sit on a rigid grid.
 function buildStampPages(ctx) {
   const all = [...collectCountryStamps(ctx), ...collectStateStamps(ctx)];
-  const PER_PAGE = 4;
+  const PER_PAGE = 8;
   const pages = [];
   for (let i = 0; i < all.length; i += PER_PAGE) {
     const slice = all.slice(i, i + PER_PAGE);
@@ -468,15 +469,19 @@ function buildStampPages(ctx) {
   return pages;
 }
 
-// 2x2 anchor grid covering roughly 25/75% x 25/75% of the page, with at most
-// ±4% jitter so each stamp stays comfortably inside its own quadrant.
+// 4-col × 2-row anchor grid. Rows are slightly staggered so the layout reads
+// like a real passport page rather than a perfect grid; tiny per-stamp jitter
+// on top of that keeps neighbors clear of each other.
 function renderScatteredStamp(d, idx) {
-  const col = idx % 2;
-  const row = Math.floor(idx / 2);
-  const baseX = 27 + col * 46;
-  const baseY = 28 + row * 42;
-  const jx = (d.rng() * 8 - 4);
-  const jy = (d.rng() * 8 - 4);
+  const cols = 4, rowSize = cols;
+  const col = idx % cols;
+  const row = Math.floor(idx / cols);
+  // Even rows align to one set of anchors, odd rows shift by half a column.
+  const stagger = (row % 2) * (100 / (cols * 2));
+  const baseX = (100 / (cols * 2)) + col * (100 / cols) + stagger;   // 12.5, 37.5, 62.5, 87.5 (+ stagger)
+  const baseY = 30 + row * 38;
+  const jx = (d.rng() * 5 - 2.5);
+  const jy = (d.rng() * 5 - 2.5);
   const x = (baseX + jx).toFixed(1);
   const y = (baseY + jy).toFixed(1);
   return `

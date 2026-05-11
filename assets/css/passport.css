@@ -569,9 +569,9 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 
 .stamp.shape-rect {
   border: 2px solid currentColor;
-  padding: 6px 12px;
+  padding: 5px 10px;
   border-radius: 2px;
-  min-width: 120px; max-width: 180px;
+  min-width: 105px; max-width: 135px;
 }
 .stamp.shape-rect::before {
   content: ""; position: absolute; inset: 3px;
@@ -580,16 +580,16 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 }
 .stamp.shape-oval {
   border: 2px solid currentColor;
-  padding: 8px 16px;
+  padding: 6px 14px;
   border-radius: 50% / 35%;
-  min-width: 130px; max-width: 180px;
+  min-width: 110px; max-width: 140px;
   text-align: center;
 }
 .stamp.shape-circle {
   border: 2px solid currentColor;
-  padding: 10px;
+  padding: 8px;
   border-radius: 50%;
-  width: 120px; height: 120px;
+  width: 100px; height: 100px;
   display: grid; place-items: center; text-align: center;
 }
 .stamp.shape-circle::before {
@@ -598,9 +598,9 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 }
 .stamp.shape-square {
   border: 2px solid currentColor;
-  padding: 10px;
+  padding: 8px;
   border-radius: 1px;
-  width: 118px; height: 118px;
+  width: 100px; height: 100px;
   display: grid; place-items: center; text-align: center;
   clip-path: polygon(8% 0, 92% 0, 100% 8%, 100% 92%, 92% 100%, 8% 100%, 0 92%, 0 8%);
 }
@@ -608,10 +608,10 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 /* State stamps — compact rectangle with USA banner + state abbreviation */
 .stamp.kind-state.shape-state {
   border: 2px double currentColor;
-  padding: 4px 12px 6px;
+  padding: 4px 10px 5px;
   border-radius: 2px;
-  min-width: 110px;
-  max-width: 160px;
+  min-width: 100px;
+  max-width: 130px;
   text-align: center;
 }
 .stamp.kind-state .state-banner {
