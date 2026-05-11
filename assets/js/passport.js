@@ -104,7 +104,9 @@ export function initPassport(bookEl, pages) {
   });
 
   bookEl.addEventListener("click", (e) => {
-    if (e.target.closest("a, button, input, select, textarea, .inner-scroll, .log, svg")) return;
+    // Ignore clicks on interactive content INSIDE the page — those have
+    // their own handlers (stamp detail, links, scrollables, etc.)
+    if (e.target.closest("a, button, input, select, textarea, .inner-scroll, .log, svg, .stamp")) return;
     const r = bookEl.getBoundingClientRect();
     const x = e.clientX - r.left;
     if (x > r.width / 2) go(flipped + 1);

@@ -614,23 +614,44 @@ export function renderLogView(root, ctx) {
   });
 }
 
+// ---------------------------------------------------------------------------
+// Reusable detail modal (used by flight rows, passport stamps, achievements)
+// ---------------------------------------------------------------------------
+
 let _modalOnceWired = false;
 function ensureModalWired() {
   if (_modalOnceWired) return;
   _modalOnceWired = true;
-  const modal = document.getElementById("flight-modal");
+  const modal = document.getElementById("detail-modal");
   modal.addEventListener("click", (e) => {
-    if (e.target.dataset.close !== undefined) closeFlightModal();
+    if (e.target.dataset.close !== undefined) closeDetailModal();
   });
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && !modal.hidden) closeFlightModal();
+    if (e.key === "Escape" && !modal.hidden) closeDetailModal();
   });
 }
 
-function openFlightModal(f, ctx) {
+export function openDetailModal(html) {
   ensureModalWired();
-  const modal = document.getElementById("flight-modal");
-  const body  = document.getElementById("flight-modal-body");
+  const modal = document.getElementById("detail-modal");
+  const body  = document.getElementById("detail-modal-body");
+  body.innerHTML = html;
+  modal.hidden = false;
+  modal.setAttribute("aria-hidden", "false");
+  document.body.style.overflow = "hidden";
+}
+
+export function closeDetailModal() {
+  const modal = document.getElementById("detail-modal");
+  modal.hidden = true;
+  modal.setAttribute("aria-hidden", "true");
+  document.body.style.overflow = "";
+}
+
+function openFlightModal(f, ctx) {
+  const modal = document.getElementById("detail-modal");
+  const body  = document.getElementById("detail-modal-body");
+  ensureModalWired();
 
   const aFrom = ctx.airports[f.from];
   const aTo   = ctx.airports[f.to];
@@ -693,9 +714,107 @@ function openFlightModal(f, ctx) {
   document.body.style.overflow = "hidden";
 }
 
-function closeFlightModal() {
-  const modal = document.getElementById("flight-modal");
-  modal.hidden = true;
-  modal.setAttribute("aria-hidden", "true");
-  document.body.style.overflow = "";
+// ---------------------------------------------------------------------------
+// STAMP MODAL — clicked from a passport stamp page
+// ---------------------------------------------------------------------------
+const REGION_FOR_COUNTRY = {
+  US: "N. America", CA: "N. America", MX: "N. America",
+  GB: "Europe", IE: "Europe", FR: "Europe", DE: "Europe", IT: "Europe", ES: "Europe", PT: "Europe",
+  NL: "Europe", BE: "Europe", CH: "Europe", AT: "Europe", HR: "Europe", DK: "Europe", FI: "Europe",
+  SE: "Europe", NO: "Europe", PL: "Europe", CZ: "Europe", GR: "Europe",
+  JP: "Asia", CN: "Asia", SG: "Asia", KR: "Asia", TH: "Asia", VN: "Asia", IN: "Asia", PH: "Asia",
+  TR: "Middle East", AE: "Middle East", IL: "Middle East", JO: "Middle East", SA: "Middle East",
+  AU: "Oceania", NZ: "Oceania", FJ: "Oceania",
+  AR: "S. America", BR: "S. America", CL: "S. America", PE: "S. America", CO: "S. America",
+  PR: "Caribbean", DO: "Caribbean", JM: "Caribbean", BS: "Caribbean", CU: "Caribbean", BB: "Caribbean",
+  EG: "Africa", ZA: "Africa", MA: "Africa", KE: "Africa", TZ: "Africa",
+  CR: "C. America", PA: "C. America", GT: "C. America", BZ: "C. America",
+};
+
+const STATE_NAMES = {
+  AL:"Alabama",AK:"Alaska",AZ:"Arizona",AR:"Arkansas",CA:"California",CO:"Colorado",CT:"Connecticut",
+  DE:"Delaware",FL:"Florida",GA:"Georgia",HI:"Hawaii",ID:"Idaho",IL:"Illinois",IN:"Indiana",IA:"Iowa",
+  KS:"Kansas",KY:"Kentucky",LA:"Louisiana",ME:"Maine",MD:"Maryland",MA:"Massachusetts",MI:"Michigan",
+  MN:"Minnesota",MS:"Mississippi",MO:"Missouri",MT:"Montana",NE:"Nebraska",NV:"Nevada",
+  NH:"New Hampshire",NJ:"New Jersey",NM:"New Mexico",NY:"New York",NC:"North Carolina",
+  ND:"North Dakota",OH:"Ohio",OK:"Oklahoma",OR:"Oregon",PA:"Pennsylvania",RI:"Rhode Island",
+  SC:"South Carolina",SD:"South Dakota",TN:"Tennessee",TX:"Texas",UT:"Utah",VT:"Vermont",
+  VA:"Virginia",WA:"Washington",WV:"West Virginia",WI:"Wisconsin",WY:"Wyoming",DC:"D.C.",PR:"Puerto Rico",
+};
+
+export function openStampModal(kind, code, ctx) {
+  const isState = kind === "state";
+  // Find every flight that landed in this country/state
+  const matched = [];
+  const airportsHit = new Map();
+  for (const f of ctx.flights) {
+    const ap = ctx.airports[f.to];
+    if (!ap) continue;
+    let hit = false;
+    if (isState) {
+      if (ap.country === "US" && ap.state === code) hit = true;
+    } else {
+      if (ap.country === code) hit = true;
+    }
+    if (hit) {
+      matched.push(f);
+      airportsHit.set(ap.code, ap);
+    }
+  }
+  // Sort newest first
+  matched.sort((a, b) => (b.depart || "").localeCompare(a.depart || ""));
+
+  const titleName = isState ? (STATE_NAMES[code] || code) : (ctx.airports && [...airportsHit.values()][0]?.country_name) || code;
+  const flag = isState ? "🇺🇸" : ([...airportsHit.values()][0]?.flag || "");
+  const region = isState ? "United States" : (REGION_FOR_COUNTRY[code] || "");
+  const firstDate = matched.length ? matched[matched.length - 1].depart : null;
+  const lastDate  = matched.length ? matched[0].depart : null;
+  const totalMiles = matched.reduce((s, f) => s + (f._miles || 0), 0);
+
+  const airportRows = [...airportsHit.values()]
+    .sort((a, b) => a.code.localeCompare(b.code))
+    .map(ap => {
+      const visits = matched.filter(f => f.to === ap.code).length;
+      return `<li><code>${ap.code}</code> <span class="ap-name">${escapeHtml(ap.name || "")}</span> <span class="ap-city muted">${escapeHtml(ap.city || "")}</span> <span class="ap-count">${visits}×</span></li>`;
+    }).join("");
+
+  const flightRows = matched.map(f => `
+    <tr>
+      <td>${formatDate(f.depart, { year:"2-digit", month:"short", day:"numeric" })}</td>
+      <td class="route">${f.from} → ${f.to}</td>
+      <td class="airline">${escapeHtml([f.airline_code, f.flight_number].filter(Boolean).join(" "))}</td>
+      <td class="miles">${f._miles ? Math.round(f._miles).toLocaleString() : "—"}</td>
+    </tr>`).join("");
+
+  openDetailModal(`
+    <header class="stamp-detail-head">
+      <div class="stamp-flag" aria-hidden="true">${flag}</div>
+      <div>
+        <div class="stamp-region">${region}${isState ? ` · ${code}` : ""}</div>
+        <h2 id="detail-modal-title" class="stamp-title">${escapeHtml(titleName)}</h2>
+      </div>
+    </header>
+
+    <div class="stamp-stats">
+      <div class="stamp-stat"><div class="lbl">Visits</div><div class="val">${matched.length}</div></div>
+      <div class="stamp-stat"><div class="lbl">Airports</div><div class="val">${airportsHit.size}</div></div>
+      <div class="stamp-stat"><div class="lbl">Miles flown to</div><div class="val">${Math.round(totalMiles).toLocaleString()}</div></div>
+    </div>
+
+    <div class="stamp-dates">
+      <div><span class="lbl">First visit</span> <span class="val">${firstDate ? formatDate(firstDate) : "—"}</span></div>
+      <div><span class="lbl">Most recent</span> <span class="val">${lastDate ? formatDate(lastDate) : "—"}</span></div>
+    </div>
+
+    <h3 class="stamp-section-h">Airports visited</h3>
+    <ul class="ap-list">${airportRows}</ul>
+
+    <h3 class="stamp-section-h">All flights here <span class="muted">(${matched.length})</span></h3>
+    <div class="stamp-flight-table-wrap">
+      <table class="stamp-flight-table">
+        <thead><tr><th>Date</th><th>Route</th><th>Flight</th><th style="text-align:right">Miles</th></tr></thead>
+        <tbody>${flightRows}</tbody>
+      </table>
+    </div>
+  `);
 }

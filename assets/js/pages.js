@@ -532,7 +532,10 @@ function renderStamp(d) {
       <div class="codes">${d.apCodes}</div>`;
   }
   const dense = d.name.length > 10 ? " dense" : "";
-  return `<div class="${cls}${dense}" style="--rot:${d.rot}">${inner}</div>`;
+  // data-* attributes let main.js delegate clicks → openStampModal
+  return `<div class="${cls}${dense}" style="--rot:${d.rot}"
+              data-stamp-kind="${d.kind}" data-stamp-code="${d.code}"
+              role="button" tabindex="0" title="Click for details">${inner}</div>`;
 }
 
 // ---------------------------------------------------------------------------

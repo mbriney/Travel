@@ -1,4 +1,6 @@
 // achievements.js — TravStats-inspired achievement system.
+import { openDetailModal } from "./views.js";
+import { formatDate, formatDuration, formatNumber } from "./stats.js";
 // Definitions are a curated subset of https://github.com/Abrechen2/TravStats's
 // `backend/src/data/achievements.ts` — only the ones we can evaluate from
 // TripIt data (no aircraft, seat, cancellation, or service-class info).
@@ -372,6 +374,224 @@ export function renderAchievementsView(root, ctx) {
   catEl.addEventListener("change", applyFilters);
   tierEl.addEventListener("change", applyFilters);
   unlEl.addEventListener("change", applyFilters);
+
+  // Stash the evaluated results so the click handler can look them up by code.
+  root.querySelector("#ach-categories").addEventListener("click", (e) => {
+    const card = e.target.closest(".ach-card[data-code]");
+    if (!card) return;
+    const code = card.dataset.code;
+    const ach = data.results.find(a => a.code === code);
+    if (ach) openAchievementModal(ach, ctx);
+  });
+  root.querySelector("#ach-categories").addEventListener("keydown", (e) => {
+    if (e.key !== "Enter" && e.key !== " ") return;
+    const card = e.target.closest(".ach-card[data-code]");
+    if (!card) return;
+    e.preventDefault();
+    const ach = data.results.find(a => a.code === card.dataset.code);
+    if (ach) openAchievementModal(ach, ctx);
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Per-achievement detail builder — explains how a given achievement was
+// earned, lists contributing items where applicable, or shows what's left.
+// ---------------------------------------------------------------------------
+
+function findUnlockingFlight(ach, ctx) {
+  // For COUNT-based achievements (flights_count, distance_km, flight_hours,
+  // night_flights, weekend_flights, same_route_count, etc.) we can pinpoint
+  // the flight that crossed the threshold by walking flights chronologically
+  // and tracking the relevant metric.
+  const KM = 1.60934;
+  const flights = [...ctx.flights].sort((a, b) => (a.depart || "").localeCompare(b.depart || ""));
+  let acc = 0;
+  const routes = new Map();
+  const airlines = new Map();
+  for (const f of flights) {
+    const d = new Date(f.depart);
+    const km = (f._miles || 0) * KM;
+    let increment = 0;
+    if (ach.type === "flights_count") increment = 1;
+    else if (ach.type === "distance_km") increment = km;
+    else if (ach.type === "flight_hours") increment = (f._minutes || 0) / 60;
+    else if (ach.type === "night_flights") {
+      if (!isNaN(d) && d.getHours() < 6) increment = 1;
+    } else if (ach.type === "early_morning_flights") {
+      if (!isNaN(d) && d.getHours() >= 4 && d.getHours() < 7) increment = 1;
+    } else if (ach.type === "weekend_flights") {
+      const dow = isNaN(d) ? -1 : d.getDay();
+      if (dow === 0 || dow === 6) increment = 1;
+    } else if (ach.type === "same_route") {
+      const key = `${f.from}-${f.to}`;
+      routes.set(key, (routes.get(key) || 0) + 1);
+      if (routes.get(key) === ach.req) return f;
+      continue;
+    } else if (ach.type === "airline_loyalty") {
+      if (f.airline_code) {
+        airlines.set(f.airline_code, (airlines.get(f.airline_code) || 0) + 1);
+        if (airlines.get(f.airline_code) === ach.req) return f;
+      }
+      continue;
+    } else if (ach.type === "single_flight_distance") {
+      if (km >= ach.req) return f;
+      continue;
+    } else if (ach.type === "micro_flight") {
+      if (km > 0 && km < ach.req * 1000) return f;
+      continue;
+    }
+    acc += increment;
+    if (acc >= ach.req) return f;
+  }
+  return null;
+}
+
+function listContributingItems(ach, ctx, limit = 30) {
+  // For SET-based achievements (countries, airlines, airports, continents,
+  // us_states), list the actual items in the set.
+  const s = ctx.stats;
+  if (ach.type === "countries") {
+    return [...s.countries.entries()]
+      .map(([code, info]) => `${info.flag || ""} ${info.name || code} <span class="muted small">${info.count} stops</span>`)
+      .slice(0, limit);
+  }
+  if (ach.type === "us_states") {
+    return [...s.states.entries()]
+      .sort((a,b) => b[1].count - a[1].count)
+      .map(([code, info]) => `<code>${code}</code> <span class="muted small">${info.count} stops</span>`)
+      .slice(0, limit);
+  }
+  if (ach.type === "airlines") {
+    return [...s.airlines.entries()]
+      .sort((a,b) => b[1].count - a[1].count)
+      .map(([code, info]) => `<code>${code}</code> ${info.name ? escapeHtml(info.name) : ""} <span class="muted small">${info.count} flights</span>`)
+      .slice(0, limit);
+  }
+  if (ach.type === "airports") {
+    return [...s.airports.entries()]
+      .sort((a,b) => b[1] - a[1])
+      .slice(0, limit)
+      .map(([code, n]) => `<code>${code}</code> <span class="muted small">${n} visits</span>`);
+  }
+  if (ach.type === "continents") {
+    const cs = new Set();
+    for (const code of s.airports.keys()) {
+      const ap = ctx.airports[code];
+      if (ap?.continent) cs.add(ap.continent);
+    }
+    return [...cs].map(c => `<code>${c}</code>`);
+  }
+  return [];
+}
+
+function describeRequirement(ach) {
+  // A "what unlocks this" sentence based on requirement type.
+  switch (ach.type) {
+    case "flights_count":          return `${ach.req} total flights`;
+    case "distance_km":            return `${ach.req.toLocaleString()} km flown across all flights`;
+    case "flight_hours":           return `${ach.req} hours of flight time`;
+    case "countries":              return `Visit airports in ${ach.req} different countries`;
+    case "us_states":              return `Visit airports in ${ach.req} different US states`;
+    case "airlines":               return `Fly with ${ach.req} different airlines`;
+    case "airports":               return `Visit ${ach.req} different airports`;
+    case "continents":             return `Touch ${ach.req} of the 7 continents`;
+    case "single_flight_distance": return `One flight of ${ach.req.toLocaleString()} km or more`;
+    case "airline_loyalty":        return `${ach.req} flights with the same carrier`;
+    case "night_flights":          return `${ach.req} flights departing midnight–6 AM`;
+    case "early_morning_flights":  return `${ach.req} flights departing 4–7 AM`;
+    case "weekend_flights":        return `${ach.req} flights on Saturdays or Sundays`;
+    case "consecutive_months":     return `At least one flight every month for ${ach.req} consecutive months`;
+    case "flights_per_month":      return `${ach.req} flights in a single calendar month`;
+    case "flights_per_year":       return `${ach.req} flights in a single year`;
+    case "same_route":             return `Fly the same exact route ${ach.req} times`;
+    case "all_seasons":            return `Fly in all 4 seasons within a single year`;
+    case "ocean_crossing":         return `A flight crossing an ocean`;
+    case "equator_crossing":       return `A flight crossing the equator`;
+    case "arctic_flight":          return `A flight above the Arctic Circle (66.5°N)`;
+    case "micro_flight":           return `A flight shorter than 250 km`;
+    default:                       return ach.desc;
+  }
+}
+
+function progressLineFor(ach) {
+  if (ach.unlocked) {
+    return `<div class="ach-detail-progress unlocked">✓ Unlocked at ${formatNumber(ach.current)} / ${formatNumber(ach.req)}</div>`;
+  }
+  const remaining = Math.max(0, ach.req - ach.current);
+  let remainingStr;
+  if (ach.type === "distance_km") {
+    remainingStr = `${Math.round(remaining).toLocaleString()} km`;
+  } else if (ach.type === "flight_hours") {
+    remainingStr = `${remaining.toFixed(1)} hours`;
+  } else {
+    remainingStr = `${Math.round(remaining).toLocaleString()}`;
+  }
+  return `
+    <div class="ach-detail-progress">
+      <div class="ach-detail-bar"><div class="ach-detail-bar-fill" style="width:${ach.ratio*100}%"></div></div>
+      <div class="ach-detail-numbers">
+        <strong>${formatNumber(ach.current)}</strong> of <strong>${formatNumber(ach.req)}</strong>
+        · <span class="muted">${remainingStr} to go</span>
+      </div>
+    </div>`;
+}
+
+function openAchievementModal(ach, ctx) {
+  const unlockingFlight = ach.unlocked ? findUnlockingFlight(ach, ctx) : null;
+  const items = listContributingItems(ach, ctx, 60);
+
+  const earnedSection = (() => {
+    if (!ach.unlocked) return "";
+    if (unlockingFlight) {
+      return `
+        <div class="ach-earned">
+          <div class="lbl">Unlocked by this flight</div>
+          <div class="earned-flight">
+            <span class="route">${unlockingFlight.from} → ${unlockingFlight.to}</span>
+            <span class="muted">${formatDate(unlockingFlight.depart)} · ${escapeHtml([unlockingFlight.airline_code, unlockingFlight.flight_number].filter(Boolean).join(" "))}</span>
+          </div>
+        </div>`;
+    }
+    return `<div class="ach-earned"><div class="lbl">Status</div><div>Unlocked</div></div>`;
+  })();
+
+  const stillNeeded = !ach.unlocked
+    ? `<div class="ach-needs">
+        <div class="lbl">How to unlock</div>
+        <div>${describeRequirement(ach)}</div>
+      </div>`
+    : "";
+
+  const itemsSection = items.length
+    ? `<div class="ach-items">
+        <div class="lbl">${ach.unlocked ? "Counted toward this" : "What you've contributed so far"} <span class="muted">(${items.length}${items.length >= 60 ? "+" : ""})</span></div>
+        <div class="ach-items-list">
+          ${items.map(it => `<div class="ach-item">${it}</div>`).join("")}
+        </div>
+      </div>`
+    : "";
+
+  openDetailModal(`
+    <header class="ach-detail-head">
+      <div class="ach-detail-icon tier-${ach.tier}">${ach.icon}</div>
+      <div>
+        <div class="ach-detail-cat">${ach.category} · ${ach.tier.toUpperCase()} · +${ach.points} pts</div>
+        <h2 id="detail-modal-title" class="ach-detail-name">${escapeHtml(ach.name)}</h2>
+        <div class="ach-detail-desc">${escapeHtml(ach.desc)}</div>
+      </div>
+    </header>
+
+    ${progressLineFor(ach)}
+    ${earnedSection}
+    ${stillNeeded}
+    ${itemsSection}
+  `);
+}
+
+function escapeHtml(s) {
+  return String(s ?? "")
+    .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;").replace(/'/g,"&#39;");
 }
 
 function renderCategory(cat, items) {
@@ -396,7 +616,8 @@ function renderCard(a) {
   const progressPct = Math.round(a.ratio * 100);
   return `
     <article class="ach-card tier-${a.tier} ${a.unlocked ? "is-unlocked" : "is-locked"}"
-             data-cat="${a.category}" data-tier="${a.tier}" data-unlocked="${a.unlocked ? "1" : "0"}">
+             data-code="${a.code}" data-cat="${a.category}" data-tier="${a.tier}" data-unlocked="${a.unlocked ? "1" : "0"}"
+             role="button" tabindex="0" title="Click for details">
       <div class="ach-card-head">
         <div class="ach-icon">${a.icon}</div>
         <div class="ach-meta">

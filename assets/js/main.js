@@ -4,7 +4,7 @@
 import { computeStats } from "./stats.js";
 import { buildPages } from "./pages.js";
 import { initPassport } from "./passport.js";
-import { renderStatsView, renderWorldView, renderUSView, renderLogView } from "./views.js";
+import { renderStatsView, renderWorldView, renderUSView, renderLogView, openStampModal } from "./views.js";
 import { renderAchievementsView } from "./achievements.js";
 
 const DATA_PATHS = {
@@ -111,6 +111,22 @@ async function boot() {
   // "Travel Passport" brand returns to the Passport tab.
   document.getElementById("brand-home").addEventListener("click", () => {
     document.querySelector('.view-tabs button[data-view="passport"]').click();
+  });
+
+  // Stamp click → open detail modal with all flights to that country/state.
+  // Delegated on the book so it covers every stamp page.
+  book.addEventListener("click", (e) => {
+    const stamp = e.target.closest(".stamp[data-stamp-kind]");
+    if (!stamp) return;
+    e.stopPropagation();
+    openStampModal(stamp.dataset.stampKind, stamp.dataset.stampCode, ctx);
+  });
+  book.addEventListener("keydown", (e) => {
+    if (e.key !== "Enter" && e.key !== " ") return;
+    const stamp = e.target.closest(".stamp[data-stamp-kind]");
+    if (!stamp) return;
+    e.preventDefault();
+    openStampModal(stamp.dataset.stampKind, stamp.dataset.stampCode, ctx);
   });
 }
 

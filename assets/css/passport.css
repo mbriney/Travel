@@ -592,6 +592,15 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   background-image: radial-gradient(circle, rgba(0,0,0,0.04), transparent 60%);
   pointer-events: none;
 }
+.stamp[data-stamp-kind] { cursor: pointer; }
+.stamp[data-stamp-kind]:hover {
+  opacity: 1;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.20));
+}
+.stamp[data-stamp-kind]:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 4px;
+}
 
 .stamp.shape-rect {
   border: 2px solid currentColor;
@@ -1025,7 +1034,18 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   border-radius: 12px;
   display: grid;
   gap: 8px;
-  transition: transform 200ms, background 200ms, border-color 200ms;
+  transition: transform 200ms, background 200ms, border-color 200ms, box-shadow 200ms;
+  cursor: pointer;
+}
+.ach-card:hover {
+  transform: translateY(-2px);
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.16);
+  box-shadow: 0 10px 24px -16px rgba(0,0,0,0.5);
+}
+.ach-card:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 .ach-card.is-locked { opacity: 0.65; }
 .ach-card.is-unlocked { background: rgba(167, 139, 250, 0.06); }
@@ -1575,6 +1595,223 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   margin: 0;
   font-size: 13px;
   color: var(--ink-1);
+}
+
+/* ===========================================================================
+   Stamp detail modal
+   --------------------------------------------------------------------------- */
+.stamp-detail-head {
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  gap: 14px;
+  align-items: center;
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.10);
+  margin-bottom: 14px;
+}
+.stamp-flag {
+  font-size: 56px;
+  line-height: 1;
+  text-align: center;
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,0.30));
+}
+.stamp-region {
+  font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--ink-3);
+}
+.stamp-title {
+  font-family: var(--font-display);
+  font-size: 28px; font-weight: 700;
+  color: var(--ink-1);
+  margin: 4px 0 0;
+}
+
+.stamp-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.stamp-stat {
+  padding: 10px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 8px;
+  text-align: center;
+}
+.stamp-stat .lbl { font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-3); }
+.stamp-stat .val { font-family: var(--font-display); font-weight: 700; font-size: 22px; color: var(--accent); margin-top: 4px; line-height: 1; }
+
+.stamp-dates {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 6px;
+  font-size: 12px; color: var(--ink-2);
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  margin-bottom: 12px;
+}
+.stamp-dates .lbl { color: var(--ink-3); letter-spacing: 0.10em; text-transform: uppercase; font-size: 10px; margin-right: 6px; }
+.stamp-dates .val { color: var(--ink-1); font-family: var(--font-mrz); }
+
+.stamp-section-h {
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin: 14px 0 8px;
+  font-weight: 700;
+}
+
+.ap-list {
+  list-style: none; padding: 0; margin: 0;
+  display: grid; gap: 4px;
+}
+.ap-list li {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 10px;
+  background: rgba(255,255,255,0.03);
+  border-radius: 6px;
+  font-size: 12px;
+}
+.ap-list code { font-family: var(--font-mrz); color: var(--accent); font-weight: 600; }
+.ap-list .ap-name { color: var(--ink-1); }
+.ap-list .ap-city { font-size: 11px; }
+.ap-list .ap-count { margin-left: auto; font-family: var(--font-mrz); color: var(--accent); }
+
+.stamp-flight-table-wrap {
+  max-height: 240px;
+  overflow: auto;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 8px;
+}
+.stamp-flight-table {
+  width: 100%; border-collapse: collapse;
+  font-size: 12px;
+  font-family: var(--font-mrz);
+}
+.stamp-flight-table th {
+  text-align: left;
+  font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--ink-3);
+  padding: 6px 10px;
+  border-bottom: 1px solid rgba(255,255,255,0.10);
+  background: rgba(255,255,255,0.03);
+  font-family: var(--font-sans);
+  position: sticky; top: 0;
+}
+.stamp-flight-table td {
+  padding: 5px 10px;
+  border-bottom: 1px dashed rgba(255,255,255,0.06);
+  color: var(--ink-1);
+}
+.stamp-flight-table td.route { color: var(--accent); letter-spacing: 0.04em; }
+.stamp-flight-table td.airline { color: var(--ink-2); }
+.stamp-flight-table td.miles { text-align: right; font-variant-numeric: tabular-nums; }
+
+/* ===========================================================================
+   Achievement detail modal
+   --------------------------------------------------------------------------- */
+.ach-detail-head {
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  gap: 14px;
+  align-items: center;
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.10);
+  margin-bottom: 14px;
+}
+.ach-detail-icon {
+  width: 64px; height: 64px;
+  border-radius: 16px;
+  display: grid; place-items: center;
+  font-size: 36px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.10);
+}
+.ach-detail-icon.tier-bronze   { border-color: #cd7f32; box-shadow: inset 0 0 0 1px rgba(205,127,50,0.30); }
+.ach-detail-icon.tier-silver   { border-color: #b8c0cc; box-shadow: inset 0 0 0 1px rgba(184,192,204,0.30); }
+.ach-detail-icon.tier-gold     { border-color: #d4af37; box-shadow: inset 0 0 0 1px rgba(212,175,55,0.40); }
+.ach-detail-icon.tier-platinum { border-color: #e6e6ea; box-shadow: inset 0 0 0 1px rgba(230,230,234,0.40); }
+.ach-detail-icon.tier-diamond  { border-color: #7bd9ea; box-shadow: inset 0 0 0 1px rgba(123,217,234,0.40); }
+
+.ach-detail-cat {
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.ach-detail-name {
+  font-family: var(--font-display);
+  font-size: 24px; font-weight: 700;
+  color: var(--ink-1);
+  margin: 4px 0 4px;
+}
+.ach-detail-desc { font-size: 13px; color: var(--ink-2); }
+
+.ach-detail-progress {
+  margin: 12px 0 16px;
+  padding: 12px;
+  background: rgba(255,255,255,0.04);
+  border-radius: 10px;
+}
+.ach-detail-progress.unlocked {
+  background: rgba(74, 222, 128, 0.10);
+  border: 1px solid rgba(74, 222, 128, 0.30);
+  color: #86efac;
+  font-weight: 700;
+  text-align: center;
+}
+.ach-detail-bar {
+  height: 10px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.ach-detail-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-2), var(--accent));
+  border-radius: 999px;
+}
+.ach-detail-numbers {
+  margin-top: 8px;
+  font-size: 13px; color: var(--ink-1);
+  text-align: center;
+}
+
+.ach-earned, .ach-needs, .ach-items {
+  margin-top: 14px;
+}
+.ach-earned .lbl, .ach-needs .lbl, .ach-items .lbl {
+  font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--ink-3);
+  margin-bottom: 6px;
+}
+.earned-flight {
+  padding: 8px 12px;
+  background: rgba(167, 139, 250, 0.10);
+  border: 1px solid rgba(167, 139, 250, 0.30);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: space-between;
+  font-family: var(--font-mrz);
+  font-size: 13px;
+}
+.earned-flight .route { color: var(--accent); font-weight: 700; }
+
+.ach-items-list {
+  display: flex; flex-wrap: wrap;
+  gap: 4px;
+}
+.ach-item {
+  padding: 4px 10px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 999px;
+  font-size: 12px;
+  color: var(--ink-1);
+  display: inline-flex; align-items: center; gap: 4px;
+}
+.ach-item code {
+  font-family: var(--font-mrz);
+  color: var(--accent);
 }
 
 /* ===========================================================================
