@@ -1948,6 +1948,11 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   position: relative;
   width: min(560px, 100%);
   max-height: calc(100dvh - 40px);
+  /* Flex column so the panes block can shrink to fit and let the body
+     overflow scroll. With plain block layout the inner content stretched
+     past the max-height — flexbox + min-height:0 on the scroll target
+     constrains the body properly. */
+  display: flex; flex-direction: column;
   overflow: hidden;
   background: linear-gradient(180deg, #0e1535 0%, #0a0f2c 100%);
   border: 1px solid rgba(255,255,255,0.10);
@@ -1959,12 +1964,20 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .modal-panes {
   display: grid;
   grid-template-columns: 1fr;
-  height: 100%;
-  max-height: calc(100dvh - 40px);
+  /* Flex 1 + min-height:0 lets the panes fill the modal-card AND be
+     allowed to shrink below intrinsic content height — required so the
+     child .modal-body's overflow:auto actually triggers scrolling. */
+  flex: 1;
+  min-height: 0;
 }
 .modal-body, .modal-side {
   padding: 24px;
   overflow: auto;
+  /* Same min-height:0 gotcha here: grid items default to min-height:auto
+     which prevents them from being shorter than their content. Without
+     this, the flight-detail modal's expanded content list stretched the
+     modal past the viewport instead of scrolling inside it. */
+  min-height: 0;
 }
 .modal-side {
   border-left: 1px solid rgba(255,255,255,0.08);
