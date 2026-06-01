@@ -13522,7 +13522,7 @@
     "terminal_arr": "S",
     "_enrichment": {
       "source": "aerodatabox",
-      "fetched_at": "2026-05-25T09:15:14+00:00",
+      "fetched_at": "2026-06-01T09:44:41+00:00",
       "match": "DL 401",
       "requested": "DL401"
     }
@@ -13572,7 +13572,7 @@
     "terminal_arr": "E",
     "_enrichment": {
       "source": "aerodatabox",
-      "fetched_at": "2026-05-25T09:15:16+00:00",
+      "fetched_at": "2026-06-01T09:44:43+00:00",
       "match": "DL 436",
       "requested": "DL436"
     }
@@ -13608,7 +13608,7 @@
     "aircraft_msn": "42599",
     "aircraft_owner": "SOUTHWEST AIRLINES INC",
     "aircraft_model": "Boeing 737-800",
-    "aircraft_image": "https://farm2.staticflickr.com/1764/41419550020_f1dab50b8c_z.jpg",
+    "aircraft_image": "https://farm66.staticflickr.com/65535/51693411514_27dc6dbaf0_z.jpg",
     "callsign": "SWA2297",
     "operating_airline": "Southwest Airlines",
     "operating_airline_iata": "WN",
@@ -13622,7 +13622,7 @@
     "terminal_dep": "1",
     "_enrichment": {
       "source": "aerodatabox",
-      "fetched_at": "2026-05-25T09:15:18+00:00",
+      "fetched_at": "2026-06-01T09:44:45+00:00",
       "match": "WN 2297",
       "requested": "WN2297"
     }
@@ -13658,7 +13658,7 @@
     "aircraft_msn": "34631",
     "aircraft_owner": "SOUTHWEST AIRLINES CO",
     "aircraft_model": "Boeing 737-700",
-    "aircraft_image": "https://farm66.staticflickr.com/65535/50001323191_187e2f4e95_z.jpg",
+    "aircraft_image": "https://farm66.staticflickr.com/65535/51693411514_27dc6dbaf0_z.jpg",
     "callsign": "SWA2408",
     "operating_airline": "Southwest Airlines",
     "operating_airline_iata": "WN",
@@ -13672,7 +13672,7 @@
     "terminal_arr": "1",
     "_enrichment": {
       "source": "aerodatabox",
-      "fetched_at": "2026-05-25T09:15:19+00:00",
+      "fetched_at": "2026-06-01T09:44:46+00:00",
       "match": "WN 2408",
       "requested": "WN2408"
     }
@@ -13710,7 +13710,7 @@
     "flight_diverted": false,
     "_enrichment": {
       "source": "aerodatabox",
-      "fetched_at": "2026-05-25T09:15:21+00:00",
+      "fetched_at": "2026-06-01T09:44:48+00:00",
       "match": "AA 3839",
       "requested": "AA3839"
     }
@@ -13748,7 +13748,7 @@
     "flight_diverted": false,
     "_enrichment": {
       "source": "aerodatabox",
-      "fetched_at": "2026-05-25T09:15:22+00:00",
+      "fetched_at": "2026-06-01T09:44:49+00:00",
       "match": "AA 3839",
       "requested": "AA3839"
     }
@@ -13784,7 +13784,7 @@
     "aircraft_msn": "40583",
     "aircraft_owner": "WILMINGTON TRUST CO TRUSTEE",
     "aircraft_model": "Boeing 737-800",
-    "aircraft_image": "https://farm66.staticflickr.com/65535/54590574400_18633f4d7f_z.jpg",
+    "aircraft_image": "https://farm66.staticflickr.com/65535/49993837493_8820597877_z.jpg",
     "callsign": "AAL2683",
     "operating_airline": "American Airlines",
     "operating_airline_iata": "AA",
@@ -13798,7 +13798,7 @@
     "terminal_arr": "2",
     "_enrichment": {
       "source": "aerodatabox",
-      "fetched_at": "2026-05-25T09:15:24+00:00",
+      "fetched_at": "2026-06-01T09:44:51+00:00",
       "match": "AA 2683",
       "requested": "AA2683"
     }
@@ -13848,7 +13848,7 @@
     "terminal_arr": "2",
     "_enrichment": {
       "source": "aerodatabox",
-      "fetched_at": "2026-05-25T09:15:25+00:00",
+      "fetched_at": "2026-06-01T09:44:52+00:00",
       "match": "AA 1904",
       "requested": "AA1904"
     }
@@ -13897,7 +13897,7 @@
     "arr_delay_min": 123.0,
     "_enrichment": {
       "source": "aerodatabox",
-      "fetched_at": "2026-05-25T09:15:27+00:00",
+      "fetched_at": "2026-06-01T09:44:54+00:00",
       "match": "AA 2714",
       "requested": "AA2714"
     }
@@ -13947,7 +13947,7 @@
     "terminal_dep": "2",
     "_enrichment": {
       "source": "aerodatabox",
-      "fetched_at": "2026-05-25T09:15:28+00:00",
+      "fetched_at": "2026-06-01T09:44:55+00:00",
       "match": "AA 802",
       "requested": "AA802"
     }
@@ -13985,7 +13985,7 @@
     "flight_diverted": false,
     "_enrichment": {
       "source": "aerodatabox",
-      "fetched_at": "2026-05-25T09:15:29+00:00",
+      "fetched_at": "2026-06-01T09:44:57+00:00",
       "match": "AA 3839",
       "requested": "AA3839"
     }
@@ -14023,7 +14023,7 @@
     "flight_diverted": false,
     "_enrichment": {
       "source": "aerodatabox",
-      "fetched_at": "2026-05-25T09:15:31+00:00",
+      "fetched_at": "2026-06-01T09:44:58+00:00",
       "match": "AA 3373",
       "requested": "AA3373"
     }
@@ -14061,7 +14061,7 @@
     "flight_diverted": false,
     "_enrichment": {
       "source": "aerodatabox",
-      "fetched_at": "2026-05-25T09:15:32+00:00",
+      "fetched_at": "2026-06-01T09:45:00+00:00",
       "match": "AA 4161",
       "requested": "AA4161"
     }
@@ -14097,7 +14097,7 @@
     "aircraft_msn": "31192",
     "aircraft_owner": "BANK OF UTAH TRUSTEE",
     "aircraft_model": "Boeing 737-800",
-    "aircraft_image": "https://farm66.staticflickr.com/65535/54590574400_18633f4d7f_z.jpg",
+    "aircraft_image": "https://farm66.staticflickr.com/65535/49993837493_8820597877_z.jpg",
     "callsign": "AAL2244",
     "operating_airline": "American Airlines",
     "operating_airline_iata": "AA",
@@ -14110,7 +14110,7 @@
     "arr_delay_min": -15.0,
     "_enrichment": {
       "source": "aerodatabox",
-      "fetched_at": "2026-05-25T09:15:34+00:00",
+      "fetched_at": "2026-06-01T09:45:02+00:00",
       "match": "AA 2244",
       "requested": "AA2244"
     }
@@ -14148,7 +14148,7 @@
     "flight_diverted": false,
     "_enrichment": {
       "source": "aerodatabox",
-      "fetched_at": "2026-05-25T09:15:35+00:00",
+      "fetched_at": "2026-06-01T09:45:03+00:00",
       "match": "AA 4307",
       "requested": "AA4307"
     }
@@ -14186,7 +14186,7 @@
     "flight_diverted": false,
     "_enrichment": {
       "source": "aerodatabox",
-      "fetched_at": "2026-05-25T09:15:37+00:00",
+      "fetched_at": "2026-06-01T09:45:05+00:00",
       "match": "AA 3652",
       "requested": "AA3652"
     }
@@ -14220,26 +14220,7 @@
     "aircraft_engine_type": "Turbofan",
     "aircraft_mode_s": "AC12D6",
     "aircraft_msn": "67516",
-    "aircraft_owner": "SOUTHWEST AIRLINES CO",
-    "aircraft_model": "Boeing 737 MAX 8",
-    "aircraft_image": "https://farm66.staticflickr.com/65535/53214499853_e68f8ea0cc_z.jpg",
-    "callsign": "SWA2807",
-    "operating_airline": "Southwest Airlines",
-    "operating_airline_iata": "WN",
-    "operating_airline_icao": "SWA",
-    "is_codeshare": false,
-    "is_cargo": false,
-    "flight_cancelled": false,
-    "flight_diverted": false,
-    "dep_delay_min": 8.0,
-    "arr_delay_min": -18.0,
-    "terminal_dep": "1",
-    "_enrichment": {
-      "source": "aerodatabox",
-      "fetched_at": "2026-05-25T09:15:38+00:00",
-      "match": "WN 2807",
-      "requested": "WN2807"
-    }
+    "aircraft_owner": "SOUTHWEST AIRLINES CO"
   },
   {
     "trip_id": "369502890",
@@ -14270,26 +14251,7 @@
     "aircraft_engine_type": "Turbofan",
     "aircraft_mode_s": "A5050E",
     "aircraft_msn": "29826",
-    "aircraft_owner": "UNICAL AVIATION INC",
-    "aircraft_model": "Boeing 737-700",
-    "aircraft_image": "https://farm66.staticflickr.com/65535/50001323191_187e2f4e95_z.jpg",
-    "callsign": "SWA2181",
-    "operating_airline": "Southwest Airlines",
-    "operating_airline_iata": "WN",
-    "operating_airline_icao": "SWA",
-    "is_codeshare": false,
-    "is_cargo": false,
-    "flight_cancelled": false,
-    "flight_diverted": false,
-    "dep_delay_min": 3.0,
-    "arr_delay_min": -20.0,
-    "terminal_arr": "1",
-    "_enrichment": {
-      "source": "aerodatabox",
-      "fetched_at": "2026-05-25T09:15:40+00:00",
-      "match": "WN 2181",
-      "requested": "WN2181"
-    }
+    "aircraft_owner": "UNICAL AVIATION INC"
   },
   {
     "trip_id": "370189266",
@@ -14312,22 +14274,7 @@
     "service_class": "Economy (S)",
     "miles": 977.0,
     "duration": "2h, 38m",
-    "stops": "nonstop",
-    "aircraft_model": "Embraer 175",
-    "aircraft_image": "https://farm1.staticflickr.com/884/41040633642_e0c81164b8_z.jpg",
-    "operating_airline": "American Airlines",
-    "operating_airline_iata": "AA",
-    "operating_airline_icao": "AAL",
-    "is_codeshare": false,
-    "is_cargo": false,
-    "flight_cancelled": false,
-    "flight_diverted": false,
-    "_enrichment": {
-      "source": "aerodatabox",
-      "fetched_at": "2026-05-25T09:15:41+00:00",
-      "match": "AA 3343",
-      "requested": "AA3343"
-    }
+    "stops": "nonstop"
   },
   {
     "trip_id": "370189266",
@@ -14350,22 +14297,7 @@
     "service_class": "Economy (S)",
     "miles": 977.0,
     "duration": "2h, 37m",
-    "stops": "nonstop",
-    "aircraft_model": "Embraer 170",
-    "aircraft_image": "https://farm66.staticflickr.com/65535/54518944397_ba9f64a89d_z.jpg",
-    "operating_airline": "American Airlines",
-    "operating_airline_iata": "AA",
-    "operating_airline_icao": "AAL",
-    "is_codeshare": false,
-    "is_cargo": false,
-    "flight_cancelled": false,
-    "flight_diverted": false,
-    "_enrichment": {
-      "source": "aerodatabox",
-      "fetched_at": "2026-05-25T09:15:43+00:00",
-      "match": "AA 3839",
-      "requested": "AA3839"
-    }
+    "stops": "nonstop"
   },
   {
     "trip_id": "371010501",
@@ -14388,22 +14320,7 @@
     "service_class": "Economy (S)",
     "miles": 977.0,
     "duration": "2h, 37m",
-    "stops": "nonstop",
-    "aircraft_model": "Boeing 737-700",
-    "aircraft_image": "https://farm66.staticflickr.com/65535/49993837493_8820597877_z.jpg",
-    "operating_airline": "American Airlines",
-    "operating_airline_iata": "AA",
-    "operating_airline_icao": "AAL",
-    "is_codeshare": false,
-    "is_cargo": false,
-    "flight_cancelled": false,
-    "flight_diverted": false,
-    "_enrichment": {
-      "source": "aerodatabox",
-      "fetched_at": "2026-05-25T09:15:45+00:00",
-      "match": "AA 3661",
-      "requested": "AA3661"
-    }
+    "stops": "nonstop"
   },
   {
     "trip_id": "371010501",
@@ -15273,6 +15190,29 @@
     "service_class": "Economy (S)",
     "miles": 977.0,
     "duration": "2h, 49m",
+    "stops": "nonstop"
+  },
+  {
+    "trip_id": "381482855",
+    "trip_name": "Bismarck, ND, May 2026",
+    "trip_location": "Bismarck, ND",
+    "trip_start": "2026-05-27",
+    "trip_end": "2026-05-27",
+    "air_id": "1390289522",
+    "from": "DFW",
+    "from_city": "Dallas",
+    "to": "BIS",
+    "to_city": "Bismarck",
+    "depart": "2026-05-27T10:40:00-05:00",
+    "arrive": "2026-05-27T13:30:00-05:00",
+    "airline": "American Airlines",
+    "airline_code": "AA",
+    "flight_number": "3433",
+    "aircraft": "E75",
+    "seat": "11A",
+    "service_class": "Economy (S)",
+    "miles": 977.0,
+    "duration": "2h, 50m",
     "stops": "nonstop"
   }
 ]
