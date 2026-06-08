@@ -13507,7 +13507,7 @@
     "aircraft_msn": "8370",
     "aircraft_owner": "BANK OF UTAH TRUSTEE",
     "aircraft_model": "Airbus A321",
-    "aircraft_image": "https://farm5.staticflickr.com/4672/39343221675_58bebd4743_z.jpg",
+    "aircraft_image": "https://farm6.staticflickr.com/5629/30345416011_893b17f877_z.jpg",
     "callsign": "DAL401",
     "operating_airline": "Delta Air Lines",
     "operating_airline_iata": "DL",
@@ -13522,7 +13522,7 @@
     "terminal_arr": "S",
     "_enrichment": {
       "source": "aerodatabox",
-      "fetched_at": "2026-06-01T09:44:41+00:00",
+      "fetched_at": "2026-06-08T09:29:34+00:00",
       "match": "DL 401",
       "requested": "DL401"
     }
@@ -13572,7 +13572,7 @@
     "terminal_arr": "E",
     "_enrichment": {
       "source": "aerodatabox",
-      "fetched_at": "2026-06-01T09:44:43+00:00",
+      "fetched_at": "2026-06-08T09:29:37+00:00",
       "match": "DL 436",
       "requested": "DL436"
     }
@@ -13622,7 +13622,7 @@
     "terminal_dep": "1",
     "_enrichment": {
       "source": "aerodatabox",
-      "fetched_at": "2026-06-01T09:44:45+00:00",
+      "fetched_at": "2026-06-08T09:29:38+00:00",
       "match": "WN 2297",
       "requested": "WN2297"
     }
@@ -13672,7 +13672,7 @@
     "terminal_arr": "1",
     "_enrichment": {
       "source": "aerodatabox",
-      "fetched_at": "2026-06-01T09:44:46+00:00",
+      "fetched_at": "2026-06-08T09:29:40+00:00",
       "match": "WN 2408",
       "requested": "WN2408"
     }
@@ -13700,7 +13700,7 @@
     "duration": "2h, 39m",
     "stops": "nonstop",
     "aircraft_model": "Embraer 175",
-    "aircraft_image": "https://farm1.staticflickr.com/884/41040633642_e0c81164b8_z.jpg",
+    "aircraft_image": "https://farm5.staticflickr.com/4339/36984107156_daa1452959_z.jpg",
     "operating_airline": "American Airlines",
     "operating_airline_iata": "AA",
     "operating_airline_icao": "AAL",
@@ -13710,7 +13710,7 @@
     "flight_diverted": false,
     "_enrichment": {
       "source": "aerodatabox",
-      "fetched_at": "2026-06-01T09:44:48+00:00",
+      "fetched_at": "2026-06-08T09:29:42+00:00",
       "match": "AA 3839",
       "requested": "AA3839"
     }
@@ -13738,7 +13738,7 @@
     "duration": "2h, 39m",
     "stops": "nonstop",
     "aircraft_model": "Embraer 175",
-    "aircraft_image": "https://farm1.staticflickr.com/884/41040633642_e0c81164b8_z.jpg",
+    "aircraft_image": "https://farm5.staticflickr.com/4339/36984107156_daa1452959_z.jpg",
     "operating_airline": "American Airlines",
     "operating_airline_iata": "AA",
     "operating_airline_icao": "AAL",
@@ -13748,7 +13748,7 @@
     "flight_diverted": false,
     "_enrichment": {
       "source": "aerodatabox",
-      "fetched_at": "2026-06-01T09:44:49+00:00",
+      "fetched_at": "2026-06-08T09:29:44+00:00",
       "match": "AA 3839",
       "requested": "AA3839"
     }
@@ -13784,7 +13784,7 @@
     "aircraft_msn": "40583",
     "aircraft_owner": "WILMINGTON TRUST CO TRUSTEE",
     "aircraft_model": "Boeing 737-800",
-    "aircraft_image": "https://farm66.staticflickr.com/65535/49993837493_8820597877_z.jpg",
+    "aircraft_image": "https://farm5.staticflickr.com/4578/26742278859_177b28f902_z.jpg",
     "callsign": "AAL2683",
     "operating_airline": "American Airlines",
     "operating_airline_iata": "AA",
@@ -13798,7 +13798,7 @@
     "terminal_arr": "2",
     "_enrichment": {
       "source": "aerodatabox",
-      "fetched_at": "2026-06-01T09:44:51+00:00",
+      "fetched_at": "2026-06-08T09:29:45+00:00",
       "match": "AA 2683",
       "requested": "AA2683"
     }
@@ -13848,7 +13848,7 @@
     "terminal_arr": "2",
     "_enrichment": {
       "source": "aerodatabox",
-      "fetched_at": "2026-06-01T09:44:52+00:00",
+      "fetched_at": "2026-06-08T09:29:50+00:00",
       "match": "AA 1904",
       "requested": "AA1904"
     }
@@ -13884,7 +13884,7 @@
     "aircraft_msn": "11194",
     "aircraft_owner": "AMERICAN AIRLINES INC",
     "aircraft_model": "Airbus A321 NEO",
-    "aircraft_image": "https://farm8.staticflickr.com/7848/47030285312_786e58d560_z.jpg",
+    "aircraft_image": "https://farm66.staticflickr.com/65535/54110203648_c57c008210_z.jpg",
     "callsign": "AAL2714",
     "operating_airline": "American Airlines",
     "operating_airline_iata": "AA",
@@ -13897,7 +13897,7 @@
     "arr_delay_min": 123.0,
     "_enrichment": {
       "source": "aerodatabox",
-      "fetched_at": "2026-06-01T09:44:54+00:00",
+      "fetched_at": "2026-06-08T09:29:52+00:00",
       "match": "AA 2714",
       "requested": "AA2714"
     }
@@ -13947,7 +13947,7 @@
     "terminal_dep": "2",
     "_enrichment": {
       "source": "aerodatabox",
-      "fetched_at": "2026-06-01T09:44:55+00:00",
+      "fetched_at": "2026-06-08T09:29:55+00:00",
       "match": "AA 802",
       "requested": "AA802"
     }
@@ -13975,7 +13975,7 @@
     "duration": "2h, 40m",
     "stops": "nonstop",
     "aircraft_model": "Embraer 175",
-    "aircraft_image": "https://farm1.staticflickr.com/884/41040633642_e0c81164b8_z.jpg",
+    "aircraft_image": "https://farm5.staticflickr.com/4339/36984107156_daa1452959_z.jpg",
     "operating_airline": "American Airlines",
     "operating_airline_iata": "AA",
     "operating_airline_icao": "AAL",
@@ -13985,7 +13985,7 @@
     "flight_diverted": false,
     "_enrichment": {
       "source": "aerodatabox",
-      "fetched_at": "2026-06-01T09:44:57+00:00",
+      "fetched_at": "2026-06-08T09:29:56+00:00",
       "match": "AA 3839",
       "requested": "AA3839"
     }
@@ -14013,7 +14013,7 @@
     "duration": "2h, 46m",
     "stops": "nonstop",
     "aircraft_model": "Embraer 175",
-    "aircraft_image": "https://farm1.staticflickr.com/884/41040633642_e0c81164b8_z.jpg",
+    "aircraft_image": "https://farm5.staticflickr.com/4339/36984107156_daa1452959_z.jpg",
     "operating_airline": "American Airlines",
     "operating_airline_iata": "AA",
     "operating_airline_icao": "AAL",
@@ -14023,7 +14023,7 @@
     "flight_diverted": false,
     "_enrichment": {
       "source": "aerodatabox",
-      "fetched_at": "2026-06-01T09:44:58+00:00",
+      "fetched_at": "2026-06-08T09:29:58+00:00",
       "match": "AA 3373",
       "requested": "AA3373"
     }
@@ -14051,7 +14051,7 @@
     "duration": "1h, 55m",
     "stops": "nonstop",
     "aircraft_model": "Embraer 175",
-    "aircraft_image": "https://farm1.staticflickr.com/884/41040633642_e0c81164b8_z.jpg",
+    "aircraft_image": "https://farm5.staticflickr.com/4339/36984107156_daa1452959_z.jpg",
     "operating_airline": "American Airlines",
     "operating_airline_iata": "AA",
     "operating_airline_icao": "AAL",
@@ -14061,7 +14061,7 @@
     "flight_diverted": false,
     "_enrichment": {
       "source": "aerodatabox",
-      "fetched_at": "2026-06-01T09:45:00+00:00",
+      "fetched_at": "2026-06-08T09:30:02+00:00",
       "match": "AA 4161",
       "requested": "AA4161"
     }
@@ -14097,7 +14097,7 @@
     "aircraft_msn": "31192",
     "aircraft_owner": "BANK OF UTAH TRUSTEE",
     "aircraft_model": "Boeing 737-800",
-    "aircraft_image": "https://farm66.staticflickr.com/65535/49993837493_8820597877_z.jpg",
+    "aircraft_image": "https://farm5.staticflickr.com/4578/26742278859_177b28f902_z.jpg",
     "callsign": "AAL2244",
     "operating_airline": "American Airlines",
     "operating_airline_iata": "AA",
@@ -14110,7 +14110,7 @@
     "arr_delay_min": -15.0,
     "_enrichment": {
       "source": "aerodatabox",
-      "fetched_at": "2026-06-01T09:45:02+00:00",
+      "fetched_at": "2026-06-08T09:30:04+00:00",
       "match": "AA 2244",
       "requested": "AA2244"
     }
@@ -14138,7 +14138,7 @@
     "duration": "2h, 35m",
     "stops": "nonstop",
     "aircraft_model": "Embraer 175",
-    "aircraft_image": "https://farm1.staticflickr.com/884/41040633642_e0c81164b8_z.jpg",
+    "aircraft_image": "https://farm5.staticflickr.com/4339/36984107156_daa1452959_z.jpg",
     "operating_airline": "American Airlines",
     "operating_airline_iata": "AA",
     "operating_airline_icao": "AAL",
@@ -14148,7 +14148,7 @@
     "flight_diverted": false,
     "_enrichment": {
       "source": "aerodatabox",
-      "fetched_at": "2026-06-01T09:45:03+00:00",
+      "fetched_at": "2026-06-08T09:30:08+00:00",
       "match": "AA 4307",
       "requested": "AA4307"
     }
@@ -14176,7 +14176,7 @@
     "duration": "2h, 35m",
     "stops": "nonstop",
     "aircraft_model": "Embraer 175",
-    "aircraft_image": "https://farm1.staticflickr.com/884/41040633642_e0c81164b8_z.jpg",
+    "aircraft_image": "https://farm5.staticflickr.com/4339/36984107156_daa1452959_z.jpg",
     "operating_airline": "American Airlines",
     "operating_airline_iata": "AA",
     "operating_airline_icao": "AAL",
@@ -14186,7 +14186,7 @@
     "flight_diverted": false,
     "_enrichment": {
       "source": "aerodatabox",
-      "fetched_at": "2026-06-01T09:45:05+00:00",
+      "fetched_at": "2026-06-08T09:30:11+00:00",
       "match": "AA 3652",
       "requested": "AA3652"
     }
@@ -14220,7 +14220,26 @@
     "aircraft_engine_type": "Turbofan",
     "aircraft_mode_s": "AC12D6",
     "aircraft_msn": "67516",
-    "aircraft_owner": "SOUTHWEST AIRLINES CO"
+    "aircraft_owner": "SOUTHWEST AIRLINES CO",
+    "aircraft_model": "Boeing 737 MAX 8",
+    "aircraft_image": "https://farm66.staticflickr.com/65535/51765629989_b84a0841f2_z.jpg",
+    "callsign": "SWA2807",
+    "operating_airline": "Southwest Airlines",
+    "operating_airline_iata": "WN",
+    "operating_airline_icao": "SWA",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "flight_cancelled": false,
+    "flight_diverted": false,
+    "dep_delay_min": 8.0,
+    "arr_delay_min": -18.0,
+    "terminal_dep": "1",
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-06-08T09:30:15+00:00",
+      "match": "WN 2807",
+      "requested": "WN2807"
+    }
   },
   {
     "trip_id": "369502890",
@@ -14251,7 +14270,26 @@
     "aircraft_engine_type": "Turbofan",
     "aircraft_mode_s": "A5050E",
     "aircraft_msn": "29826",
-    "aircraft_owner": "UNICAL AVIATION INC"
+    "aircraft_owner": "UNICAL AVIATION INC",
+    "aircraft_model": "Boeing 737-700",
+    "aircraft_image": "https://farm66.staticflickr.com/65535/51693411514_27dc6dbaf0_z.jpg",
+    "callsign": "SWA2181",
+    "operating_airline": "Southwest Airlines",
+    "operating_airline_iata": "WN",
+    "operating_airline_icao": "SWA",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "flight_cancelled": false,
+    "flight_diverted": false,
+    "dep_delay_min": 3.0,
+    "arr_delay_min": -20.0,
+    "terminal_arr": "1",
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-06-08T09:30:19+00:00",
+      "match": "WN 2181",
+      "requested": "WN2181"
+    }
   },
   {
     "trip_id": "370189266",
@@ -14274,7 +14312,22 @@
     "service_class": "Economy (S)",
     "miles": 977.0,
     "duration": "2h, 38m",
-    "stops": "nonstop"
+    "stops": "nonstop",
+    "aircraft_model": "Embraer 175",
+    "aircraft_image": "https://farm5.staticflickr.com/4339/36984107156_daa1452959_z.jpg",
+    "operating_airline": "American Airlines",
+    "operating_airline_iata": "AA",
+    "operating_airline_icao": "AAL",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "flight_cancelled": false,
+    "flight_diverted": false,
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-06-08T09:30:23+00:00",
+      "match": "AA 3343",
+      "requested": "AA3343"
+    }
   },
   {
     "trip_id": "370189266",
@@ -14297,7 +14350,22 @@
     "service_class": "Economy (S)",
     "miles": 977.0,
     "duration": "2h, 37m",
-    "stops": "nonstop"
+    "stops": "nonstop",
+    "aircraft_model": "Embraer 170",
+    "aircraft_image": "https://farm66.staticflickr.com/65535/54472858907_f0b887fb39_z.jpg",
+    "operating_airline": "American Airlines",
+    "operating_airline_iata": "AA",
+    "operating_airline_icao": "AAL",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "flight_cancelled": false,
+    "flight_diverted": false,
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-06-08T09:30:26+00:00",
+      "match": "AA 3839",
+      "requested": "AA3839"
+    }
   },
   {
     "trip_id": "371010501",
@@ -14320,7 +14388,22 @@
     "service_class": "Economy (S)",
     "miles": 977.0,
     "duration": "2h, 37m",
-    "stops": "nonstop"
+    "stops": "nonstop",
+    "aircraft_model": "Boeing 737-700",
+    "aircraft_image": "https://farm5.staticflickr.com/4578/26742278859_177b28f902_z.jpg",
+    "operating_airline": "American Airlines",
+    "operating_airline_iata": "AA",
+    "operating_airline_icao": "AAL",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "flight_cancelled": false,
+    "flight_diverted": false,
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-06-08T09:30:27+00:00",
+      "match": "AA 3661",
+      "requested": "AA3661"
+    }
   },
   {
     "trip_id": "371010501",
@@ -14343,7 +14426,22 @@
     "service_class": "Economy (S)",
     "miles": 977.0,
     "duration": "2h, 39m",
-    "stops": "nonstop"
+    "stops": "nonstop",
+    "aircraft_model": "Embraer 175",
+    "aircraft_image": "https://farm5.staticflickr.com/4339/36984107156_daa1452959_z.jpg",
+    "operating_airline": "American Airlines",
+    "operating_airline_iata": "AA",
+    "operating_airline_icao": "AAL",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "flight_cancelled": false,
+    "flight_diverted": false,
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-06-08T09:30:29+00:00",
+      "match": "AA 3839",
+      "requested": "AA3839"
+    }
   },
   {
     "trip_id": "371998889",
@@ -14374,7 +14472,26 @@
     "aircraft_engine_type": "Turbofan",
     "aircraft_mode_s": "ACD0CA",
     "aircraft_msn": "29526",
-    "aircraft_owner": "WILMINGTON TRUST CO TRUSTEE"
+    "aircraft_owner": "WILMINGTON TRUST CO TRUSTEE",
+    "aircraft_model": "Boeing 737-800",
+    "aircraft_image": "https://farm5.staticflickr.com/4578/26742278859_177b28f902_z.jpg",
+    "callsign": "AAL1366",
+    "operating_airline": "American Airlines",
+    "operating_airline_iata": "AA",
+    "operating_airline_icao": "AAL",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "flight_cancelled": false,
+    "flight_diverted": false,
+    "dep_delay_min": 31.0,
+    "arr_delay_min": 7.0,
+    "terminal_arr": "B",
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-06-08T09:30:31+00:00",
+      "match": "AA 1366",
+      "requested": "AA1366"
+    }
   },
   {
     "trip_id": "371998889",
@@ -14405,7 +14522,26 @@
     "aircraft_engine_type": "Turbofan",
     "aircraft_mode_s": "ADC17B",
     "aircraft_msn": "7046",
-    "aircraft_owner": "AMERICAN AIRLINES INC"
+    "aircraft_owner": "AMERICAN AIRLINES INC",
+    "aircraft_model": "Airbus A321",
+    "aircraft_image": "https://farm66.staticflickr.com/65535/49213406156_87e584dfc7_z.jpg",
+    "callsign": "AAL2661",
+    "operating_airline": "American Airlines",
+    "operating_airline_iata": "AA",
+    "operating_airline_icao": "AAL",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "flight_cancelled": false,
+    "flight_diverted": false,
+    "dep_delay_min": 15.0,
+    "arr_delay_min": -41.0,
+    "terminal_dep": "B",
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-06-08T09:30:33+00:00",
+      "match": "AA 2661",
+      "requested": "AA2661"
+    }
   },
   {
     "trip_id": "372252580",
@@ -14436,7 +14572,27 @@
     "aircraft_engine_type": "Turbofan",
     "aircraft_mode_s": "ABD971",
     "aircraft_msn": "36894",
-    "aircraft_owner": "SOUTHWEST AIRLINES CO"
+    "aircraft_owner": "SOUTHWEST AIRLINES CO",
+    "aircraft_model": "Boeing 737-800",
+    "aircraft_image": "https://farm66.staticflickr.com/65535/51693411514_27dc6dbaf0_z.jpg",
+    "callsign": "SWA2175",
+    "operating_airline": "Southwest Airlines",
+    "operating_airline_iata": "WN",
+    "operating_airline_icao": "SWA",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "flight_cancelled": false,
+    "flight_diverted": false,
+    "dep_delay_min": 23.0,
+    "arr_delay_min": -15.0,
+    "terminal_dep": "B",
+    "terminal_arr": "1",
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-06-08T09:30:35+00:00",
+      "match": "WN 2175",
+      "requested": "WN2175"
+    }
   },
   {
     "trip_id": "372252580",
@@ -14467,7 +14623,26 @@
     "aircraft_engine_type": "Turbofan",
     "aircraft_mode_s": "ABD50F",
     "aircraft_msn": "36892",
-    "aircraft_owner": "UMB BANK NA TRUSTEE"
+    "aircraft_owner": "UMB BANK NA TRUSTEE",
+    "aircraft_model": "Boeing 737-800",
+    "aircraft_image": "https://farm66.staticflickr.com/65535/51693411514_27dc6dbaf0_z.jpg",
+    "callsign": "SWA3217",
+    "operating_airline": "Southwest Airlines",
+    "operating_airline_iata": "WN",
+    "operating_airline_icao": "SWA",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "flight_cancelled": false,
+    "flight_diverted": false,
+    "dep_delay_min": 22.0,
+    "arr_delay_min": 14.0,
+    "terminal_arr": "1",
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-06-08T09:30:37+00:00",
+      "match": "WN 3217",
+      "requested": "WN3217"
+    }
   },
   {
     "trip_id": "372001564",
@@ -14498,7 +14673,26 @@
     "aircraft_engine_type": "Turbofan",
     "aircraft_mode_s": "ABEDC8",
     "aircraft_msn": "40763",
-    "aircraft_owner": "WILMINGTON TRUST CO TRUSTEE"
+    "aircraft_owner": "WILMINGTON TRUST CO TRUSTEE",
+    "aircraft_model": "Boeing 737-800",
+    "aircraft_image": "https://farm5.staticflickr.com/4578/26742278859_177b28f902_z.jpg",
+    "callsign": "AAL1244",
+    "operating_airline": "American Airlines",
+    "operating_airline_iata": "AA",
+    "operating_airline_icao": "AAL",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "flight_cancelled": false,
+    "flight_diverted": false,
+    "dep_delay_min": 7.0,
+    "arr_delay_min": -16.0,
+    "terminal_arr": "2",
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-06-08T09:30:42+00:00",
+      "match": "AA 1244",
+      "requested": "AA1244"
+    }
   },
   {
     "trip_id": "372001564",
@@ -14529,7 +14723,26 @@
     "aircraft_engine_type": "Turbofan",
     "aircraft_mode_s": "ABE2A3",
     "aircraft_msn": "29554",
-    "aircraft_owner": "WILMINGTON TRUST CO TRUSTEE"
+    "aircraft_owner": "WILMINGTON TRUST CO TRUSTEE",
+    "aircraft_model": "Boeing 737-800",
+    "aircraft_image": "https://farm5.staticflickr.com/4578/26742278859_177b28f902_z.jpg",
+    "callsign": "AAL336",
+    "operating_airline": "American Airlines",
+    "operating_airline_iata": "AA",
+    "operating_airline_icao": "AAL",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "flight_cancelled": false,
+    "flight_diverted": false,
+    "dep_delay_min": 83.0,
+    "arr_delay_min": 33.0,
+    "terminal_dep": "2",
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-06-08T09:30:44+00:00",
+      "match": "AA 336",
+      "requested": "AA336"
+    }
   },
   {
     "trip_id": "373567277",
@@ -14560,7 +14773,25 @@
     "aircraft_engine_type": "Turbofan",
     "aircraft_mode_s": "A55218",
     "aircraft_msn": "10711",
-    "aircraft_owner": "BANK OF UTAH TRUSTEE"
+    "aircraft_owner": "BANK OF UTAH TRUSTEE",
+    "aircraft_model": "Airbus A321 NEO",
+    "aircraft_image": "https://farm66.staticflickr.com/65535/54110203648_c57c008210_z.jpg",
+    "callsign": "AAL1241",
+    "operating_airline": "American Airlines",
+    "operating_airline_iata": "AA",
+    "operating_airline_icao": "AAL",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "flight_cancelled": false,
+    "flight_diverted": false,
+    "dep_delay_min": 14.0,
+    "arr_delay_min": -38.0,
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-06-08T09:30:46+00:00",
+      "match": "AA 1241",
+      "requested": "AA1241"
+    }
   },
   {
     "trip_id": "373567277",
@@ -14591,7 +14822,25 @@
     "aircraft_engine_type": "Turbofan",
     "aircraft_mode_s": "ACC3B4",
     "aircraft_msn": "6523",
-    "aircraft_owner": "AMERICAN AIRLINES INC"
+    "aircraft_owner": "AMERICAN AIRLINES INC",
+    "aircraft_model": "Airbus A321",
+    "aircraft_image": "https://farm66.staticflickr.com/65535/49213406156_87e584dfc7_z.jpg",
+    "callsign": "AAL757",
+    "operating_airline": "American Airlines",
+    "operating_airline_iata": "AA",
+    "operating_airline_icao": "AAL",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "flight_cancelled": false,
+    "flight_diverted": false,
+    "dep_delay_min": 12.0,
+    "arr_delay_min": -36.0,
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-06-08T09:30:49+00:00",
+      "match": "AA 757",
+      "requested": "AA757"
+    }
   },
   {
     "trip_id": "368957082",
@@ -14622,7 +14871,26 @@
     "aircraft_engine_type": "Turbofan",
     "aircraft_mode_s": "A5C4DE",
     "aircraft_msn": "12262",
-    "aircraft_owner": "AMERICAN AIRLINES INC"
+    "aircraft_owner": "AMERICAN AIRLINES INC",
+    "aircraft_model": "Airbus A321 NEO",
+    "aircraft_image": "https://farm66.staticflickr.com/65535/54110203648_c57c008210_z.jpg",
+    "callsign": "AAL1496",
+    "operating_airline": "American Airlines",
+    "operating_airline_iata": "AA",
+    "operating_airline_icao": "AAL",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "flight_cancelled": false,
+    "flight_diverted": false,
+    "dep_delay_min": 14.0,
+    "arr_delay_min": -25.0,
+    "terminal_arr": "4",
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-06-08T09:30:51+00:00",
+      "match": "AA 1496",
+      "requested": "AA1496"
+    }
   },
   {
     "trip_id": "368957082",
@@ -14653,7 +14921,26 @@
     "aircraft_engine_type": "Turbofan",
     "aircraft_mode_s": "A57D42",
     "aircraft_msn": "10811",
-    "aircraft_owner": "AMERICAN AIRLINES INC"
+    "aircraft_owner": "AMERICAN AIRLINES INC",
+    "aircraft_model": "Airbus A321 NEO",
+    "aircraft_image": "https://farm66.staticflickr.com/65535/54110203648_c57c008210_z.jpg",
+    "callsign": "AAL2849",
+    "operating_airline": "American Airlines",
+    "operating_airline_iata": "AA",
+    "operating_airline_icao": "AAL",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "flight_cancelled": false,
+    "flight_diverted": false,
+    "dep_delay_min": 223.0,
+    "arr_delay_min": 200.0,
+    "terminal_dep": "4",
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-06-08T09:30:55+00:00",
+      "match": "AA 2849",
+      "requested": "AA2849"
+    }
   },
   {
     "trip_id": "375162801",
@@ -14676,7 +14963,22 @@
     "service_class": "Economy (O)",
     "miles": 977.0,
     "duration": "2h, 44m",
-    "stops": "nonstop"
+    "stops": "nonstop",
+    "aircraft_model": "Embraer 175",
+    "aircraft_image": "https://farm5.staticflickr.com/4339/36984107156_daa1452959_z.jpg",
+    "operating_airline": "American Airlines",
+    "operating_airline_iata": "AA",
+    "operating_airline_icao": "AAL",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "flight_cancelled": false,
+    "flight_diverted": false,
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-06-08T09:30:57+00:00",
+      "match": "AA 3839",
+      "requested": "AA3839"
+    }
   },
   {
     "trip_id": "375162801",
