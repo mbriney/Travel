@@ -51,6 +51,33 @@ export function initPassport(bookEl, pages) {
   const nextBtn = document.getElementById("next");
   const indicator = document.getElementById("indicator");
 
+  // ── Mobile single-page mode ──────────────────────────────────────────────
+  // On phones the 3D two-page spread doesn't fit, so CSS flattens the book
+  // into a full-width horizontal scroll-snap carousel showing ONE page at a
+  // time (front + back faces become individual slides in document order,
+  // which matches the flat `pages` order). In that mode the native scroll
+  // handles paging; we just drive prev/next, the indicator, and the disabled
+  // state from the scroll position instead of the flip state machine.
+  const mqMobile = window.matchMedia("(max-width: 720px)");
+  const isMobile = () => mqMobile.matches;
+  const pageCount = pages.length;
+
+  function currentMobilePage() {
+    const w = bookEl.clientWidth || 1;
+    return Math.round(bookEl.scrollLeft / w);
+  }
+  function scrollToMobilePage(idx, smooth = true) {
+    idx = Math.max(0, Math.min(pageCount - 1, idx));
+    bookEl.scrollTo({ left: idx * bookEl.clientWidth, behavior: smooth ? "smooth" : "auto" });
+  }
+  function updateMobileNav() {
+    const idx = currentMobilePage();
+    prevBtn.disabled = idx <= 0;
+    nextBtn.disabled = idx >= pageCount - 1;
+    const name = pages[idx]?.dataset.name || "—";
+    indicator.textContent = `${idx + 1} / ${pageCount} · ${name}`;
+  }
+
   function pageNameAt(flipState) {
     const sheetIdx = Math.min(flipState, sheets.length - 1);
     const isBack = flipState >= sheets.length;
@@ -88,9 +115,14 @@ export function initPassport(bookEl, pages) {
     else if (flipped === maxFlipped) bookState = "closed-back";
     bookEl.dataset.state = bookState;
 
-    prevBtn.disabled = flipped === 0;
-    nextBtn.disabled = flipped >= maxFlipped;
-    indicator.textContent = `${flipped} / ${maxFlipped} · ${pageNameAt(flipped)}`;
+    if (isMobile()) {
+      // In carousel mode the scroll position is the source of truth.
+      updateMobileNav();
+    } else {
+      prevBtn.disabled = flipped === 0;
+      nextBtn.disabled = flipped >= maxFlipped;
+      indicator.textContent = `${flipped} / ${maxFlipped} · ${pageNameAt(flipped)}`;
+    }
   }
 
   function go(newFlipped) {
@@ -134,14 +166,27 @@ export function initPassport(bookEl, pages) {
     }
   }
 
-  prevBtn.addEventListener("click", () => go(flipped - 1));
-  nextBtn.addEventListener("click", () => go(flipped + 1));
+  prevBtn.addEventListener("click", () => {
+    if (isMobile()) scrollToMobilePage(currentMobilePage() - 1);
+    else go(flipped - 1);
+  });
+  nextBtn.addEventListener("click", () => {
+    if (isMobile()) scrollToMobilePage(currentMobilePage() + 1);
+    else go(flipped + 1);
+  });
 
   document.addEventListener("keydown", (e) => {
     if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
     // Only handle keys while the passport view is active
     const passportActive = document.getElementById("view-passport").classList.contains("is-active");
     if (!passportActive) return;
+    if (isMobile()) {
+      if (e.key === "ArrowRight" || e.key === " ") { e.preventDefault(); scrollToMobilePage(currentMobilePage() + 1); }
+      else if (e.key === "ArrowLeft") { e.preventDefault(); scrollToMobilePage(currentMobilePage() - 1); }
+      else if (e.key === "Home") { e.preventDefault(); scrollToMobilePage(0); }
+      else if (e.key === "End")  { e.preventDefault(); scrollToMobilePage(pageCount - 1); }
+      return;
+    }
     if (e.key === "ArrowRight" || e.key === " ") { e.preventDefault(); go(flipped + 1); }
     else if (e.key === "ArrowLeft") { e.preventDefault(); go(flipped - 1); }
     else if (e.key === "Home") { e.preventDefault(); go(0); }
@@ -149,6 +194,8 @@ export function initPassport(bookEl, pages) {
   });
 
   bookEl.addEventListener("click", (e) => {
+    // On mobile, native horizontal scroll handles paging — don't tap-to-flip.
+    if (isMobile()) return;
     // Ignore clicks on interactive content INSIDE the page — those have
     // their own handlers (stamp detail, links, scrollables, etc.)
     if (e.target.closest("a, button, input, select, textarea, .inner-scroll, .log, svg, .stamp")) return;
@@ -161,11 +208,31 @@ export function initPassport(bookEl, pages) {
   let touchStartX = null;
   bookEl.addEventListener("touchstart", (e) => { touchStartX = e.touches[0].clientX; }, { passive: true });
   bookEl.addEventListener("touchend", (e) => {
+    // On mobile the carousel scrolls natively; the swipe handler would
+    // double-advance, so skip it.
+    if (isMobile()) { touchStartX = null; return; }
     if (touchStartX == null) return;
     const dx = e.changedTouches[0].clientX - touchStartX;
     touchStartX = null;
     if (Math.abs(dx) > 40) (dx < 0) ? go(flipped + 1) : go(flipped - 1);
   });
+
+  // Keep the indicator + arrow disabled state in sync as the carousel scrolls.
+  let scrollRaf = null;
+  bookEl.addEventListener("scroll", () => {
+    if (!isMobile()) return;
+    if (scrollRaf) return;
+    scrollRaf = requestAnimationFrame(() => { scrollRaf = null; updateMobileNav(); });
+  }, { passive: true });
+
+  // When crossing the mobile/desktop breakpoint, re-sync the nav UI. Reset the
+  // carousel to the first page so the indicator and scroll position agree.
+  const onBreakpointChange = () => {
+    if (isMobile()) { bookEl.scrollLeft = 0; updateMobileNav(); }
+    else applyStates();
+  };
+  if (mqMobile.addEventListener) mqMobile.addEventListener("change", onBreakpointChange);
+  else if (mqMobile.addListener) mqMobile.addListener(onBreakpointChange);
 
   applyStates();
 }

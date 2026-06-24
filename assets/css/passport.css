@@ -2491,8 +2491,17 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
    Responsive
    --------------------------------------------------------------------------- */
 @media (max-width: 900px) {
-  .topbar { flex-wrap: wrap; padding: 10px 14px; }
-  .view-tabs { order: 3; flex-basis: 100%; justify-content: center; }
+  .topbar { flex-wrap: wrap; padding: 10px 14px; min-width: 0; }
+  /* Let all seven tabs wrap onto a second row instead of overflowing the
+     viewport (which previously pushed the whole app wider than the screen and
+     hid the Timeline/Log tabs entirely). */
+  .view-tabs {
+    order: 3; flex-basis: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+    row-gap: 6px;
+    min-width: 0; max-width: 100%;
+  }
   .book-wrap { padding: 4px 12px; }
   .nav-arrow { width: 40px; height: 40px; }
   .nav-prev { left: 0; }
@@ -2512,7 +2521,78 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 @media (max-width: 720px) {
   .stamps-grid { grid-template-columns: 1fr; }
   .hero-row { grid-template-columns: 1fr 1fr; }
-  .book { aspect-ratio: 10 / 8; }
+
+  /* ── Single-page passport on phones ─────────────────────────────────────
+     The 3D two-page spread can't fit a phone, so flatten the flip-book into a
+     full-width, one-page-at-a-time horizontal scroll-snap carousel. The two
+     faces of each sheet (front + back) become individual slides in document
+     order, which is exactly the page order. passport.js detects this
+     breakpoint and drives prev/next + the indicator from scroll position. */
+  .book-wrap { padding: 4px 8px; }
+  .book {
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+    height: 100%;
+    max-height: none;
+    aspect-ratio: auto;
+    perspective: none;
+    background: none;
+    filter: none;
+    transform: none !important;
+    display: flex;
+    align-items: center;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .book::-webkit-scrollbar { display: none; }
+
+  /* The sheet wrapper has no role in flat layout — let its two faces become
+     direct flex items of the carousel. */
+  .book .sheet {
+    display: contents;
+  }
+  .book .sheet-face {
+    position: relative;
+    inset: auto;
+    flex: 0 0 100%;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 5 / 7;
+    max-height: 100%;
+    margin: auto 0;
+    scroll-snap-align: center;
+    transform: none !important;
+    backface-visibility: visible !important;
+    -webkit-backface-visibility: visible !important;
+    pointer-events: auto !important;
+    box-shadow: 0 16px 36px -16px rgba(0,0,0,0.6);
+    border-radius: 6px;
+  }
+  /* Buried sheets get pointer-events:none inline from passport.js for the 3D
+     hit-test; that's irrelevant in flat layout, so keep every page tappable. */
+  .book .sheet-face * { pointer-events: auto; }
+
+  .book .page { border-radius: 6px; }
+
+  /* Floating pager arrows overlay the page edges, carousel-style. */
+  .nav-arrow { width: 38px; height: 38px; background: rgba(10,15,44,0.72); }
+  .nav-prev { left: 4px; }
+  .nav-next { right: 4px; }
+  .page-indicator { bottom: 2px; }
+}
+
+/* Narrow phones — give content room to breathe and prevent any horizontal
+   overflow from generous desktop padding. */
+@media (max-width: 520px) {
+  .view-inner { padding: 16px 14px 36px; }
+  .hero-row { gap: 8px; }
+  .hero { padding: 14px; }
+  .modal-body, .modal-side { padding: 18px 16px; }
+  .footer { padding: 8px 14px 12px; text-align: center; }
 }
 @media (prefers-reduced-motion: reduce) {
   .bg-stars::after, .cover-shimmer { animation: none; }
