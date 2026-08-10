@@ -13837,22 +13837,7 @@
     "service_class": "Economy (Q)",
     "miles": 629.0,
     "duration": "1h, 55m",
-    "stops": "nonstop",
-    "aircraft_model": "Embraer 175",
-    "aircraft_image": "https://farm1.staticflickr.com/884/41040633642_e0c81164b8_z.jpg",
-    "operating_airline": "American Airlines",
-    "operating_airline_iata": "AA",
-    "operating_airline_icao": "AAL",
-    "is_codeshare": false,
-    "is_cargo": false,
-    "flight_cancelled": false,
-    "flight_diverted": false,
-    "_enrichment": {
-      "source": "aerodatabox",
-      "fetched_at": "2026-08-03T11:10:06+00:00",
-      "match": "AA 4161",
-      "requested": "AA4161"
-    }
+    "stops": "nonstop"
   },
   {
     "trip_id": "368482615",
@@ -13883,25 +13868,7 @@
     "aircraft_engine_type": "Turbofan",
     "aircraft_mode_s": "AD2FD0",
     "aircraft_msn": "31192",
-    "aircraft_owner": "BANK OF UTAH TRUSTEE",
-    "aircraft_model": "Boeing 737-800",
-    "aircraft_image": "https://farm5.staticflickr.com/4578/26742278859_177b28f902_z.jpg",
-    "callsign": "AAL2244",
-    "operating_airline": "American Airlines",
-    "operating_airline_iata": "AA",
-    "operating_airline_icao": "AAL",
-    "is_codeshare": false,
-    "is_cargo": false,
-    "flight_cancelled": false,
-    "flight_diverted": false,
-    "dep_delay_min": 9.0,
-    "arr_delay_min": -15.0,
-    "_enrichment": {
-      "source": "aerodatabox",
-      "fetched_at": "2026-08-03T11:10:08+00:00",
-      "match": "AA 2244",
-      "requested": "AA2244"
-    }
+    "aircraft_owner": "BANK OF UTAH TRUSTEE"
   },
   {
     "trip_id": "369579023",
@@ -13936,7 +13903,7 @@
     "flight_diverted": false,
     "_enrichment": {
       "source": "aerodatabox",
-      "fetched_at": "2026-08-03T11:10:09+00:00",
+      "fetched_at": "2026-08-10T09:04:03+00:00",
       "match": "AA 4307",
       "requested": "AA4307"
     }
@@ -13974,7 +13941,7 @@
     "flight_diverted": false,
     "_enrichment": {
       "source": "aerodatabox",
-      "fetched_at": "2026-08-03T11:10:11+00:00",
+      "fetched_at": "2026-08-10T09:04:04+00:00",
       "match": "AA 3652",
       "requested": "AA3652"
     }
@@ -14024,7 +13991,7 @@
     "terminal_dep": "1",
     "_enrichment": {
       "source": "aerodatabox",
-      "fetched_at": "2026-08-03T11:10:14+00:00",
+      "fetched_at": "2026-08-10T09:04:06+00:00",
       "match": "WN 2807",
       "requested": "WN2807"
     }
@@ -14058,7 +14025,26 @@
     "aircraft_engine_type": "Turbofan",
     "aircraft_mode_s": "A5050E",
     "aircraft_msn": "29826",
-    "aircraft_owner": "UNICAL AVIATION INC"
+    "aircraft_owner": "UNICAL AVIATION INC",
+    "aircraft_model": "Boeing 737-700",
+    "aircraft_image": "https://farm66.staticflickr.com/65535/51693411514_27dc6dbaf0_z.jpg",
+    "callsign": "SWA2181",
+    "operating_airline": "Southwest Airlines",
+    "operating_airline_iata": "WN",
+    "operating_airline_icao": "SWA",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "flight_cancelled": false,
+    "flight_diverted": false,
+    "dep_delay_min": 3.0,
+    "arr_delay_min": -20.0,
+    "terminal_arr": "1",
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-08-10T09:04:07+00:00",
+      "match": "WN 2181",
+      "requested": "WN2181"
+    }
   },
   {
     "trip_id": "370189266",
@@ -14081,7 +14067,22 @@
     "service_class": "Economy (S)",
     "miles": 977.0,
     "duration": "2h, 38m",
-    "stops": "nonstop"
+    "stops": "nonstop",
+    "aircraft_model": "Embraer 175",
+    "aircraft_image": "https://farm1.staticflickr.com/884/41040633642_e0c81164b8_z.jpg",
+    "operating_airline": "American Airlines",
+    "operating_airline_iata": "AA",
+    "operating_airline_icao": "AAL",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "flight_cancelled": false,
+    "flight_diverted": false,
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-08-10T09:04:09+00:00",
+      "match": "AA 3343",
+      "requested": "AA3343"
+    }
   },
   {
     "trip_id": "370189266",
@@ -14104,7 +14105,22 @@
     "service_class": "Economy (S)",
     "miles": 977.0,
     "duration": "2h, 37m",
-    "stops": "nonstop"
+    "stops": "nonstop",
+    "aircraft_model": "Embraer 170",
+    "aircraft_image": "https://farm66.staticflickr.com/65535/54518944397_ba9f64a89d_z.jpg",
+    "operating_airline": "American Airlines",
+    "operating_airline_iata": "AA",
+    "operating_airline_icao": "AAL",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "flight_cancelled": false,
+    "flight_diverted": false,
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-08-10T09:04:11+00:00",
+      "match": "AA 3839",
+      "requested": "AA3839"
+    }
   },
   {
     "trip_id": "371010501",
@@ -14127,7 +14143,22 @@
     "service_class": "Economy (S)",
     "miles": 977.0,
     "duration": "2h, 37m",
-    "stops": "nonstop"
+    "stops": "nonstop",
+    "aircraft_model": "Boeing 737-700",
+    "aircraft_image": "https://farm66.staticflickr.com/65535/49993837493_8820597877_z.jpg",
+    "operating_airline": "American Airlines",
+    "operating_airline_iata": "AA",
+    "operating_airline_icao": "AAL",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "flight_cancelled": false,
+    "flight_diverted": false,
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-08-10T09:04:12+00:00",
+      "match": "AA 3661",
+      "requested": "AA3661"
+    }
   },
   {
     "trip_id": "371010501",
@@ -14150,7 +14181,22 @@
     "service_class": "Economy (S)",
     "miles": 977.0,
     "duration": "2h, 39m",
-    "stops": "nonstop"
+    "stops": "nonstop",
+    "aircraft_model": "Embraer 175",
+    "aircraft_image": "https://farm1.staticflickr.com/884/41040633642_e0c81164b8_z.jpg",
+    "operating_airline": "American Airlines",
+    "operating_airline_iata": "AA",
+    "operating_airline_icao": "AAL",
+    "is_codeshare": false,
+    "is_cargo": false,
+    "flight_cancelled": false,
+    "flight_diverted": false,
+    "_enrichment": {
+      "source": "aerodatabox",
+      "fetched_at": "2026-08-10T09:04:14+00:00",
+      "match": "AA 3839",
+      "requested": "AA3839"
+    }
   },
   {
     "trip_id": "371998889",
