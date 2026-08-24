@@ -13961,7 +13961,7 @@
     "terminal_dep": "1",
     "_enrichment": {
       "source": "aerodatabox",
-      "fetched_at": "2026-08-17T08:28:27+00:00",
+      "fetched_at": "2026-08-24T08:33:38+00:00",
       "match": "WN 2807",
       "requested": "WN2807"
     }
@@ -14011,7 +14011,7 @@
     "terminal_arr": "1",
     "_enrichment": {
       "source": "aerodatabox",
-      "fetched_at": "2026-08-17T08:28:29+00:00",
+      "fetched_at": "2026-08-24T08:33:40+00:00",
       "match": "WN 2181",
       "requested": "WN2181"
     }
@@ -14049,7 +14049,7 @@
     "flight_diverted": false,
     "_enrichment": {
       "source": "aerodatabox",
-      "fetched_at": "2026-08-17T08:28:30+00:00",
+      "fetched_at": "2026-08-24T08:33:41+00:00",
       "match": "AA 3343",
       "requested": "AA3343"
     }
@@ -14087,7 +14087,7 @@
     "flight_diverted": false,
     "_enrichment": {
       "source": "aerodatabox",
-      "fetched_at": "2026-08-17T08:28:32+00:00",
+      "fetched_at": "2026-08-24T08:33:43+00:00",
       "match": "AA 3839",
       "requested": "AA3839"
     }
@@ -14125,7 +14125,7 @@
     "flight_diverted": false,
     "_enrichment": {
       "source": "aerodatabox",
-      "fetched_at": "2026-08-17T08:28:33+00:00",
+      "fetched_at": "2026-08-24T08:33:45+00:00",
       "match": "AA 3661",
       "requested": "AA3661"
     }
@@ -14163,7 +14163,7 @@
     "flight_diverted": false,
     "_enrichment": {
       "source": "aerodatabox",
-      "fetched_at": "2026-08-17T08:28:35+00:00",
+      "fetched_at": "2026-08-24T08:33:46+00:00",
       "match": "AA 3839",
       "requested": "AA3839"
     }
@@ -14199,7 +14199,7 @@
     "aircraft_msn": "29526",
     "aircraft_owner": "WILMINGTON TRUST CO TRUSTEE",
     "aircraft_model": "Boeing 737-800",
-    "aircraft_image": "https://farm66.staticflickr.com/65535/49993837493_8820597877_z.jpg",
+    "aircraft_image": "https://farm66.staticflickr.com/65535/54590574400_18633f4d7f_z.jpg",
     "callsign": "AAL1366",
     "operating_airline": "American Airlines",
     "operating_airline_iata": "AA",
@@ -14213,7 +14213,7 @@
     "terminal_arr": "B",
     "_enrichment": {
       "source": "aerodatabox",
-      "fetched_at": "2026-08-17T08:28:37+00:00",
+      "fetched_at": "2026-08-24T08:33:48+00:00",
       "match": "AA 1366",
       "requested": "AA1366"
     }
@@ -14263,7 +14263,7 @@
     "terminal_dep": "B",
     "_enrichment": {
       "source": "aerodatabox",
-      "fetched_at": "2026-08-17T08:28:38+00:00",
+      "fetched_at": "2026-08-24T08:33:49+00:00",
       "match": "AA 2661",
       "requested": "AA2661"
     }
@@ -14299,7 +14299,7 @@
     "aircraft_msn": "36894",
     "aircraft_owner": "SOUTHWEST AIRLINES CO",
     "aircraft_model": "Boeing 737-800",
-    "aircraft_image": "https://farm66.staticflickr.com/65535/51996206139_4e5f179986_z.jpg",
+    "aircraft_image": "https://farm5.staticflickr.com/4473/37151170864_841ea84e48_z.jpg",
     "callsign": "SWA2175",
     "operating_airline": "Southwest Airlines",
     "operating_airline_iata": "WN",
@@ -14314,7 +14314,7 @@
     "terminal_arr": "1",
     "_enrichment": {
       "source": "aerodatabox",
-      "fetched_at": "2026-08-17T08:28:40+00:00",
+      "fetched_at": "2026-08-24T08:33:51+00:00",
       "match": "WN 2175",
       "requested": "WN2175"
     }
@@ -14350,7 +14350,7 @@
     "aircraft_msn": "36892",
     "aircraft_owner": "UMB BANK NA TRUSTEE",
     "aircraft_model": "Boeing 737-800",
-    "aircraft_image": "https://farm66.staticflickr.com/65535/51996206139_4e5f179986_z.jpg",
+    "aircraft_image": "https://farm66.staticflickr.com/65535/51693411514_27dc6dbaf0_z.jpg",
     "callsign": "SWA3217",
     "operating_airline": "Southwest Airlines",
     "operating_airline_iata": "WN",
@@ -14364,7 +14364,7 @@
     "terminal_arr": "1",
     "_enrichment": {
       "source": "aerodatabox",
-      "fetched_at": "2026-08-17T08:28:42+00:00",
+      "fetched_at": "2026-08-24T08:33:53+00:00",
       "match": "WN 3217",
       "requested": "WN3217"
     }
@@ -14400,7 +14400,7 @@
     "aircraft_msn": "40763",
     "aircraft_owner": "WILMINGTON TRUST CO TRUSTEE",
     "aircraft_model": "Boeing 737-800",
-    "aircraft_image": "https://farm66.staticflickr.com/65535/49993837493_8820597877_z.jpg",
+    "aircraft_image": "https://farm66.staticflickr.com/65535/54590574400_18633f4d7f_z.jpg",
     "callsign": "AAL1244",
     "operating_airline": "American Airlines",
     "operating_airline_iata": "AA",
@@ -14414,7 +14414,7 @@
     "terminal_arr": "2",
     "_enrichment": {
       "source": "aerodatabox",
-      "fetched_at": "2026-08-17T08:28:44+00:00",
+      "fetched_at": "2026-08-24T08:33:54+00:00",
       "match": "AA 1244",
       "requested": "AA1244"
     }
@@ -14450,7 +14450,7 @@
     "aircraft_msn": "29554",
     "aircraft_owner": "WILMINGTON TRUST CO TRUSTEE",
     "aircraft_model": "Boeing 737-800",
-    "aircraft_image": "https://farm66.staticflickr.com/65535/49993837493_8820597877_z.jpg",
+    "aircraft_image": "https://farm66.staticflickr.com/65535/54590574400_18633f4d7f_z.jpg",
     "callsign": "AAL336",
     "operating_airline": "American Airlines",
     "operating_airline_iata": "AA",
@@ -14464,7 +14464,7 @@
     "terminal_dep": "2",
     "_enrichment": {
       "source": "aerodatabox",
-      "fetched_at": "2026-08-17T08:28:45+00:00",
+      "fetched_at": "2026-08-24T08:33:56+00:00",
       "match": "AA 336",
       "requested": "AA336"
     }
@@ -14513,7 +14513,7 @@
     "arr_delay_min": -38.0,
     "_enrichment": {
       "source": "aerodatabox",
-      "fetched_at": "2026-08-17T08:28:47+00:00",
+      "fetched_at": "2026-08-24T08:33:57+00:00",
       "match": "AA 1241",
       "requested": "AA1241"
     }
@@ -14562,7 +14562,7 @@
     "arr_delay_min": -36.0,
     "_enrichment": {
       "source": "aerodatabox",
-      "fetched_at": "2026-08-17T08:28:49+00:00",
+      "fetched_at": "2026-08-24T08:33:59+00:00",
       "match": "AA 757",
       "requested": "AA757"
     }
@@ -14612,7 +14612,7 @@
     "terminal_arr": "4",
     "_enrichment": {
       "source": "aerodatabox",
-      "fetched_at": "2026-08-17T08:28:51+00:00",
+      "fetched_at": "2026-08-24T08:34:00+00:00",
       "match": "AA 1496",
       "requested": "AA1496"
     }
@@ -14662,7 +14662,7 @@
     "terminal_dep": "4",
     "_enrichment": {
       "source": "aerodatabox",
-      "fetched_at": "2026-08-17T08:28:53+00:00",
+      "fetched_at": "2026-08-24T08:34:02+00:00",
       "match": "AA 2849",
       "requested": "AA2849"
     }
@@ -14700,7 +14700,7 @@
     "flight_diverted": false,
     "_enrichment": {
       "source": "aerodatabox",
-      "fetched_at": "2026-08-17T08:28:54+00:00",
+      "fetched_at": "2026-08-24T08:34:03+00:00",
       "match": "AA 3839",
       "requested": "AA3839"
     }
@@ -14738,7 +14738,7 @@
     "flight_diverted": false,
     "_enrichment": {
       "source": "aerodatabox",
-      "fetched_at": "2026-08-17T08:28:56+00:00",
+      "fetched_at": "2026-08-24T08:34:05+00:00",
       "match": "AA 3839",
       "requested": "AA3839"
     }
@@ -14776,7 +14776,7 @@
     "flight_diverted": false,
     "_enrichment": {
       "source": "aerodatabox",
-      "fetched_at": "2026-08-17T08:28:57+00:00",
+      "fetched_at": "2026-08-24T08:34:06+00:00",
       "match": "AA 3675",
       "requested": "AA3675"
     }
@@ -14811,7 +14811,7 @@
     "aircraft_msn": "31077",
     "aircraft_owner": "AMERICAN AIRLINES INC",
     "aircraft_model": "Boeing 737-800",
-    "aircraft_image": "https://farm66.staticflickr.com/65535/49993837493_8820597877_z.jpg",
+    "aircraft_image": "https://farm66.staticflickr.com/65535/54590574400_18633f4d7f_z.jpg",
     "callsign": "AAL2850",
     "operating_airline": "American Airlines",
     "operating_airline_iata": "AA",
@@ -14825,7 +14825,7 @@
     "terminal_arr": "B",
     "_enrichment": {
       "source": "aerodatabox",
-      "fetched_at": "2026-08-17T08:28:59+00:00",
+      "fetched_at": "2026-08-24T08:34:08+00:00",
       "match": "AA 2850",
       "requested": "AA2850"
     }
@@ -14861,7 +14861,7 @@
     "aircraft_msn": "30096",
     "aircraft_owner": "AMERICAN AIRLINES INC",
     "aircraft_model": "Boeing 737-800",
-    "aircraft_image": "https://farm66.staticflickr.com/65535/49993837493_8820597877_z.jpg",
+    "aircraft_image": "https://farm66.staticflickr.com/65535/48045906607_c1a37e3aa4_z.jpg",
     "callsign": "AAL1148",
     "operating_airline": "American Airlines",
     "operating_airline_iata": "AA",
@@ -14875,7 +14875,7 @@
     "terminal_arr": "B",
     "_enrichment": {
       "source": "aerodatabox",
-      "fetched_at": "2026-08-17T08:29:01+00:00",
+      "fetched_at": "2026-08-24T08:34:09+00:00",
       "match": "AA 1148",
       "requested": "AA1148"
     }
@@ -14924,7 +14924,7 @@
     "terminal_arr": "2",
     "_enrichment": {
       "source": "aerodatabox",
-      "fetched_at": "2026-08-17T08:29:03+00:00",
+      "fetched_at": "2026-08-24T08:34:11+00:00",
       "match": "AA 2029",
       "requested": "AA2029"
     }
@@ -14971,7 +14971,7 @@
     "dep_delay_min": 0.0,
     "_enrichment": {
       "source": "aerodatabox",
-      "fetched_at": "2026-08-17T08:29:04+00:00",
+      "fetched_at": "2026-08-24T08:34:12+00:00",
       "match": "AA 2414",
       "requested": "AA2414"
     }
@@ -15009,7 +15009,7 @@
     "flight_diverted": false,
     "_enrichment": {
       "source": "aerodatabox",
-      "fetched_at": "2026-08-17T08:29:06+00:00",
+      "fetched_at": "2026-08-24T08:34:14+00:00",
       "match": "AA 3535",
       "requested": "AA3535"
     }
@@ -15047,7 +15047,7 @@
     "flight_diverted": false,
     "_enrichment": {
       "source": "aerodatabox",
-      "fetched_at": "2026-08-17T08:29:08+00:00",
+      "fetched_at": "2026-08-24T08:34:15+00:00",
       "match": "AA 3535",
       "requested": "AA3535"
     }
@@ -15092,7 +15092,7 @@
     "gate_arr": "44",
     "_enrichment": {
       "source": "aerodatabox",
-      "fetched_at": "2026-08-17T08:29:11+00:00",
+      "fetched_at": "2026-08-24T08:34:17+00:00",
       "match": "AY 20",
       "requested": "AA9018"
     }
@@ -15139,7 +15139,7 @@
     "gate_arr": "A27A",
     "_enrichment": {
       "source": "aerodatabox",
-      "fetched_at": "2026-08-17T08:29:14+00:00",
+      "fetched_at": "2026-08-24T08:34:18+00:00",
       "match": "AY 955",
       "requested": "AY955"
     }
@@ -15185,7 +15185,7 @@
     "terminal_arr": "5",
     "_enrichment": {
       "source": "aerodatabox",
-      "fetched_at": "2026-08-17T08:29:15+00:00",
+      "fetched_at": "2026-08-24T08:34:19+00:00",
       "match": "BA 819",
       "requested": "AA6762"
     }
@@ -15229,7 +15229,7 @@
     "terminal_dep": "3",
     "_enrichment": {
       "source": "aerodatabox",
-      "fetched_at": "2026-08-17T08:29:17+00:00",
+      "fetched_at": "2026-08-24T08:34:21+00:00",
       "match": "AA 731",
       "requested": "AA731"
     }
@@ -15272,7 +15272,7 @@
     "arr_delay_min": 56.0,
     "_enrichment": {
       "source": "aerodatabox",
-      "fetched_at": "2026-08-17T08:29:20+00:00",
+      "fetched_at": "2026-08-24T08:34:22+00:00",
       "match": "AA 5343",
       "requested": "AA5343"
     }
@@ -15302,7 +15302,7 @@
     "tail_number": "N103US",
     "aircraft_model": "Airbus A320",
     "aircraft_mode_s": "A011AC",
-    "aircraft_image": "https://farm66.staticflickr.com/65535/52480148573_68c4e697e3_z.jpg",
+    "aircraft_image": "https://farm66.staticflickr.com/65535/54229321264_a7677d3e23_z.jpg",
     "callsign": "AAL753",
     "operating_airline": "American Airlines",
     "operating_airline_iata": "AA",
@@ -15315,7 +15315,7 @@
     "arr_delay_min": 77.0,
     "_enrichment": {
       "source": "aerodatabox",
-      "fetched_at": "2026-08-17T08:29:22+00:00",
+      "fetched_at": "2026-08-24T08:34:24+00:00",
       "match": "AA 753",
       "requested": "AA753"
     }
@@ -15353,7 +15353,7 @@
     "flight_diverted": false,
     "_enrichment": {
       "source": "aerodatabox",
-      "fetched_at": "2026-08-17T08:29:23+00:00",
+      "fetched_at": "2026-08-24T08:34:25+00:00",
       "match": "AA 3380",
       "requested": "AA3380"
     }
@@ -15391,7 +15391,7 @@
     "flight_diverted": false,
     "_enrichment": {
       "source": "aerodatabox",
-      "fetched_at": "2026-08-17T08:29:25+00:00",
+      "fetched_at": "2026-08-24T08:34:27+00:00",
       "match": "AA 3469",
       "requested": "AA3469"
     }
@@ -15429,7 +15429,7 @@
     "flight_diverted": false,
     "_enrichment": {
       "source": "aerodatabox",
-      "fetched_at": "2026-08-17T08:29:27+00:00",
+      "fetched_at": "2026-08-24T08:34:28+00:00",
       "match": "AA 3567",
       "requested": "AA3567"
     }
@@ -15467,7 +15467,7 @@
     "flight_diverted": false,
     "_enrichment": {
       "source": "aerodatabox",
-      "fetched_at": "2026-08-17T08:29:28+00:00",
+      "fetched_at": "2026-08-24T08:34:30+00:00",
       "match": "AA 3469",
       "requested": "AA3469"
     }
@@ -15505,7 +15505,7 @@
     "flight_diverted": false,
     "_enrichment": {
       "source": "aerodatabox",
-      "fetched_at": "2026-08-17T08:29:29+00:00",
+      "fetched_at": "2026-08-24T08:34:31+00:00",
       "match": "AA 3469",
       "requested": "AA3469"
     }
@@ -15543,7 +15543,7 @@
     "flight_diverted": false,
     "_enrichment": {
       "source": "aerodatabox",
-      "fetched_at": "2026-08-17T08:29:31+00:00",
+      "fetched_at": "2026-08-24T08:34:32+00:00",
       "match": "AA 3469",
       "requested": "AA3469"
     }
@@ -15581,7 +15581,7 @@
     "flight_diverted": false,
     "_enrichment": {
       "source": "aerodatabox",
-      "fetched_at": "2026-08-17T08:29:32+00:00",
+      "fetched_at": "2026-08-24T08:34:33+00:00",
       "match": "AA 3371",
       "requested": "AA3371"
     }
@@ -15619,7 +15619,7 @@
     "flight_diverted": false,
     "_enrichment": {
       "source": "aerodatabox",
-      "fetched_at": "2026-08-17T08:29:34+00:00",
+      "fetched_at": "2026-08-24T08:34:35+00:00",
       "match": "AA 3433",
       "requested": "AA3433"
     }
@@ -15649,7 +15649,7 @@
     "tail_number": "N668AW",
     "aircraft_model": "Airbus A320",
     "aircraft_mode_s": "A8D206",
-    "aircraft_image": "https://farm66.staticflickr.com/65535/52480148573_68c4e697e3_z.jpg",
+    "aircraft_image": "https://farm66.staticflickr.com/65535/54229321264_a7677d3e23_z.jpg",
     "callsign": "AAL1581",
     "operating_airline": "American Airlines",
     "operating_airline_iata": "AA",
@@ -15663,7 +15663,7 @@
     "terminal_dep": "2",
     "_enrichment": {
       "source": "aerodatabox",
-      "fetched_at": "2026-08-17T08:29:36+00:00",
+      "fetched_at": "2026-08-24T08:34:36+00:00",
       "match": "AA 1581",
       "requested": "AA1581"
     }
@@ -15706,7 +15706,7 @@
     "arr_delay_min": -7.0,
     "_enrichment": {
       "source": "aerodatabox",
-      "fetched_at": "2026-08-17T08:29:39+00:00",
+      "fetched_at": "2026-08-24T08:34:38+00:00",
       "match": "AA 5579",
       "requested": "AA5579"
     }
@@ -15736,7 +15736,7 @@
     "tail_number": "N274SY",
     "aircraft_model": "Embraer 175",
     "aircraft_mode_s": "A2B6FF",
-    "aircraft_image": "https://farm66.staticflickr.com/65535/50802490003_0b6e7d4ddb_z.jpg",
+    "aircraft_image": "https://farm66.staticflickr.com/65535/50292930568_4c30bbfd81_z.jpg",
     "callsign": "SKW3935",
     "operating_airline": "Delta Air Lines",
     "operating_airline_iata": "DL",
@@ -15750,7 +15750,7 @@
     "terminal_dep": "1",
     "_enrichment": {
       "source": "aerodatabox",
-      "fetched_at": "2026-08-17T08:29:40+00:00",
+      "fetched_at": "2026-08-24T08:34:39+00:00",
       "match": "DL 3935",
       "requested": "DL3935"
     }
@@ -15780,7 +15780,7 @@
     "tail_number": "N334NB",
     "aircraft_model": "Airbus A319",
     "aircraft_mode_s": "A3A5D9",
-    "aircraft_image": "https://farm6.staticflickr.com/5677/29777266683_9a836bd43b_z.jpg",
+    "aircraft_image": "https://farm5.staticflickr.com/4436/35942079924_b8f9b505fe_z.jpg",
     "callsign": "DAL2961",
     "operating_airline": "Delta Air Lines",
     "operating_airline_iata": "DL",
@@ -15795,7 +15795,7 @@
     "terminal_arr": "2",
     "_enrichment": {
       "source": "aerodatabox",
-      "fetched_at": "2026-08-17T08:29:42+00:00",
+      "fetched_at": "2026-08-24T08:34:42+00:00",
       "match": "DL 2961",
       "requested": "DL2961"
     }
@@ -15833,7 +15833,7 @@
     "flight_diverted": false,
     "_enrichment": {
       "source": "aerodatabox",
-      "fetched_at": "2026-08-17T08:29:44+00:00",
+      "fetched_at": "2026-08-24T08:34:44+00:00",
       "match": "AA 3433",
       "requested": "AA3433"
     }
